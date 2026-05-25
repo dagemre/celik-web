@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 // ─── Video Modal ───────────────────────────────────────────────────────────────
 function VideoModal({ onClose }: { onClose: () => void }) {
@@ -443,7 +441,6 @@ function ScrollToTop() {
 export default function HomePage() {
   return (
     <>
-      <Navbar />
       <main>
         <Hero />
         <Projeler />
@@ -451,7 +448,6 @@ export default function HomePage() {
         <GoogleYorumlar />
         <Haberler />
       </main>
-      <Footer />
       <ScrollToTop />
     </>
   )
