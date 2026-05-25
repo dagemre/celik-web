@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -441,7 +439,6 @@ export default function ProjeDetayPage({ params }: { params: { slug: string } })
 
   return (
     <>
-      <Navbar />
 
       {/* ── Breadcrumb + Hero ── */}
       <section className="relative min-h-[560px] flex flex-col justify-end overflow-hidden">
@@ -716,8 +713,6 @@ export default function ProjeDetayPage({ params }: { params: { slug: string } })
           <p className="absolute bottom-5 text-white/40 text-sm">{lightbox + 1} / {proje.gallery.length}</p>
         </div>
       )}
-
-      <Footer />
     </>
   )
 }

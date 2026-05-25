@@ -76,7 +76,7 @@ export default function Footer() {
                 <svg width="15" height="15" className="mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                 </svg>
-                Merkez mah. Yazgan sok. No:6/a<br />Avcılar / İstanbul
+                Zeytinlik Mahallesi Türkçü Sokak<br />Kayalı Apt. B Blok No: 6 D: 4<br />Bakırköy / İstanbul
               </li>
               <li>
                 <a href="tel:+902124210288" className="flex items-center gap-2.5 text-white/50 hover:text-white text-sm transition-colors">

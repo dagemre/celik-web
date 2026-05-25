@@ -2,8 +2,6 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 // ─── Video Modal ───────────────────────────────────────────────────────────────
 function VideoModal({ onClose }: { onClose: () => void }) {
@@ -307,14 +305,12 @@ function Haberler() {
 export default function HomePage() {
   return (
     <>
-      <Navbar />
       <main>
         <Hero />
         <Projeler />
         <NedenBiz />
         <Haberler />
       </main>
-      <Footer />
     </>
   )
 }

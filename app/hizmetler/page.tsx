@@ -1,7 +1,5 @@
 'use client'
 
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 function Icon({ name, size = 48, style }: { name: string; size?: number; style?: React.CSSProperties }) {
   return (
@@ -32,7 +30,6 @@ const BLUE_FILTER = 'brightness(0) saturate(100%) invert(22%) sepia(90%) saturat
 export default function HizmetlerPage() {
   return (
     <>
-      <Navbar />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
@@ -130,8 +127,6 @@ export default function HizmetlerPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </>
   )
 }

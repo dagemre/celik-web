@@ -1,6 +1,3 @@
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-
 export const metadata = {
   title: 'Hakkımızda | Çelik Taahhüt İnşaat',
   description: 'Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. hakkında bilgi edinin. 2009\'dan bu yana İstanbul\'da güvenli ve kaliteli inşaat projeleri.',
@@ -9,7 +6,6 @@ export const metadata = {
 export default function HakkimizdaPage() {
   return (
     <>
-      <Navbar />
 
       {/* Hero */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
@@ -226,7 +222,6 @@ export default function HakkimizdaPage() {
         </div>
       </section>
 
-      <Footer />
     </>
   )
 }

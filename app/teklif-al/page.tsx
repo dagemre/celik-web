@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 function Icon({ name, size = 24, style }: { name: string; size?: number; style?: React.CSSProperties }) {
   return <img src={`/icons/${name}.svg`} alt={name} width={size} height={size} style={style} />
@@ -39,7 +37,6 @@ export default function TeklifAlPage() {
 
   return (
     <>
-      <Navbar />
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
@@ -233,8 +230,6 @@ export default function TeklifAlPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </>
   )
 }

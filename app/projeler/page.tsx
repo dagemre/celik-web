@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import Link from 'next/link'
 
 // İleride Supabase'den gelecek — şimdilik mock data
@@ -73,7 +71,6 @@ export default function ProjelerPage() {
 
   return (
     <>
-      <Navbar />
 
       {/* Hero */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
@@ -243,8 +240,6 @@ export default function ProjelerPage() {
           )}
         </div>
       </section>
-
-      <Footer />
     </>
   )
 }

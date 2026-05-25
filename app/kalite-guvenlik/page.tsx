@@ -1,7 +1,5 @@
 'use client'
 
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 function Icon({ name, size = 40, style }: { name: string; size?: number; style?: React.CSSProperties }) {
   return <img src={`/icons/${name}.svg`} alt={name} width={size} height={size} style={style} />
@@ -35,7 +33,6 @@ const SERTIFIKALAR = [
 export default function KaliteGuvenlikPage() {
   return (
     <>
-      <Navbar />
 
       {/* ── Hero — hakkımızda ile aynı ───────────────────────────── */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
@@ -140,8 +137,6 @@ export default function KaliteGuvenlikPage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </>
   )
 }
