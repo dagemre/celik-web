@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 // ─── Video Modal ───────────────────────────────────────────────────────────────
 function VideoModal({ onClose }: { onClose: () => void }) {
@@ -103,18 +105,18 @@ function Hero() {
 
 // ─── Projeler ─────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { slug: 'degirmen-sokak',   name: 'Değirmen Sokak',   location: 'İstanbul / Avcılar', status: 'Devam Ediyor', statusCls: 'bg-[#0A1F44] text-white',       img: '/projeler/degirmen-sokak/DJI_20240922001110_0317_D.JPG' },
-  { slug: 'papatya-sokak',    name: 'Papatya Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/papatya-sokak/DJI_20240920224940_0193_D.JPG' },
-  { slug: 'mahmutoglu-sokak', name: 'Mahmutoğlu Sokak', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/mahmutoglu-sokak/DJI_20240921210940_0209_D.JPG' },
-  { slug: 'oya-sokak',        name: 'Oya Sokak',        location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/oya-sokak/DJI_20240920222607_0175_D.JPG' },
-  { slug: 'sukrubey-caddesi', name: 'Şükrübey Caddesi', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/sukrubey-caddesi/DJI_20240921231700_0289_D.JPG' },
-  { slug: 'menekse-sokak',    name: 'Menekşe Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/menekse-sokak/DJI_20240921212429_0222_D.JPG' },
-  { slug: 'koroglu-sokak',    name: 'Köroğlu Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/koroglu-sokak/DJI_20240921223036_0261_D.JPG' },
-  { slug: 'ds-ahmet-caddesi', name: 'D.S. Ahmet Cad.',  location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/ds-ahmet-caddesi/DJI_20240920213730_0137_D.JPG' },
-  { slug: 'afacan-sokak',     name: 'Afacan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/afacan-sokak/DJI_20240921214713_0237_D.JPG' },
-  { slug: 'hacibey-sokak',    name: 'Hacıbey Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/hacibey-sokak/DJI_20240921234703_0299_D.JPG' },
-  { slug: 'turna-sokak',      name: 'Turna Sokak',      location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/turna-sokak/DJI_20240920212530_0131_D.JPG' },
-  { slug: 'yazgan-sokak',     name: 'Yazgan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/yazgan-sokak/DJI_20240920204659_0103_D.JPG' },
+  { slug: 'degirmen-sokak',   name: 'Değirmen Sokak',   location: 'İstanbul / Avcılar', status: 'Devam Ediyor', statusCls: 'bg-[#0A1F44] text-white',       img: '/projeler/DEĞİRMEN SOKAK DEVAM EDEN/DJI_20240922001110_0317_D.JPG' },
+  { slug: 'papatya-sokak',    name: 'Papatya Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/PAPATYA SOKAK/DJI_20240920224940_0193_D.JPG' },
+  { slug: 'mahmutoglu-sokak', name: 'Mahmutoğlu Sokak', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/MAHMUTOĞLU SOKAK/DJI_20240921210940_0209_D.JPG' },
+  { slug: 'oya-sokak',        name: 'Oya Sokak',        location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/OYA SOKAK/DJI_20240920222607_0175_D.JPG' },
+  { slug: 'sukrubey-caddesi', name: 'Şükrübey Caddesi', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/ŞÜKRÜBEY CADDESİ/DJI_20240921231700_0289_D.JPG' },
+  { slug: 'menekse-sokak',    name: 'Menekşe Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/MENEKŞE SOKAK/DJI_20240921212429_0222_D.JPG' },
+  { slug: 'koroglu-sokak',    name: 'Köroğlu Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/KÖROĞLU SOKAK/DJI_20240921223036_0261_D.JPG' },
+  { slug: 'ds-ahmet-caddesi', name: 'D.S. Ahmet Cad.',  location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/D.S.AHMET CADDESİ/DJI_20240920213730_0137_D.JPG' },
+  { slug: 'afacan-sokak',     name: 'Afacan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/AFACAN SOKAK/DJI_20240921214713_0237_D.JPG' },
+  { slug: 'hacibey-sokak',    name: 'Hacıbey Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/HACIBEY SOKAK/DJI_20240921234703_0299_D.JPG' },
+  { slug: 'turna-sokak',      name: 'Turna Sokak',      location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/TURNA SOKAK/DJI_20240920212530_0131_D.JPG' },
+  { slug: 'yazgan-sokak',     name: 'Yazgan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/YAZGAN SOKAK/DJI_20240920204659_0103_D.JPG' },
 ]
 
 function Projeler() {
@@ -134,7 +136,7 @@ function Projeler() {
   }
 
   return (
-    <section className="py-20 bg-white">
+    <section className="pt-12 pb-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Başlık satırı */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-4">
@@ -223,7 +225,7 @@ function NedenBiz() {
   ]
 
   return (
-    <section className="py-20 bg-[#F8F9FC]">
+    <section className="pt-12 pb-20 bg-[#F8F9FC]">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -254,6 +256,117 @@ function NedenBiz() {
   )
 }
 
+// ─── Google Yorumları ─────────────────────────────────────────────────────────
+const REVIEWS = [
+  { name: 'Ahmet Yılmaz',   rating: 5, date: '1 ay önce',  text: 'Çelik İnşaat ile çalışmak gerçekten harika bir deneyimdi. Projemizi zamanında ve söz verilen kalitede teslim ettiler. Tüm süreç boyunca şeffaf bir iletişim sağladılar.' },
+  { name: 'Fatma Kaya',     rating: 5, date: '2 ay önce',  text: 'Dairemizin inşaat sürecini yakından takip ettim. Kullanılan malzemelerin kalitesi ve işçiliğin özeni gerçekten etkileyici. Kesinlikle tavsiye ederim.' },
+  { name: 'Mehmet Demir',   rating: 5, date: '2 ay önce',  text: 'Profesyonel ekibi ve kaliteli işçiliğiyle Çelik İnşaat beklentilerimin çok üzerinde bir hizmet verdi. Komşularıma da tavsiye ettim, çok memnun kaldılar.' },
+  { name: 'Zeynep Arslan',  rating: 5, date: '3 ay önce',  text: 'Satın aldığımız daire için tüm süreç çok sorunsuz ilerledi. Teslim sonrasında da her türlü sorumuzda yardımcı oldular. Teşekkürler Çelik İnşaat.' },
+  { name: 'Mustafa Çetin',  rating: 5, date: '3 ay önce',  text: 'Avcılar\'daki projelerini yakından takip ettim. İnşaat kalitesi ve kullanılan malzemeler gerçekten birinci sınıf. Güvenle tercih edilebilir bir firma.' },
+  { name: 'Elif Şahin',     rating: 5, date: '4 ay önce',  text: 'İnşaat sektöründe güvenilir firma bulmak zor ama Çelik İnşaat bu konuda gerçekten fark yaratıyor. Zamanında teslimat ve kaliteli işçilik için çok teşekkürler.' },
+  { name: 'Hasan Özdemir',  rating: 5, date: '5 ay önce',  text: 'Daire tesliminde hiçbir sorun yaşamadık. Her şey vaatlerine uygundu. Firma yetkililerinin samimiyeti ve ilgisi gerçekten takdir edilesi. Harika bir ekip.' },
+  { name: 'Selin Aydın',    rating: 5, date: '5 ay önce',  text: 'Uzun araştırmalar sonucunda Çelik İnşaat\'ı tercih ettik ve hiç pişman olmadık. Kaliteli malzeme, özenli işçilik ve güler yüzlü ekip. Herkese tavsiye ederim.' },
+  { name: 'Kadir Polat',    rating: 5, date: '6 ay önce',  text: 'Yıllarca tasarruf edip bu daireyi satın aldık. Çelik İnşaat bizi hayal kırıklığına uğratmadı. Hem kalite hem fiyat açısından çok makul bir tercihti.' },
+  { name: 'Ayşe Koç',       rating: 5, date: '7 ay önce',  text: 'Projenin başından sonuna kadar her aşamada bilgilendirildik. Şeffaf iletişim ve güvenilir yaklaşımları sayesinde süreci hiç stressiz atlattık.' },
+  { name: 'İbrahim Yıldız', rating: 5, date: '8 ay önce',  text: 'Çelik İnşaat gerçekten sektörün en iyilerinden biri. İnşaat kalitesi, müşteri hizmetleri ve teslimat süresi açısından tam puan veriyorum.' },
+  { name: 'Merve Aktaş',    rating: 5, date: '10 ay önce', text: 'Daireyi teslim aldığımızda son derece memnun kaldık. Ufak tefek eksikler anında giderildi. Satış sonrası destek de çok iyi, sormak istediğiniz her şeyi sorabilirsiniz.' },
+]
+
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill={filled ? '#FBBC04' : 'none'} stroke={filled ? '#FBBC04' : '#ddd'} strokeWidth="1.5">
+      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+    </svg>
+  )
+}
+
+const GoogleLogo = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+)
+
+function ReviewCard({ r }: { r: typeof REVIEWS[0] }) {
+  return (
+    <div className="flex-shrink-0 w-[290px] sm:w-[320px] bg-[#F8F9FC] rounded-2xl p-5 border border-gray-100 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#0A1F44] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            {r.name.charAt(0)}
+          </div>
+          <div>
+            <p className="font-semibold text-[#0A1F44] text-sm leading-tight">{r.name}</p>
+            <p className="text-gray-400 text-xs mt-0.5">{r.date}</p>
+          </div>
+        </div>
+        <GoogleLogo size={16} />
+      </div>
+      <div className="flex gap-0.5">
+        {[...Array(r.rating)].map((_, j) => <StarIcon key={j} filled={true} />)}
+      </div>
+      <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">{r.text}</p>
+    </div>
+  )
+}
+
+function GoogleYorumlar() {
+  const [isPaused, setIsPaused] = useState(false)
+
+  return (
+    <section className="pt-16 pb-6 bg-white">
+      {/* Başlık */}
+      <div className="max-w-7xl mx-auto px-6 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-[#1E54C8] text-xs font-semibold tracking-[0.18em] uppercase mb-3">MÜŞTERİ DENEYİMLERİ</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-[1.9rem] font-bold text-[#0A1F44] leading-snug">Google Yorumları</h2>
+              <div className="flex items-center gap-2 bg-[#F8F9FC] border border-gray-100 rounded-xl px-3.5 py-1.5">
+                <GoogleLogo size={18} />
+                <span className="text-sm font-bold text-[#0A1F44]">5.0</span>
+                <div className="flex gap-0.5">{[...Array(5)].map((_, i) => <StarIcon key={i} filled={true} />)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Mobil: parmakla kaydırılabilir ─────────────────────── */}
+      <div className="lg:hidden overflow-x-auto flex gap-4 px-6 pb-4 snap-x snap-mandatory scrollbar-hide">
+        {REVIEWS.map((r, i) => (
+          <div key={i} className="snap-start">
+            <ReviewCard r={r} />
+          </div>
+        ))}
+      </div>
+
+      {/* ── Desktop: otomatik sağdan sola marquee ───────────────── */}
+      <div
+        className="hidden lg:block relative overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        {/* Sol fade */}
+        <div className="absolute left-0 top-0 bottom-4 w-28 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+        {/* Sağ fade */}
+        <div className="absolute right-0 top-0 bottom-4 w-28 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+
+        <div
+          className="flex gap-5 animate-marquee pb-2"
+          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+        >
+          {[...REVIEWS, ...REVIEWS].map((r, i) => (
+            <ReviewCard key={i} r={r} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Haberler ─────────────────────────────────────────────────────────────────
 const NEWS = [
   { id: 1, day: '24', month: 'Mayıs', title: 'Sürdürülebilir İnşaatın Geleceği', excerpt: 'Çevre dostu malzemeler ve sürdürülebilir uygulamalarla daha yaşanabilir bir gelecek.', img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&q=80' },
@@ -263,7 +376,7 @@ const NEWS = [
 
 function Haberler() {
   return (
-    <section className="py-20 bg-white">
+    <section className="pt-4 pb-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-4">
           <div>
@@ -301,16 +414,45 @@ function Haberler() {
   )
 }
 
+// ─── Yukarı Git ───────────────────────────────────────────────────────────────
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="fixed bottom-8 right-8 z-50 w-11 h-11 bg-[#0A1F44] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#0D2857] hover:-translate-y-1 transition-all duration-200"
+      aria-label="Yukarı git"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 19V5M5 12l7-7 7 7" />
+      </svg>
+    </button>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   return (
     <>
+      <Navbar />
       <main>
         <Hero />
         <Projeler />
         <NedenBiz />
+        <GoogleYorumlar />
         <Haberler />
       </main>
+      <Footer />
+      <ScrollToTop />
     </>
   )
 }

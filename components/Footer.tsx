@@ -19,10 +19,12 @@ export default function Footer() {
             <div className="flex gap-2.5 mt-6">
               {[
                 { label: 'f', href: '#' },
-                { label: 'in', href: '#' },
+                { label: 'in', href: 'https://www.instagram.com/celiktaahhut/' },
                 { label: 'yt', href: '#' },
               ].map((s) => (
                 <a key={s.label} href={s.href}
+                  target={s.href !== '#' ? '_blank' : undefined}
+                  rel={s.href !== '#' ? 'noopener noreferrer' : undefined}
                   className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded flex items-center justify-center text-white/70 text-xs font-bold transition-colors">
                   {s.label}
                 </a>
@@ -76,7 +78,7 @@ export default function Footer() {
                 <svg width="15" height="15" className="mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                 </svg>
-                Zeytinlik Mahallesi Türkçü Sokak<br />Kayalı Apt. B Blok No: 6 D: 4<br />Bakırköy / İstanbul
+                Merkez mah. Yazgan sok. No:6/a<br />Avcılar / İstanbul
               </li>
               <li>
                 <a href="tel:+902124210288" className="flex items-center gap-2.5 text-white/50 hover:text-white text-sm transition-colors">

@@ -77,25 +77,38 @@ export default function Navbar() {
           >
             Teklif Alın
           </Link>
+          {/* Malik Giriş */}
           <Link
             href="/malik-giris"
+            className="w-9 h-9 rounded-full border border-white/50 flex items-center justify-center text-white/80 hover:border-white hover:text-white hover:bg-white/10 transition-all"
             title="Malik Girişi"
-            className="flex items-center justify-center w-9 h-9 rounded-full border border-white/40 text-white/80 hover:text-white hover:border-white hover:bg-white/10 transition-all"
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
             </svg>
           </Link>
         </div>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setMenuOpen(!menuOpen)} className="xl:hidden text-white">
+        {/* Mobile — malik giriş + hamburger */}
+        <div className="xl:hidden flex items-center gap-3">
+          <Link
+            href="/malik-giris"
+            className="w-8 h-8 rounded-full border border-white/50 flex items-center justify-center text-white/80 hover:border-white hover:text-white transition-all"
+            title="Malik Girişi"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </Link>
+        <button onClick={() => setMenuOpen(!menuOpen)} className="text-white">
           {menuOpen
             ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" strokeLinecap="round"/><line x1="6" y1="6" x2="18" y2="18" strokeLinecap="round"/></svg>
             : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round"/><line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round"/><line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round"/></svg>
           }
         </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
