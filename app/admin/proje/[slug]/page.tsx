@@ -1127,6 +1127,217 @@ const DairelerTab = () => {
   )
 }
 
+// ── Malikler Mock Data ─────────────────────────────────────────────────────────
+type MalikItem = {
+  id: string; name: string; initials: string
+  katNo: number; daire: string; tip: string
+  phone: string; toplam: number; odenen: number
+}
+type MalikForm = {
+  name: string; phone: string; email: string
+  daire: string; toplam: string; odenen: string
+  vade: string; tip: string
+}
+
+const MALIKLER_MOCK: MalikItem[] = [
+  { id: 'm1', name: 'Emre Dağ',     initials: 'ED', katNo: 6, daire: '21', tip: '3+1', phone: '0555 123 45 67', toplam: 1_500_000, odenen: 500_000   },
+  { id: 'm2', name: 'Ahmet Yılmaz', initials: 'AY', katNo: 6, daire: '22', tip: '2+1', phone: '0544 987 65 43', toplam: 1_200_000, odenen: 1_200_000 },
+  { id: 'm3', name: 'Mehmet Kaya',  initials: 'MK', katNo: 6, daire: '23', tip: '2+1', phone: '0533 456 78 90', toplam: 1_000_000, odenen: 300_000   },
+  { id: 'm4', name: 'Ayşe Demir',   initials: 'AD', katNo: 6, daire: '24', tip: '3+1', phone: '0507 234 56 78', toplam: 1_000_000, odenen: 0         },
+  { id: 'm5', name: 'Fatma Şahin',  initials: 'FŞ', katNo: 5, daire: '17', tip: '2+1', phone: '0532 111 22 33', toplam: 800_000,   odenen: 0         },
+]
+
+// ── Malikler Tab ───────────────────────────────────────────────────────────────
+const MaliklerTab = () => {
+  const [malikler, setMalikler] = useState<MalikItem[]>(MALIKLER_MOCK)
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm] = useState<MalikForm>({
+    name: '', phone: '', email: '', daire: '',
+    toplam: '', odenen: '', vade: '', tip: '2+1',
+  })
+
+  const katlar = [...new Set(malikler.map(m => m.katNo))].sort((a, b) => b - a)
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.daire.trim()) return
+    const parts = form.name.trim().split(' ')
+    const initials = parts.map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    const newMalik: MalikItem = {
+      id: `m${Date.now()}`,
+      name: form.name.trim(),
+      initials,
+      katNo: parseInt(form.daire) || 1,
+      daire: form.daire.trim(),
+      tip: form.tip,
+      phone: form.phone.trim(),
+      toplam: parseInt(form.toplam.replace(/\D/g, '')) || 0,
+      odenen: parseInt(form.odenen.replace(/\D/g, '')) || 0,
+    }
+    setMalikler(prev => [...prev, newMalik])
+    setShowModal(false)
+    setForm({ name: '', phone: '', email: '', daire: '', toplam: '', odenen: '', vade: '', tip: '2+1' })
+  }
+
+  const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors placeholder:text-neutral-400"
+  const labelCls = "block text-xs font-medium text-neutral-500 mb-1.5"
+
+  return (
+    <div>
+      {/* Başlık */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-bold text-base text-primary-800">Malikler ({malikler.length})</h2>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          Malik Ekle
+        </button>
+      </div>
+
+      {/* Kat grupları */}
+      <div className="space-y-3">
+        {katlar.map(katNo => {
+          const katMalikler = malikler.filter(m => m.katNo === katNo)
+          return (
+            <div key={katNo} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+              {/* Kat başlığı */}
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-50">
+                <span className="font-bold text-sm text-primary-800">{katNo}. Kat</span>
+                <span className="text-xs text-neutral-400">{katMalikler.length} Malik</span>
+              </div>
+              {/* Malik satırları */}
+              <div className="divide-y divide-neutral-50">
+                {katMalikler.map(malik => {
+                  const pct = malik.toplam > 0 ? Math.round(malik.odenen / malik.toplam * 100) : 0
+                  return (
+                    <div key={malik.id} className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-primary-800 font-bold text-sm">{malik.initials}</span>
+                        </div>
+                        {/* Ad + bilgi */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-primary-800">{malik.name}</p>
+                          <p className="text-xs text-neutral-500 mt-0.5 truncate">
+                            Daire {malik.daire} · {malik.tip} · {malik.phone}
+                          </p>
+                        </div>
+                        {/* Düzenle butonu */}
+                        <button className="w-9 h-9 bg-neutral-50 border border-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-neutral-100 transition-colors">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                      {/* Progress bar + tutarlar */}
+                      <div className="mt-3 flex items-center gap-3">
+                        <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-success-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs text-neutral-500 flex-shrink-0 whitespace-nowrap">
+                          {tl(malik.odenen)} / {tl(malik.toplam)}
+                        </span>
+                        <span className="hidden md:block text-xs font-bold text-success-700 w-8 text-right flex-shrink-0">
+                          %{pct}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Boş durum */}
+      {malikler.length === 0 && (
+        <div className="flex flex-col items-center py-20">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="#D3D1C7" strokeWidth="1.5" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#D3D1C7" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <p className="text-neutral-400 font-medium mt-3">Henüz malik eklenmedi</p>
+        </div>
+      )}
+
+      {/* Malik Ekle Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => setShowModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative z-10 w-full md:max-w-lg bg-white rounded-t-3xl md:rounded-2xl px-5 pt-4 pb-10 md:pb-6 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4 md:hidden" />
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-xl text-primary-800">Malik Ekle</h3>
+              <button onClick={() => setShowModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className={labelCls}>Ad Soyad</label>
+                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ahmet Yılmaz" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Telefon</label>
+                <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="0555 123 45 67" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>E-posta</label>
+                <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="ornek@gmail.com" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Daire No</label>
+                <input value={form.daire} onChange={e => setForm({ ...form, daire: e.target.value })} placeholder="21" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Toplam Borç (₺)</label>
+                <input type="number" value={form.toplam} onChange={e => setForm({ ...form, toplam: e.target.value })} placeholder="1000000" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Ödenen (₺)</label>
+                <input type="number" value={form.odenen} onChange={e => setForm({ ...form, odenen: e.target.value })} placeholder="250000" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Son Ödeme Tarihi</label>
+                <input value={form.vade} onChange={e => setForm({ ...form, vade: e.target.value })} placeholder="31.12.2026" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Daire Tipi</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['1+1', '2+1', '3+1'].map(tip => (
+                    <button key={tip} onClick={() => setForm({ ...form, tip })}
+                      className={`py-3 rounded-xl text-sm font-semibold border transition-colors ${form.tip === tip
+                        ? 'bg-primary-800 text-white border-primary-800'
+                        : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300'}`}>
+                      {tip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button onClick={handleSave} className="mt-6 w-full bg-primary-800 text-white py-3.5 rounded-xl font-bold text-base hover:bg-primary-700 transition-colors">
+              Kaydet
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Notlar Tab ─────────────────────────────────────────────────────────────────
 const NotlarTab = () => (
   <div className="max-w-2xl">
@@ -1199,9 +1410,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
     { key: 'genel',    label: 'Genel Bakış' },
     { key: 'finansal', label: 'Finansal'    },
     { key: 'daireler', label: 'Daireler'    },
-    { key: 'evraklar', label: 'Evraklar'    },
     { key: 'malikler', label: 'Malikler'    },
-    { key: 'notlar',   label: 'Notlar'      },
     { key: 'ayarlar',  label: 'Ayarlar'     },
   ]
 
@@ -1365,19 +1574,11 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {/* DAİRELER */}
         {tab === 'daireler' && <DairelerTab />}
 
-        {/* NOTLAR */}
-        {tab === 'notlar' && <NotlarTab />}
+        {/* MALİKLER */}
+        {tab === 'malikler' && <MaliklerTab />}
 
         {/* AYARLAR */}
         {tab === 'ayarlar' && <AyarlarTab project={project} />}
-
-        {/* DİĞER TABLAR */}
-        {!['genel', 'finansal', 'daireler', 'notlar', 'ayarlar'].includes(tab) && (
-          <div className="flex flex-col items-center py-20">
-            <img src="/icons/folder.svg" alt="" width={48} height={48} className="opacity-30 mb-3" />
-            <p className="text-neutral-400 font-medium text-sm">Bu bölüm yakında eklenecek</p>
-          </div>
-        )}
       </div>
 
       {/* ── Modaller ────────────────────────────────────────────────────── */}
