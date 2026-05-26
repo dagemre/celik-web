@@ -1156,7 +1156,7 @@ const MaliklerTab = () => {
     toplam: '', odenen: '', vade: '', tip: '2+1',
   })
 
-  const katlar = [...new Set(malikler.map(m => m.katNo))].sort((a, b) => b - a)
+  const katlar = Array.from(new Set(malikler.map(m => m.katNo))).sort((a, b) => b - a)
 
   const handleSave = () => {
     if (!form.name.trim() || !form.daire.trim()) return
