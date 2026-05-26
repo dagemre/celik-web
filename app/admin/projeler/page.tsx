@@ -272,7 +272,7 @@ export default function AdminProjelerPage() {
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
   const [search, setSearch]     = useState('')
-  const [tab, setTab]           = useState<'devam' | 'tamamlanan'>('devam')
+  const [tab, setTab]           = useState<'tumü' | 'devam' | 'tamamlanan'>('tumü')
   const [durum, setDurum]       = useState('Tümü')
   const [lokasyon, setLokasyon] = useState('Tümü')
   const [sort, setSort]         = useState('Varsayılan')
@@ -292,7 +292,7 @@ export default function AdminProjelerPage() {
 
   const devamList  = projects.filter(p => p.status !== 'tamamlandi')
   const tamList    = projects.filter(p => p.status === 'tamamlandi')
-  const base       = tab === 'devam' ? devamList : tamList
+  const base       = tab === 'tumü' ? projects : tab === 'devam' ? devamList : tamList
 
   const lokOpts = useMemo(() => {
     const s = new Set<string>()
@@ -416,8 +416,9 @@ export default function AdminProjelerPage() {
       {/* ── Tab'lar ─────────────────────────────────────────────────────── */}
       <div className="flex border-b border-neutral-100 mb-5">
         {([
+          { key: 'tumü',       label: `Tümü (${projects.length})`                  },
           { key: 'devam',      label: `Devam Eden Projeler (${devamList.length})`  },
-          { key: 'tamamlanan', label: `Tamamlanan Projeler (${tamList.length})` },
+          { key: 'tamamlanan', label: `Tamamlanan Projeler (${tamList.length})`    },
         ] as const).map(({ key, label }) => (
           <button key={key} onClick={() => { setTab(key); setPage(1) }}
             className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${tab === key
