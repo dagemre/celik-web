@@ -80,17 +80,17 @@ export default function AdminSidebar({ open, onClose }: Props) {
       {/* Sidebar */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-44 bg-white border-r border-neutral-100
+        w-44 bg-[#0A1F44]
         flex flex-col transition-transform duration-300
         ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
 
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-neutral-100 flex items-center justify-between">
-          <img src="/icons/celik-logo.svg" alt="Çelik Taahhüt" className="h-12 w-auto" />
+        <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
+          <img src="/icons/celik-logo.svg" alt="Çelik Taahhüt" className="h-12 w-auto brightness-0 invert" />
           <button className="md:hidden" onClick={onClose}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18 6L6 18M6 6l12 12" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
@@ -99,18 +99,18 @@ export default function AdminSidebar({ open, onClose }: Props) {
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {SIDEBAR_ITEMS.map((item) => {
             const active = isActive(item)
-            const color = active ? '#0A1F44' : '#888780'
+            const color = active ? '#ffffff' : 'rgba(255,255,255,0.55)'
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-                  active ? 'bg-primary-50' : 'hover:bg-neutral-50'
+                  active ? 'bg-white/15' : 'hover:bg-white/8 hover:text-white/80'
                 }`}
               >
-                <span className="flex-shrink-0">{item.icon(color)}</span>
-                <span className={`text-sm font-medium ${active ? 'text-primary-800' : 'text-neutral-500'}`}>
+                <span className={`flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`}>{item.icon(color)}</span>
+                <span className={`text-sm font-medium ${active ? 'text-white font-semibold' : 'text-white/55'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -119,10 +119,10 @@ export default function AdminSidebar({ open, onClose }: Props) {
         </nav>
 
         {/* Çıkış Yap */}
-        <div className="px-3 py-4 border-t border-neutral-100">
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-500 hover:bg-neutral-50 transition-colors w-full">
+        <div className="px-3 py-4 border-t border-white/10">
+          <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:bg-white/8 hover:text-white/80 transition-colors w-full">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="rgba(255,255,255,0.5)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-sm font-medium">Çıkış Yap</span>
           </button>
