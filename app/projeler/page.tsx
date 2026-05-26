@@ -33,6 +33,7 @@ const TABS = [
 export default function ProjelerPage() {
   const [projects,   setProjects]   = useState<Project[]>([])
   const [loading,    setLoading]    = useState(true)
+  const [dbError,    setDbError]    = useState<string | null>(null)
   const [activeTab,  setActiveTab]  = useState('tumu')
   const [lokasyon,   setLokasyon]   = useState('Tüm Lokasyonlar')
   const [tip,        setTip]        = useState('Tüm Proje Tipleri')
@@ -47,6 +48,7 @@ export default function ProjelerPage() {
 
       if (error) {
         console.error('Projeler yüklenemedi:', error)
+        setDbError(error.message)
       } else {
         setProjects(data || [])
       }
@@ -159,6 +161,12 @@ export default function ProjelerPage() {
       <section className="py-14 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-gray-400 text-sm mb-6">{filtered.length} proje listeleniyor</p>
+
+          {dbError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-mono">
+              ⚠️ Supabase Hatası: {dbError}
+            </div>
+          )}
 
           {loading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
