@@ -157,8 +157,8 @@ export default function AdminEvraklarPage() {
   const [evraklar, setEvraklar]     = useState<EvrakItem[]>(MOCK_EVRAKLAR)
   const [aramaText, setAramaText]   = useState('')
   const [aktifKat, setAktifKat]     = useState('Tümü')
-  const [expandedProje, setExpandedProje] = useState<string | null>('Kemal Apartman')
-  const [expandedKlasor, setExpandedKlasor] = useState<Record<string, string | null>>({ 'Kemal Apartman': 'Ruhsat' })
+  const [expandedProje, setExpandedProje] = useState<string | null>(null)
+  const [expandedKlasor, setExpandedKlasor] = useState<Record<string, string | null>>({})
   const [showPanel, setShowPanel]   = useState(false)
   const [menuAcik, setMenuAcik]     = useState<string | null>(null)
   const [form, setForm]             = useState<EvrakForm>({
@@ -216,41 +216,6 @@ export default function AdminEvraklarPage() {
 
       <div className={`md:flex md:gap-4 md:items-start`}>
         <div className={`min-w-0 ${showPanel ? 'md:flex-1' : 'w-full'} space-y-3`}>
-
-          {/* Özet kartlar */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-3.5 md:p-4 flex flex-col items-center text-center">
-              <div className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center mb-2">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#888780" strokeWidth="1.6" strokeLinejoin="round"/>
-                  <path d="M14 2v6h6" stroke="#888780" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-2xl font-bold text-primary-800 leading-none">{toplam}</p>
-              <p className="text-xs text-neutral-500 mt-1">Toplam Evrak</p>
-            </div>
-            <div className="bg-success-50 rounded-2xl border border-success-100 p-3.5 md:p-4 flex flex-col items-center text-center">
-              <div className="w-9 h-9 bg-success-100 rounded-xl flex items-center justify-center mb-2">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="16 6 12 2 8 6" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="12" y1="2" x2="12" y2="15" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-2xl font-bold text-success-700 leading-none">{paylasilan}</p>
-              <p className="text-xs text-success-600 mt-1">Paylaşılan</p>
-            </div>
-            <div className="bg-neutral-100 rounded-2xl p-3.5 md:p-4 flex flex-col items-center text-center">
-              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center mb-2">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" stroke="#888780" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="1" y1="1" x2="23" y2="23" stroke="#888780" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-2xl font-bold text-neutral-600 leading-none">{gizli}</p>
-              <p className="text-xs text-neutral-500 mt-1">Gizli</p>
-            </div>
-          </div>
 
           {/* Arama */}
           <div className="relative">
