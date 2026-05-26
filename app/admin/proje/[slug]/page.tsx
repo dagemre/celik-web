@@ -19,6 +19,28 @@ type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | null
 // ── Sabit veriler ──────────────────────────────────────────────────────────────
 const FINANSAL = { sozlesme: 18_000_000, tahsilEdilecek: 3_500_000, tahsilEdilen: 2_000_000, maliyet: 170_000 }
 
+const MALIYET_KALEMLERI = [
+  { label: 'İnşaat İşleri',       color: '#3B82F6', butce: 12_000_000, gerceklesen: 8_950_000 },
+  { label: 'Malzeme Giderleri',   color: '#22C55E', butce:  6_500_000, gerceklesen: 4_650_000 },
+  { label: 'İşçilik Giderleri',   color: '#F59E0B', butce:  3_200_000, gerceklesen: 2_450_000 },
+  { label: 'Elektrik - Mekanik',  color: '#6B7280', butce:  1_500_000, gerceklesen: 1_050_000 },
+  { label: 'Proje - Danışmanlık', color: '#8B5CF6', butce:    800_000, gerceklesen:   620_000 },
+  { label: 'Diğer Giderler',      color: '#EF4444', butce:    750_000, gerceklesen:   520_000 },
+]
+
+const MASRAFLAR = [
+  { aciklama: 'Malzeme Giderleri - Çimento Alımı - 50 Ton',          tutar: 125_000, tarih: '24.05.2026', kategori: 'Malzeme', katBg: 'bg-warning-50',  katText: 'text-warning-700' },
+  { aciklama: 'Resmi Harç ve Ruhsat - Ruhsat ve Harç Ödemesi',       tutar:  45_000, tarih: '20.05.2026', kategori: 'Resmi',   katBg: 'bg-info-50',     katText: 'text-info-700'    },
+]
+
+const MALIKLER_ODEMELER = [
+  { name: 'Emre Dağ',     toplam: 1_500_000, odenen: 500_000   },
+  { name: 'Ahmet Yılmaz', toplam: 1_200_000, odenen: 1_200_000 },
+  { name: 'Mehmet Kaya',  toplam: 1_000_000, odenen: 300_000   },
+  { name: 'Ayşe Demir',   toplam: 1_000_000, odenen: 0         },
+  { name: 'Fatma Şahin',  toplam:   800_000, odenen: 0         },
+]
+
 const FEATURES = [
   { key: 'kapali_otopark',  label: 'Kapalı Otopark',    icon: '/icons/bina-otopark.svg'    },
   { key: 'acik_otopark',    label: 'Açık Otopark',       icon: '/icons/car.svg'             },
@@ -54,7 +76,7 @@ const PHASES = [
   { label: 'Betonarme',         done: true  },
   { label: 'Duvar Örme',        done: true  },
   { label: 'Elektrik Tesisatı', done: false },
-  { label: 'İç Sıva',          done: false },
+  { label: 'İç Sıva',           done: false },
   { label: 'Dış Cephe',         done: false },
   { label: 'İç Mekan',          done: false },
   { label: 'Peyzaj',            done: false },
@@ -119,7 +141,7 @@ const Modal = ({ title, onClose, children }: { title: string; onClose: () => voi
   </div>
 )
 
-// ── Finansal Kartlar ───────────────────────────────────────────────────────────
+// ── Finansal Kartlar (Genel Bakış tab için küçük sidebar versiyonu) ─────────────
 const FinansalKartlar = () => (
   <Card title="Finansal Özet">
     <div className="grid grid-cols-2 gap-3">
@@ -155,7 +177,6 @@ const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () =
   ]
   return (
     <Card title="Genel Bilgiler" onEdit={onEdit}>
-      {/* Mobile: tek sütun */}
       <div className="md:hidden divide-y divide-neutral-50">
         {rows.map(r => (
           <div key={r.l} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
@@ -167,7 +188,6 @@ const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () =
           </div>
         ))}
       </div>
-      {/* Desktop: iki sütun */}
       <div className="hidden md:grid md:grid-cols-2 md:gap-x-8 divide-y divide-neutral-50">
         {rows.map((r, i) => (
           <div key={r.l} className={`flex items-center justify-between py-2.5 ${i < 2 ? 'pt-0' : ''} ${i >= rows.length - 2 ? 'pb-0' : ''}`}>
@@ -215,7 +235,6 @@ const GenelBilgilerModal = ({ project, onClose }: { project: Project; onClose: (
 // ── Bina Özellikleri ───────────────────────────────────────────────────────────
 const BinaOzellikleriKart = ({ activeFeatures, onEdit }: { activeFeatures: Set<string>; onEdit: () => void }) => (
   <Card title="Bina Özellikleri" onEdit={onEdit}>
-    {/* Mobile: 4 sütun */}
     <div className="grid grid-cols-4 md:hidden gap-3">
       {FEATURES.map(f => {
         const on = activeFeatures.has(f.key)
@@ -230,7 +249,6 @@ const BinaOzellikleriKart = ({ activeFeatures, onEdit }: { activeFeatures: Set<s
         )
       })}
     </div>
-    {/* Desktop: 6 sütun */}
     <div className="hidden md:grid grid-cols-6 gap-4">
       {FEATURES.map(f => {
         const on = activeFeatures.has(f.key)
@@ -354,7 +372,6 @@ const GorsellerKart = ({ project }: { project: Project }) => {
               <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          {/* Desktop nav arrows */}
           <div className="hidden md:flex items-center gap-1 ml-2">
             <button onClick={() => setOffset(Math.max(0, offset - 1))}
               className="w-7 h-7 border border-neutral-200 rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40"
@@ -369,7 +386,6 @@ const GorsellerKart = ({ project }: { project: Project }) => {
           </div>
         </div>
       </div>
-
       <div className="grid grid-cols-4 gap-2">
         {imgs.slice(0, 4).map((src, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
@@ -380,12 +396,379 @@ const GorsellerKart = ({ project }: { project: Project }) => {
           </div>
         ))}
       </div>
-
       <button className="mt-3 w-full border border-dashed border-neutral-200 rounded-xl py-3 flex items-center justify-center gap-2 text-xs text-neutral-500 hover:bg-neutral-50 hover:border-primary-300 transition-colors">
         <img src="/icons/plus.svg" alt="" width={13} height={13} className="opacity-50" />
         Görsel Ekle
       </button>
     </Card>
+  )
+}
+
+// ── Finansal Tab ───────────────────────────────────────────────────────────────
+const FinansalTab = () => {
+  const [sozlesmeInput, setSozlesmeInput] = useState(String(FINANSAL.sozlesme))
+
+  const tahsilEdilen   = MALIKLER_ODEMELER.reduce((s, m) => s + m.odenen, 0)
+  const toplamMasraf   = MASRAFLAR.reduce((s, m) => s + m.tutar, 0)
+  const toplamButce    = MALIYET_KALEMLERI.reduce((s, m) => s + m.butce, 0)
+  const toplamGercek   = MALIYET_KALEMLERI.reduce((s, m) => s + m.gerceklesen, 0)
+  const toplamOdeme    = MALIKLER_ODEMELER.reduce((s, m) => s + m.toplam, 0)
+
+  // Donut hesabı
+  const chartKalan   = 500_000
+  const chartTotal   = tahsilEdilen + FINANSAL.tahsilEdilecek + chartKalan
+  const p1           = (tahsilEdilen / chartTotal) * 100
+  const p2           = (FINANSAL.tahsilEdilecek / chartTotal) * 100
+  const p3           = 100 - p1 - p2
+
+  const METRICS = [
+    { label: 'Sözleşme Bedeli',       v: FINANSAL.sozlesme,       icon: '/icons/document.svg', color: 'text-primary-800' },
+    { label: 'Tahsil Edilecek',       v: FINANSAL.tahsilEdilecek, icon: '/icons/wallet.svg',   color: 'text-warning-700' },
+    { label: 'Tahsil Edilen',         v: tahsilEdilen,             icon: '/icons/card.svg',     color: 'text-success-700' },
+    { label: 'Güncel Proje Maliyeti', v: toplamMasraf,             icon: '/icons/building.svg', color: 'text-danger-700'  },
+  ]
+
+  return (
+    <div className="space-y-4">
+
+      {/* ── Sözleşme Bedeli Girişi (mobil only) ── */}
+      <div className="md:hidden bg-white rounded-2xl border border-neutral-100 p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="font-bold text-sm text-primary-800">Sözleşme Bedeli</p>
+            <p className="text-xs text-neutral-500 mt-0.5">Ana sözleşme tutarını elle gir.</p>
+          </div>
+          <span className="bg-info-50 text-info-700 text-xs font-bold px-3 py-1.5 rounded-xl flex-shrink-0 ml-3">
+            {tl(parseInt(sozlesmeInput.replace(/\D/g, '')) || FINANSAL.sozlesme)}
+          </span>
+        </div>
+        <input
+          type="number"
+          value={sozlesmeInput}
+          onChange={e => setSozlesmeInput(e.target.value)}
+          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm font-semibold text-primary-800 outline-none focus:border-primary-300 transition-colors"
+        />
+        <p className="text-xs text-neutral-400 mt-2">Tahsilat eklendikçe kalan sözleşme bedeli otomatik düşer.</p>
+      </div>
+
+      {/* ── 4 Metrik Kart ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {METRICS.map(c => (
+          <div key={c.label} className="bg-white rounded-2xl border border-neutral-100 p-3 md:p-4">
+            <img src={c.icon} alt="" width={22} height={22} className="mb-2 opacity-60" />
+            <p className="text-[11px] text-neutral-500 mb-1 leading-tight">{c.label}</p>
+            <p className={`font-bold text-sm md:text-base ${c.color} leading-tight`}>{tl(c.v)}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Finansal Özet + Nakit Akış (desktop only) ── */}
+      <div className="hidden md:grid grid-cols-2 gap-4">
+        {/* Finansal Özet */}
+        <div className="bg-white rounded-2xl border border-neutral-100 p-5">
+          <h2 className="font-bold text-base text-primary-800 mb-5">Finansal Özet</h2>
+          <div className="flex items-center gap-7">
+            {/* Donut */}
+            <div className="relative w-[120px] h-[120px] flex-shrink-0">
+              <div className="w-full h-full rounded-full" style={{
+                background: `conic-gradient(#22C55E 0% ${p1.toFixed(2)}%, #F59E0B ${p1.toFixed(2)}% ${(p1 + p2).toFixed(2)}%, #EF4444 ${(p1 + p2).toFixed(2)}% 100%)`
+              }} />
+              <div className="absolute inset-[18px] bg-white rounded-full flex flex-col items-center justify-center">
+                <p className="font-bold text-sm text-primary-800">%{p1.toFixed(1)}</p>
+                <p className="text-[9px] text-neutral-400 leading-tight text-center mt-0.5">Tahsilat<br/>Oranı</p>
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="space-y-3.5 flex-1 min-w-0">
+              {[
+                { label: 'Tahsil Edilen',   v: tahsilEdilen,            p: p1.toFixed(1), color: '#22C55E' },
+                { label: 'Tahsil Edilecek', v: FINANSAL.tahsilEdilecek, p: p2.toFixed(1), color: '#F59E0B' },
+                { label: 'Kalan Bakiye',    v: chartKalan,              p: p3.toFixed(1), color: '#EF4444' },
+              ].map(item => (
+                <div key={item.label} className="flex items-start gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full mt-0.5 flex-shrink-0" style={{ background: item.color }} />
+                  <div className="min-w-0">
+                    <p className="text-xs text-neutral-500">{item.label}</p>
+                    <p className="text-sm font-bold text-primary-800 leading-tight">
+                      {tl(item.v)}{' '}
+                      <span className="text-neutral-400 font-normal text-xs">(%{item.p})</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Nakit Akış Özeti */}
+        <div className="bg-white rounded-2xl border border-neutral-100 p-5">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-bold text-base text-primary-800">Nakit Akış Özeti</h2>
+            <select className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 text-neutral-600 outline-none bg-neutral-50 cursor-pointer">
+              <option>Tümü</option>
+              <option>Bu Ay</option>
+              <option>Bu Yıl</option>
+            </select>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-neutral-500">Toplam Tahsilatlar</p>
+              <p className="text-sm font-bold text-success-700">{tl(tahsilEdilen)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-neutral-500">Toplam Ödemeler</p>
+              <p className="text-sm font-bold text-danger-700">-{tl(toplamGercek)}</p>
+            </div>
+            <div className="border-t border-neutral-100 pt-4 flex items-center justify-between">
+              <p className="text-sm font-semibold text-primary-800">Net Nakit Akışı</p>
+              <p className={`text-sm font-bold ${tahsilEdilen - toplamGercek >= 0 ? 'text-success-700' : 'text-danger-700'}`}>
+                {tahsilEdilen - toplamGercek < 0 ? '-' : ''}{tl(Math.abs(tahsilEdilen - toplamGercek))}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Maliyet Kalemleri ── */}
+      <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-base text-primary-800">Maliyet Kalemleri</h2>
+          <button className="flex items-center gap-1.5 bg-primary-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-primary-700 transition-colors">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            Kalem Ekle
+          </button>
+        </div>
+
+        {/* Header */}
+        <div className="hidden md:grid md:gap-x-4 pb-2 border-b border-neutral-100 text-[11px] text-neutral-400 font-medium"
+          style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+          <span>Kalem Adı</span>
+          <span className="text-right">Bütçe</span>
+          <span className="text-right">Gerçekleşen</span>
+          <span className="text-right">Kalan</span>
+          <span className="pl-2">Durum</span>
+        </div>
+        {/* Mobile header */}
+        <div className="md:hidden grid pb-2 border-b border-neutral-100 text-[11px] text-neutral-400 font-medium"
+          style={{ gridTemplateColumns: '1fr auto auto' }}>
+          <span>Kalem Adı</span>
+          <span className="text-right pr-4">Bütçe</span>
+          <span className="text-right">Gerçekleşen</span>
+        </div>
+
+        {/* Rows */}
+        <div className="divide-y divide-neutral-50">
+          {MALIYET_KALEMLERI.map((k, i) => {
+            const kalan = k.butce - k.gerceklesen
+            const pct   = Math.round(k.gerceklesen / k.butce * 1000) / 10
+            return (
+              <div key={i}>
+                {/* Desktop row */}
+                <div className="hidden md:grid md:gap-x-4 py-3 items-center"
+                  style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: k.color }} />
+                    <span className="text-sm text-primary-800">{k.label}</span>
+                  </div>
+                  <span className="text-sm text-neutral-500 text-right">{tl(k.butce)}</span>
+                  <span className="text-sm font-semibold text-success-700 text-right">{tl(k.gerceklesen)}</span>
+                  <span className="text-sm text-neutral-600 text-right">{tl(kalan)}</span>
+                  <div className="flex items-center gap-2 pl-2">
+                    <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-success-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-neutral-500 w-9 text-right flex-shrink-0">%{pct}</span>
+                  </div>
+                </div>
+                {/* Mobile row */}
+                <div className="md:hidden grid py-3 items-center gap-x-4"
+                  style={{ gridTemplateColumns: '1fr auto auto' }}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: k.color }} />
+                    <span className="text-sm text-primary-800">{k.label}</span>
+                  </div>
+                  <span className="text-sm text-neutral-500 text-right">{tl(k.butce)}</span>
+                  <span className="text-sm font-semibold text-success-700 text-right">{tl(k.gerceklesen)}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Toplam */}
+        <div className="border-t border-neutral-200 pt-3 mt-1">
+          {/* Desktop */}
+          <div className="hidden md:grid md:gap-x-4 items-center"
+            style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+            <span className="text-sm font-bold text-primary-800">Toplam</span>
+            <span className="text-sm text-neutral-500 text-right">{tl(toplamButce)}</span>
+            <span className="text-sm font-bold text-success-700 text-right">{tl(toplamGercek)}</span>
+            <span className="text-sm font-semibold text-neutral-600 text-right">{tl(toplamButce - toplamGercek)}</span>
+            <div className="flex items-center gap-2 pl-2">
+              <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-success-500"
+                  style={{ width: `${Math.round(toplamGercek / toplamButce * 1000) / 10}%` }} />
+              </div>
+              <span className="text-xs text-neutral-500 w-9 text-right flex-shrink-0">
+                %{Math.round(toplamGercek / toplamButce * 1000) / 10}
+              </span>
+            </div>
+          </div>
+          {/* Mobile */}
+          <div className="md:hidden grid items-center gap-x-4"
+            style={{ gridTemplateColumns: '1fr auto auto' }}>
+            <span className="text-sm font-bold text-primary-800">Toplam</span>
+            <span className="text-sm text-neutral-500 text-right">{tl(toplamButce)}</span>
+            <span className="text-sm font-bold text-success-700 text-right">{tl(toplamGercek)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Masraflar ── */}
+      <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-base text-primary-800">Masraflar</h2>
+          <button className="flex items-center gap-1.5 border border-neutral-200 text-neutral-600 px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-neutral-50 transition-colors">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            Masraf Ekle
+          </button>
+        </div>
+
+        {/* Desktop header */}
+        <div className="hidden md:grid md:gap-x-4 pb-2 border-b border-neutral-100 text-[11px] text-neutral-400 font-medium"
+          style={{ gridTemplateColumns: '1fr 130px 100px 90px' }}>
+          <span>Masraf Açıklaması</span>
+          <span className="text-right">Tutar</span>
+          <span className="text-right">Tarih</span>
+          <span>Kategori</span>
+        </div>
+
+        <div className="divide-y divide-neutral-50">
+          {MASRAFLAR.map((m, i) => (
+            <div key={i} className="py-3">
+              {/* Mobile */}
+              <div className="md:hidden flex items-center justify-between gap-3">
+                <span className="text-sm text-primary-800 flex-1 min-w-0">{m.aciklama}</span>
+                <span className="text-sm font-semibold text-danger-700 flex-shrink-0">{tl(m.tutar)}</span>
+              </div>
+              {/* Desktop */}
+              <div className="hidden md:grid md:gap-x-4 items-center"
+                style={{ gridTemplateColumns: '1fr 130px 100px 90px' }}>
+                <span className="text-sm text-primary-800">{m.aciklama}</span>
+                <span className="text-sm font-semibold text-danger-700 text-right">{tl(m.tutar)}</span>
+                <span className="text-sm text-neutral-500 text-right">{m.tarih}</span>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg w-fit ${m.katBg} ${m.katText}`}>{m.kategori}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-neutral-200 pt-3 flex items-center justify-between">
+          <span className="text-sm font-bold text-primary-800">Toplam Masraf</span>
+          <span className="text-sm font-bold text-danger-700">{tl(toplamMasraf)}</span>
+        </div>
+      </div>
+
+      {/* ── Maliklerden Alınan Ödemeler ── */}
+      <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-base text-primary-800">Maliklerden Alınan Ödemeler</h2>
+          <button className="flex items-center gap-1.5 bg-primary-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-primary-700 transition-colors flex-shrink-0 ml-2">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            Ödeme Ekle
+          </button>
+        </div>
+
+        {/* Desktop header */}
+        <div className="hidden md:grid md:gap-x-4 pb-2 border-b border-neutral-100 text-[11px] text-neutral-400 font-medium"
+          style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+          <span>Malik Adı</span>
+          <span className="text-right">Toplam</span>
+          <span className="text-right">Ödenen</span>
+          <span className="text-right">Kalan</span>
+          <span className="pl-2">Tahsilat Oranı</span>
+        </div>
+        {/* Mobile header */}
+        <div className="md:hidden grid pb-2 border-b border-neutral-100 text-[11px] text-neutral-400 font-medium"
+          style={{ gridTemplateColumns: '1fr auto auto auto' }}>
+          <span>Malik Adı</span>
+          <span className="text-right pr-3">Toplam</span>
+          <span className="text-right pr-3">Ödenen</span>
+          <span className="text-right">Kalan</span>
+        </div>
+
+        <div className="divide-y divide-neutral-50">
+          {MALIKLER_ODEMELER.map((m, i) => {
+            const kalan = m.toplam - m.odenen
+            const pct   = m.toplam > 0 ? Math.round(m.odenen / m.toplam * 100) : 0
+            return (
+              <div key={i} className="py-3">
+                {/* Desktop row */}
+                <div className="hidden md:grid md:gap-x-4 items-center"
+                  style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+                  <span className="text-sm font-bold text-primary-800">{m.name}</span>
+                  <span className="text-sm text-neutral-500 text-right">{tl(m.toplam)}</span>
+                  <span className="text-sm font-semibold text-success-700 text-right">{tl(m.odenen)}</span>
+                  <span className="text-sm text-neutral-600 text-right">{tl(kalan)}</span>
+                  <div className="flex items-center gap-2 pl-2">
+                    <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-success-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-neutral-500 w-9 text-right flex-shrink-0">%{pct}</span>
+                  </div>
+                </div>
+                {/* Mobile row */}
+                <div className="md:hidden">
+                  <div className="grid items-center gap-x-2"
+                    style={{ gridTemplateColumns: '1fr auto auto auto' }}>
+                    <span className="text-sm font-bold text-primary-800">{m.name}</span>
+                    <span className="text-sm text-neutral-500 text-right pr-3">{tl(m.toplam)}</span>
+                    <span className="text-sm font-semibold text-success-700 text-right pr-3">{tl(m.odenen)}</span>
+                    <span className="text-sm text-neutral-600 text-right">{tl(kalan)}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-success-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-neutral-500 w-6 text-right flex-shrink-0">%{pct}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Toplam */}
+        <div className="border-t border-neutral-200 pt-3 mt-1">
+          {/* Desktop */}
+          <div className="hidden md:grid md:gap-x-4 items-center"
+            style={{ gridTemplateColumns: '1fr 130px 130px 110px 1fr' }}>
+            <span className="text-sm font-bold text-primary-800">Toplam</span>
+            <span className="text-sm font-bold text-primary-800 text-right">{tl(toplamOdeme)}</span>
+            <span className="text-sm font-bold text-success-700 text-right">{tl(tahsilEdilen)}</span>
+            <span className="text-sm font-bold text-primary-800 text-right">{tl(toplamOdeme - tahsilEdilen)}</span>
+            <div className="flex items-center gap-2 pl-2">
+              <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-success-500"
+                  style={{ width: `${Math.round(tahsilEdilen / toplamOdeme * 100)}%` }} />
+              </div>
+              <span className="text-xs text-neutral-500 w-9 text-right flex-shrink-0">
+                %{Math.round(tahsilEdilen / toplamOdeme * 100)}
+              </span>
+            </div>
+          </div>
+          {/* Mobile */}
+          <div className="md:hidden grid items-center gap-x-2"
+            style={{ gridTemplateColumns: '1fr auto auto auto' }}>
+            <span className="text-sm font-bold text-primary-800">Toplam</span>
+            <span className="text-sm font-bold text-primary-800 text-right pr-3">{tl(toplamOdeme)}</span>
+            <span className="text-sm font-bold text-success-700 text-right pr-3">{tl(tahsilEdilen)}</span>
+            <span className="text-sm font-bold text-primary-800 text-right">{tl(toplamOdeme - tahsilEdilen)}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   )
 }
 
@@ -406,41 +789,38 @@ const NotlarTab = () => (
 )
 
 // ── Ayarlar Tab ────────────────────────────────────────────────────────────────
-const AyarlarTab = ({ project }: { project: Project }) => {
-  const st = STATUS_STYLE[project.status] ?? STATUS_STYLE['devam']
-  return (
-    <div className="max-w-2xl space-y-4">
-      <Card title="Proje Durumu">
-        <div className="space-y-3">
-          {Object.entries(STATUS_STYLE).map(([key, s]) => (
-            <label key={key} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${project.status === key ? `${s.bg} border-transparent` : 'bg-neutral-50 border-neutral-100 hover:bg-neutral-100'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${project.status === key ? 'border-primary-800 bg-primary-800' : 'border-neutral-300'}`}>
-                  {project.status === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                </div>
-                <span className={`text-sm font-medium ${project.status === key ? s.text : 'text-neutral-600'}`}>{s.label}</span>
+const AyarlarTab = ({ project }: { project: Project }) => (
+  <div className="max-w-2xl space-y-4">
+    <Card title="Proje Durumu">
+      <div className="space-y-3">
+        {Object.entries(STATUS_STYLE).map(([key, s]) => (
+          <label key={key} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${project.status === key ? `${s.bg} border-transparent` : 'bg-neutral-50 border-neutral-100 hover:bg-neutral-100'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${project.status === key ? 'border-primary-800 bg-primary-800' : 'border-neutral-300'}`}>
+                {project.status === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${s.bg} ${s.text}`}>{s.label}</span>
-            </label>
-          ))}
-        </div>
-        <button className="mt-4 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
-          Durumu Güncelle
-        </button>
-      </Card>
+              <span className={`text-sm font-medium ${project.status === key ? s.text : 'text-neutral-600'}`}>{s.label}</span>
+            </div>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${s.bg} ${s.text}`}>{s.label}</span>
+          </label>
+        ))}
+      </div>
+      <button className="mt-4 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+        Durumu Güncelle
+      </button>
+    </Card>
 
-      <Card title="Tehlikeli Alan">
-        <p className="text-sm text-neutral-500 mb-4">Bu işlemler geri alınamaz. Dikkatli olun.</p>
-        <button className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Projeyi Sil
-        </button>
-      </Card>
-    </div>
-  )
-}
+    <Card title="Tehlikeli Alan">
+      <p className="text-sm text-neutral-500 mb-4">Bu işlemler geri alınamaz. Dikkatli olun.</p>
+      <button className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Projeyi Sil
+      </button>
+    </Card>
+  </div>
+)
 
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────────
 export default function AdminProjeDetay({ params }: { params: { slug: string } }) {
@@ -460,14 +840,14 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       })
   }, [params.slug])
 
-  const TABS: { key: Tab; label: string; icon?: string }[] = [
-    { key: 'genel',     label: 'Genel Bakış' },
-    { key: 'finansal',  label: 'Finansal'    },
-    { key: 'daireler',  label: 'Daireler'    },
-    { key: 'evraklar',  label: 'Evraklar'    },
-    { key: 'malikler',  label: 'Malikler'    },
-    { key: 'notlar',    label: 'Notlar'      },
-    { key: 'ayarlar',   label: 'Ayarlar'     },
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'genel',    label: 'Genel Bakış' },
+    { key: 'finansal', label: 'Finansal'    },
+    { key: 'daireler', label: 'Daireler'    },
+    { key: 'evraklar', label: 'Evraklar'    },
+    { key: 'malikler', label: 'Malikler'    },
+    { key: 'notlar',   label: 'Notlar'      },
+    { key: 'ayarlar',  label: 'Ayarlar'     },
   ]
 
   if (loading) return (
@@ -564,13 +944,12 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#888780" /></svg>
               {loc}
             </p>
-            {/* Stats row with dividers + status badge */}
             <div className="flex items-center gap-0">
               {[
-                { l: 'Proje Tipi',   v: project.tip            },
-                { l: 'Daire Sayısı', v: String(project.units_count) },
-                { l: 'İnşaat Alanı', v: project.area || '—'   },
-                { l: 'Arsa Alanı',   v: '1.250 m²'             },
+                { l: 'Proje Tipi',    v: project.tip            },
+                { l: 'Daire Sayısı',  v: String(project.units_count) },
+                { l: 'İnşaat Alanı',  v: project.area || '—'   },
+                { l: 'Arsa Alanı',    v: '1.250 m²'             },
                 { l: 'Teslim Tarihi', v: fmtDate(project.delivery_date || project.delivery_year) },
               ].map(({ l, v }, i) => (
                 <div key={l} className="flex items-center">
@@ -592,15 +971,9 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         <div className="flex overflow-x-auto -mx-4 md:-mx-6 px-4 md:px-6 gap-0">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${tab === t.key
+              className={`flex-shrink-0 px-4 py-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${tab === t.key
                 ? 'border-primary-800 text-primary-800'
                 : 'border-transparent text-neutral-500 hover:text-primary-700'}`}>
-              {(t.key === 'notlar' || t.key === 'ayarlar') && (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" fill="currentColor" />
-                  <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              )}
               {t.label}
             </button>
           ))}
@@ -613,10 +986,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {/* GENEL BAKIŞ */}
         {tab === 'genel' && (
           <div className="md:flex md:gap-5 md:items-start">
-
-            {/* Sol kolon */}
             <div className="md:flex-1 space-y-4 min-w-0">
-              {/* Mobil'de finansal kartlar üstte görünür */}
               <div className="md:hidden">
                 <FinansalKartlar />
               </div>
@@ -624,19 +994,18 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
               <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
               <GorsellerKart project={project} />
             </div>
-
-            {/* Sağ kolon */}
             <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
               <FinansalKartlar />
               <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
             </div>
-
-            {/* Mobil'de bina özellikleri altta */}
             <div className="md:hidden mt-4">
               <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
             </div>
           </div>
         )}
+
+        {/* FİNANSAL */}
+        {tab === 'finansal' && <FinansalTab />}
 
         {/* NOTLAR */}
         {tab === 'notlar' && <NotlarTab />}
@@ -645,7 +1014,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {tab === 'ayarlar' && <AyarlarTab project={project} />}
 
         {/* DİĞER TABLAR */}
-        {!['genel', 'notlar', 'ayarlar'].includes(tab) && (
+        {!['genel', 'finansal', 'notlar', 'ayarlar'].includes(tab) && (
           <div className="flex flex-col items-center py-20">
             <img src="/icons/folder.svg" alt="" width={48} height={48} className="opacity-30 mb-3" />
             <p className="text-neutral-400 font-medium text-sm">Bu bölüm yakında eklenecek</p>
@@ -654,9 +1023,9 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       </div>
 
       {/* ── Modaller ────────────────────────────────────────────────────── */}
-      {editModal === 'bilgiler'   && <GenelBilgilerModal    project={project}         onClose={() => setEditModal(null)} />}
-      {editModal === 'ozellikler' && <BinaOzellikleriModal  activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} onClose={() => setEditModal(null)} />}
-      {editModal === 'ilerleme'   && <ProjeIlerlemesiModal  progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} onClose={() => setEditModal(null)} />}
+      {editModal === 'bilgiler'   && <GenelBilgilerModal   project={project}         onClose={() => setEditModal(null)} />}
+      {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} onClose={() => setEditModal(null)} />}
+      {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} onClose={() => setEditModal(null)} />}
     </div>
   )
 }
