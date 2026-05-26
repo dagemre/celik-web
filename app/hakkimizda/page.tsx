@@ -43,13 +43,13 @@ export default function HakkimizdaPage() {
               <h2 className="text-2xl font-bold text-[#0A1F44] mb-5">Biz Kimiz?</h2>
               <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
                 <p>
-                  Soner Çelik tarafından 2009 yılında kurulan firmamız; konut, ticari yapı ve taahhüt projeleri alanında güçlü bir ekiple hizmet vermektedir. 2015 yılında <strong className="text-[#0A1F44]">Çelik Taahhüt İnşaat San. Tic. Ltd. Şti.</strong> unvanıyla limited şirkete dönüştü.
+                  2009 yılında Soner Çelik tarafından kurulan firmamız; kurumsallaşmış yapısı, yüksek nitelikli uzman kadrosu ve yerel ile uluslararası kural ve şartnamelere bağlı çalışma anlayışıyla inşaat süreçlerinde ihtiyaç duyulan tüm mühendislik, inşaat ve yenilikçi tasarım çözümlerini başarıyla sunmaktadır. 12 Haziran 2015 tarihinde limited şirkete dönüştürülerek <strong className="text-[#0A1F44]">Çelik Taahhüt İnşaat Sanayi ve Ticaret Limited Şirketi</strong> adını almıştır.
                 </p>
                 <p>
-                  Her projede beklentilerin ötesinde değer yaratmayı hedefliyor; mühendislik bilgimiz, kaliteli malzeme seçimimiz ve disiplinli çalışma prensiplerimizle sürdürülebilir yapılar inşa ediyoruz.
+                  Şirket; gayrimenkul projeleri, inşaat taahhüdü, tasarım ve anahtar teslim inşaatları gerçekleştirmektedir. Ağırlıklı olarak Bakırköy, Bahçelievler ve Avcılar'da lüks konut projeleri inşa etmektedir.
                 </p>
                 <p>
-                  <strong className="text-[#0A1F44]">E Grubu Müteahhitlik Yetki Belgesi</strong> sahibi firmamız; Bakırköy, Bahçelievler ve Avcılar başta olmak üzere İstanbul'un pek çok ilçesinde projeler geliştirmiştir.
+                  Mali yapı, iş deneyimi, mesleki/teknik yeterlilik ve iş gücü alanlarında Çevre ve Şehircilik Bakanlığı tarafından değerlendirilen müteahhitler arasında <strong className="text-[#0A1F44]">E Grubu</strong> yetki belgesine hak kazanmıştır.
                 </p>
               </div>
 
@@ -144,7 +144,7 @@ export default function HakkimizdaPage() {
       </section>
 
       {/* Stats bar — açık arkaplan, ikonlu */}
-      <section className="bg-gray-50 border-t border-b border-gray-100 py-12">
+      <section className="bg-gray-50 border-t border-b border-gray-100 py-12 -mt-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
             {[
@@ -154,7 +154,7 @@ export default function HakkimizdaPage() {
                     <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M7 3v18M17 3v18M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/>
                   </svg>
                 ),
-                value: '15+',
+                value: '16+',
                 label: 'Yıllık Deneyim',
               },
               {
