@@ -103,18 +103,18 @@ function Hero() {
 
 // ─── Projeler ─────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { slug: 'degirmen-sokak',   name: 'Değirmen Sokak',   location: 'İstanbul / Avcılar', status: 'Devam Ediyor', statusCls: 'bg-[#0A1F44] text-white',       img: '/projeler/DEĞİRMEN SOKAK DEVAM EDEN/DJI_20240922001110_0317_D.JPG' },
-  { slug: 'papatya-sokak',    name: 'Papatya Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/PAPATYA SOKAK/DJI_20240920224940_0193_D.JPG' },
-  { slug: 'mahmutoglu-sokak', name: 'Mahmutoğlu Sokak', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/MAHMUTOĞLU SOKAK/DJI_20240921210940_0209_D.JPG' },
-  { slug: 'oya-sokak',        name: 'Oya Sokak',        location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/OYA SOKAK/DJI_20240920222607_0175_D.JPG' },
-  { slug: 'sukrubey-caddesi', name: 'Şükrübey Caddesi', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/ŞÜKRÜBEY CADDESİ/DJI_20240921231700_0289_D.JPG' },
-  { slug: 'menekse-sokak',    name: 'Menekşe Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/MENEKŞE SOKAK/DJI_20240921212429_0222_D.JPG' },
-  { slug: 'koroglu-sokak',    name: 'Köroğlu Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/KÖROĞLU SOKAK/DJI_20240921223036_0261_D.JPG' },
-  { slug: 'ds-ahmet-caddesi', name: 'D.S. Ahmet Cad.',  location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/D.S.AHMET CADDESİ/DJI_20240920213730_0137_D.JPG' },
-  { slug: 'afacan-sokak',     name: 'Afacan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/AFACAN SOKAK/DJI_20240921214713_0237_D.JPG' },
-  { slug: 'hacibey-sokak',    name: 'Hacıbey Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/HACIBEY SOKAK/DJI_20240921234703_0299_D.JPG' },
-  { slug: 'turna-sokak',      name: 'Turna Sokak',      location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/TURNA SOKAK/DJI_20240920212530_0131_D.JPG' },
-  { slug: 'yazgan-sokak',     name: 'Yazgan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/YAZGAN SOKAK/DJI_20240920204659_0103_D.JPG' },
+  { slug: 'degirmen-sokak',   name: 'Değirmen Sokak',   location: 'İstanbul / Avcılar', status: 'Devam Ediyor', statusCls: 'bg-[#0A1F44] text-white',       img: '/projeler/degirmen-sokak/DJI_20240922001110_0317_D.JPG' },
+  { slug: 'papatya-sokak',    name: 'Papatya Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/papatya-sokak/DJI_20240920224940_0193_D.JPG' },
+  { slug: 'mahmutoglu-sokak', name: 'Mahmutoğlu Sokak', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/mahmutoglu-sokak/DJI_20240921210940_0209_D.JPG' },
+  { slug: 'oya-sokak',        name: 'Oya Sokak',        location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/oya-sokak/DJI_20240920222607_0175_D.JPG' },
+  { slug: 'sukrubey-caddesi', name: 'Şükrübey Caddesi', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/sukrubey-caddesi/DJI_20240921231700_0289_D.JPG' },
+  { slug: 'menekse-sokak',    name: 'Menekşe Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/menekse-sokak/DJI_20240921212429_0222_D.JPG' },
+  { slug: 'koroglu-sokak',    name: 'Köroğlu Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/koroglu-sokak/DJI_20240921223036_0261_D.JPG' },
+  { slug: 'ds-ahmet-caddesi', name: 'D.S. Ahmet Cad.',  location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/ds-ahmet-caddesi/DJI_20240920213730_0137_D.JPG' },
+  { slug: 'afacan-sokak',     name: 'Afacan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/afacan-sokak/DJI_20240921214713_0237_D.JPG' },
+  { slug: 'hacibey-sokak',    name: 'Hacıbey Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/hacibey-sokak/DJI_20240921234703_0299_D.JPG' },
+  { slug: 'turna-sokak',      name: 'Turna Sokak',      location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/turna-sokak/DJI_20240920212530_0131_D.JPG' },
+  { slug: 'yazgan-sokak',     name: 'Yazgan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white',     img: '/projeler/yazgan-sokak/DJI_20240920204659_0103_D.JPG' },
 ]
 
 function Projeler() {
