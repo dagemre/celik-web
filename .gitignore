@@ -2,3 +2,7 @@ node_modules
 .next
 *.psd
 .DS_Store
+.env.local
+.env*.local
+supabase-schema.sql
+supabase-seed.sql
