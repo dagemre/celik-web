@@ -7,12 +7,13 @@ import Footer from './Footer'
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isMalik = pathname.startsWith('/malik')
+  const isAdmin = pathname.startsWith('/admin')
 
   return (
     <>
-      {!isMalik && <Navbar />}
+      {!isMalik && !isAdmin && <Navbar />}
       {children}
-      {!isMalik && <Footer />}
+      {!isMalik && !isAdmin && <Footer />}
     </>
   )
 }
