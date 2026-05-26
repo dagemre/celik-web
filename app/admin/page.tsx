@@ -136,9 +136,6 @@ function SeeAll({ href }: { href: string }) {
 
 // ════════════════════════════════════════════════════
 export default function AdminDashboard() {
-  const pendingDue   = DUE_OWNERS.filter((o) => o.status === 'Geçmiş')
-  const pendingTotal = pendingDue.reduce((s, o) => s + o.amount, 0)
-
   return (
     <div className="p-4 md:p-6 max-w-[1200px] mx-auto">
 
@@ -148,30 +145,6 @@ export default function AdminDashboard() {
         <p className="text-sm text-neutral-500 mt-0.5">Bugün senin için 3 önemli iş var.</p>
       </div>
 
-      {/* ── Alert banner ──────────────────────────── */}
-      {pendingDue.length > 0 && (
-        <Link
-          href="/admin/vade-takibi"
-          className="flex items-center gap-4 bg-danger-50 border border-danger-100 rounded-2xl px-5 py-4 mb-5 hover:bg-danger-100 transition-colors"
-        >
-          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="#A32D2D" strokeWidth="2"/>
-              <path d="M12 8v4M12 16h.01" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-sm text-danger-700">{pendingDue.length} dekont onay bekliyor</p>
-            <p className="text-xs text-danger-600 mt-0.5">Toplam {formatTL(pendingTotal)} onayında</p>
-          </div>
-          <div className="flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2 rounded-xl flex-shrink-0">
-            <span className="text-sm font-medium">İncele</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </div>
-        </Link>
-      )}
 
       {/* ── 4 Metric cards ────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
