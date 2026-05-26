@@ -23,20 +23,20 @@ const PROJELER_LISTESI = ['Kemal Apartman', 'Gülbahçe Apartmanı', 'Doğa Rezi
 
 const MOCK_EVRAKLAR: EvrakItem[] = [
   // Kemal Apartman
-  { id: 'e1',  proje: 'Kemal Apartman',     klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İnşaat Ruhsatı',           boyut: '2.4 MB', tarih: '12.03.2026', durum: 'paylasiliyor' },
+  { id: 'e1',  proje: 'Kemal Apartman',     klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İnşaat Ruhsatı',           boyut: '2.4 MB', tarih: '12.03.2026', durum: 'gizli' },
   { id: 'e2',  proje: 'Kemal Apartman',     klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'Yapı Kullanma İzni',        boyut: '1.8 MB', tarih: '15.03.2026', durum: 'gizli'        },
-  { id: 'e3',  proje: 'Kemal Apartman',     klasor: 'Sözleşmeler',      tur: 'Sözleşme',   ad: 'Sözleşme - Emre Dağ',       boyut: '3.2 MB', tarih: '10.01.2026', durum: 'paylasiliyor' },
-  { id: 'e4',  proje: 'Kemal Apartman',     klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Mimari Proje',              boyut: '8.5 MB', tarih: '05.02.2026', durum: 'paylasiliyor' },
+  { id: 'e3',  proje: 'Kemal Apartman',     klasor: 'Sözleşmeler',      tur: 'Sözleşme',   ad: 'Sözleşme - Emre Dağ',       boyut: '3.2 MB', tarih: '10.01.2026', durum: 'gizli' },
+  { id: 'e4',  proje: 'Kemal Apartman',     klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Mimari Proje',              boyut: '8.5 MB', tarih: '05.02.2026', durum: 'gizli' },
   { id: 'e5',  proje: 'Kemal Apartman',     klasor: 'Finansal',         tur: 'Rapor',       ad: 'Bütçe Raporu Q1',           boyut: '1.5 MB', tarih: '01.04.2026', durum: 'gizli'        },
   // Gülbahçe Apartmanı
-  { id: 'e6',  proje: 'Gülbahçe Apartmanı', klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İnşaat Ruhsatı',           boyut: '2.1 MB', tarih: '08.03.2026', durum: 'paylasiliyor' },
-  { id: 'e7',  proje: 'Gülbahçe Apartmanı', klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Statik Hesap Raporu',       boyut: '5.2 MB', tarih: '12.02.2026', durum: 'paylasiliyor' },
+  { id: 'e6',  proje: 'Gülbahçe Apartmanı', klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İnşaat Ruhsatı',           boyut: '2.1 MB', tarih: '08.03.2026', durum: 'gizli' },
+  { id: 'e7',  proje: 'Gülbahçe Apartmanı', klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Statik Hesap Raporu',       boyut: '5.2 MB', tarih: '12.02.2026', durum: 'gizli' },
   { id: 'e8',  proje: 'Gülbahçe Apartmanı', klasor: 'Finansal',         tur: 'Dekont',      ad: 'Ödeme Dekontu - Mart',      boyut: '0.8 MB', tarih: '31.03.2026', durum: 'gizli'        },
   // Doğa Rezidans
-  { id: 'e9',  proje: 'Doğa Rezidans',      klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İtfaiye Uygunluk Belgesi', boyut: '0.9 MB', tarih: '20.03.2026', durum: 'paylasiliyor' },
-  { id: 'e10', proje: 'Doğa Rezidans',      klasor: 'Sözleşmeler',      tur: 'Sözleşme',   ad: 'Sözleşme - Ahmet Yılmaz',   boyut: '3.1 MB', tarih: '14.01.2026', durum: 'paylasiliyor' },
+  { id: 'e9',  proje: 'Doğa Rezidans',      klasor: 'Ruhsat',           tur: 'Resmi Belge', ad: 'İtfaiye Uygunluk Belgesi', boyut: '0.9 MB', tarih: '20.03.2026', durum: 'gizli' },
+  { id: 'e10', proje: 'Doğa Rezidans',      klasor: 'Sözleşmeler',      tur: 'Sözleşme',   ad: 'Sözleşme - Ahmet Yılmaz',   boyut: '3.1 MB', tarih: '14.01.2026', durum: 'gizli' },
   // Yazgan Konutları
-  { id: 'e11', proje: 'Yazgan Konutları',   klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Elektrik Projesi',          boyut: '4.3 MB', tarih: '18.02.2026', durum: 'paylasiliyor' },
+  { id: 'e11', proje: 'Yazgan Konutları',   klasor: 'Teknik Projeler',  tur: 'Proje',       ad: 'Elektrik Projesi',          boyut: '4.3 MB', tarih: '18.02.2026', durum: 'gizli' },
   { id: 'e12', proje: 'Yazgan Konutları',   klasor: 'Yazışmalar',       tur: 'Resmi Belge', ad: 'Yazışma - Belediye',        boyut: '1.2 MB', tarih: '22.04.2026', durum: 'gizli'        },
 ]
 
@@ -122,19 +122,6 @@ const EvrakEkleForm = ({ form, setForm, mevcutKlasorler, onEkle, onClose }: {
       className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors mb-4"
     />
 
-    {/* Paylaşım Durumu */}
-    <p className="text-xs font-medium text-neutral-500 mb-2">Paylaşım Durumu</p>
-    <div className="flex gap-2 mb-5">
-      {(['paylasiliyor', 'gizli'] as EvrakDurum[]).map(d => (
-        <button key={d} onClick={() => setForm({ ...form, durum: d })}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${form.durum === d
-            ? d === 'paylasiliyor' ? 'bg-success-50 text-success-700 border-success-200' : 'bg-neutral-100 text-neutral-700 border-neutral-200'
-            : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'}`}>
-          {d === 'paylasiliyor' ? 'Paylaşılıyor' : 'Gizli'}
-        </button>
-      ))}
-    </div>
-
     {/* PDF Yükleme */}
     <div className="border-2 border-dashed border-neutral-200 rounded-xl p-5 flex flex-col items-center justify-center mb-5 cursor-pointer hover:border-primary-300 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="mb-2 opacity-40">
@@ -188,11 +175,11 @@ export default function AdminEvraklarPage() {
       id: `e${Date.now()}`, proje: form.proje, klasor: klasorAd, tur: form.tur,
       ad: form.ad.trim(), boyut: '—',
       tarih: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
-      durum: form.durum,
+      durum: 'gizli',
     }
     setEvraklar(prev => [...prev, yeni])
     setShowPanel(false)
-    setForm({ proje: PROJELER_LISTESI[0], klasor: 'Ruhsat', yeniKlasor: '', tur: 'Resmi Belge', ad: '', durum: 'paylasiliyor' })
+    setForm({ proje: PROJELER_LISTESI[0], klasor: 'Ruhsat', yeniKlasor: '', tur: 'Resmi Belge', ad: '', durum: 'gizli' })
   }
 
   const toggleProjeKlasor = (proje: string, klasor: string) => {

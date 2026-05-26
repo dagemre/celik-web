@@ -1144,16 +1144,16 @@ const TUR_STYLE: Record<string, { bg: string; text: string }> = {
 }
 
 const EVRAKLAR_MOCK: EvrakItem[] = [
-  { id: 'e1',  ad: 'İnşaat Ruhsatı',           klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '2.4 MB', tarih: '12.03.2026', durum: 'paylasiliyor' },
+  { id: 'e1',  ad: 'İnşaat Ruhsatı',           klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '2.4 MB', tarih: '12.03.2026', durum: 'gizli' },
   { id: 'e2',  ad: 'Yapı Kullanma İzni',        klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '1.8 MB', tarih: '15.03.2026', durum: 'gizli'        },
-  { id: 'e3',  ad: 'İtfaiye Uygunluk Belgesi',  klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '0.9 MB', tarih: '18.03.2026', durum: 'paylasiliyor' },
-  { id: 'e4',  ad: 'Sözleşme - Emre Dağ',       klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.2 MB', tarih: '10.01.2026', durum: 'paylasiliyor' },
-  { id: 'e5',  ad: 'Sözleşme - Ahmet Yılmaz',   klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.1 MB', tarih: '12.01.2026', durum: 'paylasiliyor' },
-  { id: 'e6',  ad: 'Mimari Proje',              klasor: 'Teknik Projeler', tur: 'Proje',       boyut: '8.5 MB', tarih: '05.02.2026', durum: 'paylasiliyor' },
-  { id: 'e7',  ad: 'Statik Hesap Raporu',        klasor: 'Teknik Projeler', tur: 'Rapor',       boyut: '5.2 MB', tarih: '08.02.2026', durum: 'paylasiliyor' },
+  { id: 'e3',  ad: 'İtfaiye Uygunluk Belgesi',  klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '0.9 MB', tarih: '18.03.2026', durum: 'gizli' },
+  { id: 'e4',  ad: 'Sözleşme - Emre Dağ',       klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.2 MB', tarih: '10.01.2026', durum: 'gizli' },
+  { id: 'e5',  ad: 'Sözleşme - Ahmet Yılmaz',   klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.1 MB', tarih: '12.01.2026', durum: 'gizli' },
+  { id: 'e6',  ad: 'Mimari Proje',              klasor: 'Teknik Projeler', tur: 'Proje',       boyut: '8.5 MB', tarih: '05.02.2026', durum: 'gizli' },
+  { id: 'e7',  ad: 'Statik Hesap Raporu',        klasor: 'Teknik Projeler', tur: 'Rapor',       boyut: '5.2 MB', tarih: '08.02.2026', durum: 'gizli' },
   { id: 'e8',  ad: 'Bütçe Raporu Q1',           klasor: 'Finansal',        tur: 'Rapor',       boyut: '1.5 MB', tarih: '01.04.2026', durum: 'gizli'        },
   { id: 'e9',  ad: 'Ödeme Dekontu - Mart',      klasor: 'Finansal',        tur: 'Dekont',      boyut: '0.8 MB', tarih: '31.03.2026', durum: 'gizli'        },
-  { id: 'e10', ad: 'Yazışma - Belediye',        klasor: 'Yazışmalar',      tur: 'Resmi Belge', boyut: '1.2 MB', tarih: '20.04.2026', durum: 'paylasiliyor' },
+  { id: 'e10', ad: 'Yazışma - Belediye',        klasor: 'Yazışmalar',      tur: 'Resmi Belge', boyut: '1.2 MB', tarih: '20.04.2026', durum: 'gizli' },
 ]
 
 // ── Evrak Ekle Form ────────────────────────────────────────────────────────────
@@ -1212,20 +1212,6 @@ const EvrakEkleForm = ({ form, setForm, klasorler, onEkle, onClose }: {
       className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors mb-4"
     />
 
-    <p className="text-xs font-medium text-neutral-500 mb-2">Paylaşım Durumu</p>
-    <div className="flex gap-2 mb-5">
-      {(['paylasiliyor', 'gizli'] as EvrakDurum[]).map(d => (
-        <button key={d} onClick={() => setForm({ ...form, durum: d })}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${form.durum === d
-            ? d === 'paylasiliyor'
-              ? 'bg-success-50 text-success-700 border-success-200'
-              : 'bg-neutral-100 text-neutral-700 border-neutral-200'
-            : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'}`}>
-          {d === 'paylasiliyor' ? 'Paylaşılıyor' : 'Gizli'}
-        </button>
-      ))}
-    </div>
-
     <div className="border-2 border-dashed border-neutral-200 rounded-xl p-5 flex flex-col items-center justify-center mb-5 cursor-pointer hover:border-primary-300 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="mb-2 opacity-40">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#0A1F44" strokeWidth="1.6" strokeLinejoin="round" />
@@ -1273,11 +1259,11 @@ const EvraklarTab = () => {
       id: `e${Date.now()}`, ad: form.ad.trim(), klasor: klasorAd, tur: form.tur,
       boyut: '—',
       tarih: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
-      durum: form.durum,
+      durum: 'gizli',
     }
     setEvraklar(prev => [...prev, yeni])
     setShowPanel(false)
-    setForm({ ad: '', tur: 'Resmi Belge', klasor: 'Ruhsat', yeniKlasor: '', durum: 'paylasiliyor' })
+    setForm({ ad: '', tur: 'Resmi Belge', klasor: 'Ruhsat', yeniKlasor: '', durum: 'gizli' })
   }
 
   const PdfIcon = () => (
