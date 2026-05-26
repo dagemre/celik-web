@@ -101,11 +101,10 @@ function MobileCard({ p }: { p: Project }) {
           </div>
           <p className="flex items-center gap-1 text-xs text-neutral-500 mb-3"><PinIco />{loc}</p>
 
-          {/* 4 stat */}
-          <div className="grid grid-cols-4 gap-x-1">
+          {/* 3 stat */}
+          <div className="grid grid-cols-3 gap-x-2">
             {[
               { l: 'Daire Sayısı', v: String(p.units_count ?? '—')  },
-              { l: 'Başlangıç',    v: fmt(p.created_at)              },
               { l: 'Bitiş Plan.',  v: fmt(end)                       },
               { l: 'İlerleme',     v: `%${p.progress ?? 0}`, c: true },
             ].map(({ l, v, c }) => (
