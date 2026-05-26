@@ -2,289 +2,339 @@
 
 import Link from 'next/link'
 
-// --- helpers ---
-function formatTL(amount: number) {
-  return amount.toLocaleString('tr-TR') + ' ₺'
+// ── Helpers ──────────────────────────────────────────
+function formatTL(n: number) {
+  return n.toLocaleString('tr-TR') + ' TL'
 }
-function formatCompactTL(amount: number) {
-  if (amount >= 1_000_000) return `₺${(amount / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (amount >= 1_000) return `₺${Math.round(amount / 1_000)}K`
-  return `₺${amount}`
-}
-function todayLabel() {
-  return new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+function formatCompact(n: number) {
+  if (n >= 1_000_000) return `₺${(n / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (n >= 1_000) return `₺${Math.round(n / 1_000)}K`
+  return `₺${n}`
 }
 
-// --- mock data (Supabase'e taşınacak) ---
+// ── Mock data ─────────────────────────────────────────
 const SUMMARY = {
-  sozlesmeBedeli: 27_150_000,
-  tahsilEdilen: 18_430_000,
-  tahsilEdilecek: 8_720_000,
-  projemaliyeti: 15_850_000,
-  toplamProje: 22,
-  devamEden: 4,
-  receivablePercent: 68,
-  remainingPercent: 32,
+  sozlesmeBedeli: 88_000_000,
+  tahsilEdilecek: 24_800_000,
+  tahsilEdilen:   63_250_000,
+  projeMaliyeti:  15_800_000,
+  toplamProje:    8,
+  aktifProje:     6,
+  tahsilatPct:    71.8,
+  kalanPct:       28.2,
 }
 
 const PROJECTS = [
-  { id: 'ap1', name: 'Kemal Apartman', location: 'Avcılar / İstanbul', status: 'Devam Ediyor', progress: 72, endDate: 'Nis 2026' },
-  { id: 'ap2', name: 'Gülbahçe Apartmanı', location: 'Beylikdüzü / İstanbul', status: 'Devam Ediyor', progress: 58, endDate: 'Haz 2026' },
-  { id: 'ap3', name: 'Doğa Rezidans', location: 'Başakşehir / İstanbul', status: 'Gecikmede', progress: 45, endDate: 'Oca 2026' },
-  { id: 'ap4', name: 'Yazgan Konutları', location: 'Esenyurt / İstanbul', status: 'Devam Ediyor', progress: 83, endDate: 'Mar 2026' },
+  { id: 'p1', name: 'Mutlu Apartman',      location: 'Avcılar / İstanbul',     tahsilat: 3_250_000, toplam: 4_750_000, status: 'Devam Ediyor', img: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=120&q=80' },
+  { id: 'p2', name: 'Pancarlı Sokak',      location: 'Bahçelievler / İstanbul', tahsilat: 4_100_000, toplam: 7_500_000, status: 'İnce İşçilik', img: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=120&q=80' },
+  { id: 'p3', name: 'Bursalı Tahir Bey Sk.', location: 'Bahçelievler / İstanbul', tahsilat: 1_800_000, toplam: 5_500_000, status: 'Altyapı',      img: 'https://images.unsplash.com/photo-1460317442991-0ec209397118?w=120&q=80' },
+  { id: 'p4', name: 'Gülbahçe Konutları',  location: 'Gülbahçe / İstanbul',    tahsilat: 2_750_000, toplam: 6_000_000, status: 'Elektrik',    img: 'https://images.unsplash.com/photo-1448630360428-65456885c650?w=120&q=80' },
 ]
 
 const DUE_OWNERS = [
-  { id: 'd1', name: 'Emre Dağ', project: 'Kemal Apartman', unit: 'Daire 21', amount: 180_000, status: 'Geçmiş', days: '5 gün geçti' },
-  { id: 'd2', name: 'Mehmet Kaya', project: 'Kemal Apartman', unit: 'Daire 23', amount: 95_000, status: 'Geçmiş', days: '8 gün geçti' },
-  { id: 'd3', name: 'Ayşe Demir', project: 'Gülbahçe Apartmanı', unit: 'Daire 14', amount: 125_000, status: 'Yaklaşıyor', days: '2 gün kaldı' },
-  { id: 'd4', name: 'Fatma Şahin', project: 'Doğa Rezidans', unit: 'Daire 17', amount: 80_000, status: 'Yaklaşıyor', days: '4 gün kaldı' },
+  { id: 'd1', name: 'Emre Dağ',    project: 'Kemal Apartmanı',    unit: 'Daire 21', amount: 180_000, status: 'Geçmiş',    days: '5 gün geçti' },
+  { id: 'd2', name: 'Mehmet Kaya', project: 'Kemal Apartmanı',    unit: 'Daire 23', amount: 95_000,  status: 'Geçmiş',    days: '8 gün geçti' },
+  { id: 'd3', name: 'Ayşe Demir',  project: 'Gülbahçe Apartmanı', unit: 'Daire 14', amount: 125_000, status: 'Yaklaşıyor', days: '2 gün kaldı' },
+  { id: 'd4', name: 'Fatma Şahin', project: 'Doğa Rezidans',      unit: 'Daire 17', amount: 80_000,  status: 'Yaklaşıyor', days: '4 gün kaldı' },
 ]
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; bar: string }> = {
-  'Devam Ediyor': { bg: 'bg-success-50', text: 'text-success-700', bar: '#0F6E56' },
-  'Gecikmede':    { bg: 'bg-danger-50',  text: 'text-danger-700',  bar: '#A32D2D' },
-  'Tamamlandı':   { bg: 'bg-info-50',    text: 'text-info-700',    bar: '#185FA5' },
-  'Planlama':     { bg: 'bg-warning-50', text: 'text-warning-700', bar: '#BA7517' },
+const QUICK_ACTIONS = [
+  { label: 'Tahsilat Ekle', bg: 'bg-success-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#0F6E56" strokeWidth="1.8"/><path d="M2 10h20M12 14v-2m0 0v-2m0 2h-2m2 0h2" stroke="#0F6E56" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+  { label: 'Proje Ekle',    bg: 'bg-info-50',    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/></svg> },
+  { label: 'Malik Ekle',   bg: 'bg-purple-50',  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#7C3AED" strokeWidth="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+  { label: 'Evrak Yükle',  bg: 'bg-warning-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#BA7517" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 2v6h6M12 12v6M9 15l3-3 3 3" stroke="#BA7517" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+]
+
+// ── Status badge styles ───────────────────────────────
+const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
+  'Devam Ediyor': { bg: 'bg-success-50', text: 'text-success-700' },
+  'Gecikmede':    { bg: 'bg-danger-50',  text: 'text-danger-700' },
+  'Tamamlandı':   { bg: 'bg-info-50',    text: 'text-info-700' },
+  'Planlama':     { bg: 'bg-warning-50', text: 'text-warning-700' },
+  'İnce İşçilik': { bg: 'bg-warning-50', text: 'text-warning-700' },
+  'Altyapı':      { bg: 'bg-info-50',    text: 'text-info-700' },
+  'Elektrik':     { bg: 'bg-neutral-100', text: 'text-neutral-600' },
 }
 
-// --- MetricCard ---
-function MetricCard({
-  label, value, subtitle, variant, href,
-}: {
-  label: string; value: string; subtitle: string; variant: 'info' | 'success' | 'warning' | 'danger'; href: string
-}) {
-  const colors = {
-    info:    { bg: 'bg-info-50',    text: 'text-info-600',    icon: '#185FA5' },
-    success: { bg: 'bg-success-50', text: 'text-success-700', icon: '#0F6E56' },
-    warning: { bg: 'bg-warning-50', text: 'text-warning-700', icon: '#BA7517' },
-    danger:  { bg: 'bg-danger-50',  text: 'text-danger-700',  icon: '#A32D2D' },
-  }[variant]
-  return (
-    <Link href={href} className="bg-white rounded-2xl border border-neutral-100 p-4 hover:shadow-sm transition-shadow flex-1 min-w-0">
-      <div className={`w-9 h-9 ${colors.bg} rounded-xl flex items-center justify-center mb-3`}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="5" width="20" height="14" rx="2" stroke={colors.icon} strokeWidth="1.8" />
-          <path d="M2 10h20" stroke={colors.icon} strokeWidth="1.8" />
-          <rect x="5" y="13" width="4" height="2" rx="0.5" fill={colors.icon} />
-        </svg>
-      </div>
-      <p className="text-xs text-neutral-500 font-medium mb-1">{label}</p>
-      <p className="font-bold text-xl text-primary-800">{value}</p>
-      <p className={`text-xs font-medium mt-1 ${colors.text}`}>{subtitle}</p>
-    </Link>
-  )
-}
-
-// --- DonutChart (SVG) ---
-function DonutChart({ percent, value, label }: { percent: number; value: string; label: string }) {
-  const r = 52
+// ── Donut Chart ───────────────────────────────────────
+function DonutChart() {
+  const r = 68
   const circ = 2 * Math.PI * r
-  const dash = (percent / 100) * circ
+  const greenDash = (SUMMARY.tahsilatPct / 100) * circ
+  const navyDash  = (SUMMARY.kalanPct   / 100) * circ
   return (
-    <div className="relative w-32 h-32 flex-shrink-0">
-      <svg width="128" height="128" viewBox="0 0 128 128">
-        <circle cx="64" cy="64" r={r} fill="none" stroke="#EDECE8" strokeWidth="18" />
-        <circle
-          cx="64" cy="64" r={r} fill="none"
-          stroke="#0A1F44" strokeWidth="18"
-          strokeDasharray={`${dash} ${circ - dash}`}
-          strokeDashoffset={circ / 4}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-bold text-sm text-primary-800">{value}</span>
-        <span className="text-[9px] text-neutral-500 text-center px-2 leading-tight">{label}</span>
+    <div className="flex items-center gap-5">
+      <div className="relative flex-shrink-0" style={{ width: 160, height: 160 }}>
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          {/* Remaining (navy) */}
+          <circle cx="80" cy="80" r={r} fill="none" stroke="#0A1F44" strokeWidth="20"
+            strokeDasharray={`${navyDash} ${circ - navyDash}`}
+            strokeDashoffset={circ / 4 - greenDash}
+          />
+          {/* Collected (green) */}
+          <circle cx="80" cy="80" r={r} fill="none" stroke="#22C55E" strokeWidth="20"
+            strokeDasharray={`${greenDash} ${circ - greenDash}`}
+            strokeDashoffset={circ / 4}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-bold text-base text-primary-800">{formatCompact(SUMMARY.sozlesmeBedeli)}</span>
+          <span className="text-[10px] text-neutral-500 text-center leading-tight px-2">Toplam Tahsilat</span>
+        </div>
+      </div>
+      <div className="flex-1">
+        <p className="text-xs text-neutral-500">Tahsil Edilen</p>
+        <div className="flex items-baseline gap-2 mt-0.5 mb-4">
+          <span className="font-bold text-sm text-primary-800">{formatTL(SUMMARY.tahsilEdilen)}</span>
+          <span className="text-xs font-bold text-success-700">%{SUMMARY.tahsilatPct}</span>
+        </div>
+        <p className="text-xs text-neutral-500">Tahsil Edilecek</p>
+        <div className="flex items-baseline gap-2 mt-0.5">
+          <span className="font-bold text-sm text-primary-800">{formatTL(SUMMARY.tahsilEdilecek)}</span>
+          <span className="text-xs font-bold text-neutral-500">%{SUMMARY.kalanPct}</span>
+        </div>
       </div>
     </div>
   )
 }
 
+// ── Metric Card ───────────────────────────────────────
+function MetricCard({ label, value, sub, subColor, iconBg, icon, href }: {
+  label: string; value: string; sub: string; subColor: string
+  iconBg: string; icon: React.ReactNode; href: string
+}) {
+  return (
+    <Link href={href} className="bg-white rounded-2xl border border-neutral-100 p-4 hover:shadow-sm transition-shadow flex-1 min-w-0 block">
+      <div className={`w-10 h-10 ${iconBg} rounded-full flex items-center justify-center mb-3`}>
+        {icon}
+      </div>
+      <p className="text-xs text-neutral-500 mb-1">{label}</p>
+      <p className="font-bold text-2xl text-primary-800 leading-tight">{value}</p>
+      <p className={`text-xs font-medium mt-1.5 ${subColor}`}>{sub}</p>
+    </Link>
+  )
+}
+
+// ── Arrow icon ────────────────────────────────────────
+const ArrowRight = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+    <path d="M9 18l6-6-6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+)
+
+// ── "Tümünü gör" link ─────────────────────────────────
+function SeeAll({ href }: { href: string }) {
+  return (
+    <Link href={href} className="flex items-center gap-1 text-info-600 text-sm font-medium hover:opacity-80">
+      Tümünü gör
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="#185FA5" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </Link>
+  )
+}
+
+// ════════════════════════════════════════════════════
 export default function AdminDashboard() {
-  const pendingDue = DUE_OWNERS.filter((o) => o.status === 'Geçmiş')
+  const pendingDue   = DUE_OWNERS.filter((o) => o.status === 'Geçmiş')
   const pendingTotal = pendingDue.reduce((s, o) => s + o.amount, 0)
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="font-bold text-2xl text-primary-800">Hoş geldiniz, Emre Dağ</h1>
-          <p className="text-sm text-neutral-500 mt-1">{todayLabel()}</p>
-        </div>
-        {pendingDue.length > 0 && (
-          <Link
-            href="/admin/vade-takibi"
-            className="flex items-center gap-3 bg-danger-50 border border-danger-100 rounded-xl px-4 py-3 hover:bg-danger-100 transition-colors"
-          >
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="#A32D2D" strokeWidth="2" />
-                <path d="M12 8v4M12 16h.01" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-bold text-sm text-danger-700">{pendingDue.length} vadesi geçmiş ödeme</p>
-              <p className="text-xs text-danger-600">Toplam {formatTL(pendingTotal)}</p>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="ml-2">
-              <path d="M9 18l6-6-6-6" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round" />
+    <div className="p-4 md:p-6 max-w-[1200px] mx-auto">
+
+      {/* Mobil selamlama (masaüstünde gizli — header'da gösteriliyor) */}
+      <div className="md:hidden mb-4">
+        <h1 className="font-bold text-xl text-primary-800">Hoş geldiniz, Emre Dağ</h1>
+        <p className="text-sm text-neutral-500 mt-0.5">Bugün senin için 3 önemli iş var.</p>
+      </div>
+
+      {/* ── Alert banner ──────────────────────────── */}
+      {pendingDue.length > 0 && (
+        <Link
+          href="/admin/vade-takibi"
+          className="flex items-center gap-4 bg-danger-50 border border-danger-100 rounded-2xl px-5 py-4 mb-5 hover:bg-danger-100 transition-colors"
+        >
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#A32D2D" strokeWidth="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-          </Link>
-        )}
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-sm text-danger-700">{pendingDue.length} dekont onay bekliyor</p>
+            <p className="text-xs text-danger-600 mt-0.5">Toplam {formatTL(pendingTotal)} onayında</p>
+          </div>
+          <div className="flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2 rounded-xl flex-shrink-0">
+            <span className="text-sm font-medium">İncele</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+        </Link>
+      )}
+
+      {/* ── 4 Metric cards ────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        <MetricCard
+          label="Sözleşme Bedeli"
+          value={formatCompact(SUMMARY.sozlesmeBedeli)}
+          sub={`${SUMMARY.toplamProje} proje toplamı`}
+          subColor="text-info-600"
+          iconBg="bg-info-50"
+          href="/admin/odemeler"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#185FA5" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 2v6h6M8 13h8M8 17h5" stroke="#185FA5" strokeWidth="1.8" strokeLinecap="round"/></svg>}
+        />
+        <MetricCard
+          label="Tahsil Edilecek"
+          value={formatCompact(SUMMARY.tahsilEdilecek)}
+          sub={`%${SUMMARY.kalanPct} kalan`}
+          subColor="text-warning-700"
+          iconBg="bg-warning-50"
+          href="/admin/odemeler"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#BA7517" strokeWidth="1.8"/><path d="M2 10h20" stroke="#BA7517" strokeWidth="1.8"/><circle cx="12" cy="15" r="2" fill="#BA7517"/></svg>}
+        />
+        <MetricCard
+          label="Tahsil Edilen"
+          value={formatCompact(SUMMARY.tahsilEdilen)}
+          sub={`%${SUMMARY.tahsilatPct} tamamlandı`}
+          subColor="text-success-700"
+          iconBg="bg-success-50"
+          href="/admin/odemeler"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#0F6E56" strokeWidth="1.8"/><path d="M2 10h20" stroke="#0F6E56" strokeWidth="1.8"/><path d="M6 15l3 2 5-5" stroke="#0F6E56" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+        />
+        <MetricCard
+          label="Güncel Proje Maliyeti"
+          value={formatCompact(SUMMARY.projeMaliyeti)}
+          sub={`${SUMMARY.aktifProje} aktif proje`}
+          subColor="text-danger-700"
+          iconBg="bg-danger-50"
+          href="/admin/odemeler"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#A32D2D" strokeWidth="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#A32D2D" strokeWidth="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#A32D2D" strokeWidth="1.8"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="#A32D2D" strokeWidth="1.8"/></svg>}
+        />
       </div>
 
-      {/* 4 Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <MetricCard label="Sözleşme Bedeli" value={formatCompactTL(SUMMARY.sozlesmeBedeli)} subtitle={`${SUMMARY.toplamProje} proje toplamı`} variant="info" href="/admin/odemeler" />
-        <MetricCard label="Tahsil Edilecek"  value={formatCompactTL(SUMMARY.tahsilEdilecek)} subtitle={`%${SUMMARY.remainingPercent} kalan`} variant="warning" href="/admin/odemeler" />
-        <MetricCard label="Tahsil Edilen"    value={formatCompactTL(SUMMARY.tahsilEdilen)} subtitle={`%${SUMMARY.receivablePercent} tamamlandı`} variant="success" href="/admin/odemeler" />
-        <MetricCard label="Proje Maliyeti"   value={formatCompactTL(SUMMARY.projemaliyeti)} subtitle={`${SUMMARY.devamEden} aktif proje`} variant="danger" href="/admin/odemeler" />
-      </div>
+      {/* ── 2 kolon layout ────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 md:gap-5">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol kolon: Projeler + Vade */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* ── Sol kolon ───────────────────────────── */}
+        <div className="space-y-4">
+
           {/* Projelerim */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-base text-primary-800">Devam Eden Projeler</h2>
-              <Link href="/admin/projeler" className="flex items-center gap-1 text-info-600 text-sm font-medium hover:underline">
-                Tümünü gör
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 18l6-6-6-6" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </Link>
+              <h2 className="font-bold text-base text-primary-800">Projelerim</h2>
+              <SeeAll href="/admin/projeler" />
             </div>
-            <div className="space-y-3">
-              {PROJECTS.map((p) => {
-                const s = STATUS_STYLE[p.status] ?? STATUS_STYLE['Devam Ediyor']
+            <div className="space-y-0">
+              {PROJECTS.map((p, i) => {
+                const s = STATUS_STYLE[p.status] ?? { bg: 'bg-neutral-100', text: 'text-neutral-600' }
                 return (
-                  <Link key={p.id} href="/admin/projeler" className="flex items-center gap-4 py-3 border-b border-neutral-50 last:border-0 hover:bg-neutral-50 rounded-xl px-2 -mx-2 transition-colors">
+                  <Link
+                    key={p.id}
+                    href="/admin/projeler"
+                    className={`flex items-center gap-3 py-3 hover:bg-neutral-50 rounded-xl px-1 -mx-1 transition-colors ${i < PROJECTS.length - 1 ? 'border-b border-neutral-50' : ''}`}
+                  >
+                    {/* Thumbnail */}
+                    <img
+                      src={p.img}
+                      alt={p.name}
+                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                      style={{ imageOrientation: 'from-image' }}
+                    />
+                    {/* Name + location */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-sm text-primary-800 truncate">{p.name}</span>
-                        <span className={`${s.bg} ${s.text} text-[10px] font-medium px-2 py-0.5 rounded-lg flex-shrink-0`}>{p.status}</span>
-                      </div>
-                      <p className="text-xs text-neutral-500 mb-2">{p.location}</p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${p.progress}%`, backgroundColor: s.bar }} />
-                        </div>
-                        <span className="text-xs font-bold text-primary-800 flex-shrink-0">%{p.progress}</span>
-                      </div>
+                      <p className="font-bold text-sm text-primary-800 truncate">{p.name}</p>
+                      <p className="text-xs text-neutral-500 mt-0.5 truncate">{p.location}</p>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs text-neutral-500">Bitiş</p>
-                      <p className="font-bold text-sm text-primary-800">{p.endDate}</p>
+                    {/* Amount */}
+                    <div className="text-right flex-shrink-0 mr-2">
+                      <p className="font-bold text-sm text-primary-800">{formatTL(p.tahsilat)}</p>
+                      <p className="text-[11px] text-neutral-400">/ {formatTL(p.toplam)}</p>
                     </div>
+                    {/* Badge */}
+                    <span className={`${s.bg} ${s.text} text-[10px] font-bold px-2.5 py-1 rounded-lg flex-shrink-0 whitespace-nowrap`}>
+                      {p.status}
+                    </span>
+                    <ArrowRight />
                   </Link>
                 )
               })}
             </div>
-          </div>
-
-          {/* Vadesi Yaklaşan */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-base text-primary-800">Vade Takibi</h2>
-              <Link href="/admin/vade-takibi" className="flex items-center gap-1 text-info-600 text-sm font-medium hover:underline">
-                Tümünü gör
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 18l6-6-6-6" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </Link>
-            </div>
-            <div className="space-y-0">
-              {DUE_OWNERS.map((o, i) => {
-                const isLate = o.status === 'Geçmiş'
-                return (
-                  <div key={o.id} className={`flex items-center gap-3 py-3 ${i < DUE_OWNERS.length - 1 ? 'border-b border-neutral-50' : ''}`}>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isLate ? 'bg-danger-50' : 'bg-warning-50'}`}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" stroke={isLate ? '#A32D2D' : '#BA7517'} strokeWidth="1.8" />
-                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={isLate ? '#A32D2D' : '#BA7517'} strokeWidth="1.8" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm text-primary-800">{o.name}</p>
-                      <p className="text-xs text-neutral-500">{o.project} · {o.unit}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm text-primary-800">{formatTL(o.amount)}</p>
-                      <p className={`text-[11px] font-medium ${isLate ? 'text-danger-700' : 'text-warning-700'}`}>{o.days}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Sağ kolon: Tahsilat özeti + Hızlı işlemler */}
-        <div className="space-y-4">
-          {/* Tahsilat Özeti */}
-          <div className="bg-white rounded-2xl border border-neutral-100 p-5">
-            <h2 className="font-bold text-base text-primary-800 mb-4">Tahsilat Özeti</h2>
-            <div className="flex items-center gap-4">
-              <DonutChart percent={SUMMARY.receivablePercent} value={formatCompactTL(SUMMARY.sozlesmeBedeli)} label="Toplam Tahsilat" />
-              <div className="flex-1">
-                <p className="text-xs text-neutral-500">Tahsil Edilen</p>
-                <div className="flex items-baseline gap-1 mt-0.5 mb-3">
-                  <p className="font-bold text-sm text-primary-800">{formatTL(SUMMARY.tahsilEdilen)}</p>
-                  <p className="text-xs font-medium text-success-700">%{SUMMARY.receivablePercent}</p>
-                </div>
-                <p className="text-xs text-neutral-500">Tahsil Edilecek</p>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <p className="font-bold text-sm text-primary-800">{formatTL(SUMMARY.tahsilEdilecek)}</p>
-                  <p className="text-xs font-medium text-neutral-500">%{SUMMARY.remainingPercent}</p>
-                </div>
-              </div>
-            </div>
+            {/* Tüm Projeleri Gör button */}
+            <Link
+              href="/admin/projeler"
+              className="mt-4 flex items-center justify-center gap-2 border border-neutral-100 rounded-xl py-3 text-sm font-medium text-primary-800 hover:bg-neutral-50 transition-colors"
+            >
+              Tüm Projeleri Gör
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18l6-6-6-6" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </Link>
           </div>
 
           {/* Hızlı İşlemler */}
           <div className="bg-white rounded-2xl border border-neutral-100 p-5">
             <h2 className="font-bold text-base text-primary-800 mb-4">Hızlı İşlemler</h2>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: 'Proje Ekle',   bg: 'bg-info-50',    icon: '#185FA5', href: '/admin/projeler' },
-                { label: 'Evrak Ekle',   bg: 'bg-warning-50', icon: '#BA7517', href: '/admin/evraklar' },
-                { label: 'Vade Gör',     bg: 'bg-danger-50',  icon: '#A32D2D', href: '/admin/vade-takibi' },
-                { label: 'Finansal',     bg: 'bg-success-50', icon: '#0F6E56', href: '/admin/odemeler' },
-              ].map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="bg-neutral-50 hover:bg-neutral-100 rounded-xl p-3 flex flex-col items-center gap-2 transition-colors"
+            <div className="grid grid-cols-4 gap-3">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  className="flex flex-col items-center gap-2 bg-neutral-50 hover:bg-neutral-100 rounded-2xl p-4 transition-colors"
                 >
-                  <div className={`w-10 h-10 ${item.bg} rounded-xl flex items-center justify-center`}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 21V9l9-6 9 6v12H3z" stroke={item.icon} strokeWidth="1.8" strokeLinejoin="round" />
-                    </svg>
+                  <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center`}>
+                    {action.icon}
                   </div>
-                  <span className="text-xs font-medium text-primary-800 text-center">{item.label}</span>
-                </Link>
+                  <span className="text-xs font-medium text-primary-800 text-center leading-tight">{action.label}</span>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Özet İstatistik */}
-          <div className="bg-primary-800 rounded-2xl p-5 text-white">
-            <p className="text-xs font-medium text-primary-100 mb-1">Toplam Proje</p>
-            <p className="font-bold text-3xl mb-3">{SUMMARY.toplamProje}</p>
-            <div className="flex gap-4">
-              <div>
-                <p className="text-[11px] text-primary-100">Devam Eden</p>
-                <p className="font-bold text-lg">{SUMMARY.devamEden}</p>
-              </div>
-              <div>
-                <p className="text-[11px] text-primary-100">Tamamlanan</p>
-                <p className="font-bold text-lg">{SUMMARY.toplamProje - SUMMARY.devamEden}</p>
-              </div>
+        </div>
+
+        {/* ── Sağ kolon ───────────────────────────── */}
+        <div className="space-y-4">
+
+          {/* Ödemesi Yaklaşan Malikler */}
+          <div className="bg-white rounded-2xl border border-neutral-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-base text-primary-800">Ödemesi Yaklaşan Malikler</h2>
+              <SeeAll href="/admin/vade-takibi" />
+            </div>
+            <div className="space-y-0">
+              {DUE_OWNERS.map((o, i) => {
+                const isLate = o.status === 'Geçmiş'
+                return (
+                  <div
+                    key={o.id}
+                    className={`flex items-center gap-3 py-3 ${i < DUE_OWNERS.length - 1 ? 'border-b border-neutral-50' : ''}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isLate ? 'bg-danger-50' : 'bg-warning-50'}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="8" r="4" stroke={isLate ? '#A32D2D' : '#BA7517'} strokeWidth="1.8"/>
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={isLate ? '#A32D2D' : '#BA7517'} strokeWidth="1.8" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-primary-800">{o.name}</p>
+                      <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{o.project} · {o.unit}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-sm text-primary-800">{formatTL(o.amount)}</p>
+                      <p className={`text-[11px] font-medium mt-0.5 ${isLate ? 'text-danger-700' : 'text-warning-700'}`}>{o.days}</p>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
+
+          {/* Tahsilat Özeti */}
+          <div className="bg-white rounded-2xl border border-neutral-100 p-5">
+            <h2 className="font-bold text-base text-primary-800 mb-4">Tahsilat Özeti</h2>
+            <DonutChart />
+          </div>
+
         </div>
       </div>
     </div>

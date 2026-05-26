@@ -130,9 +130,9 @@ export default function AdminProjelerPage() {
   })
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-4 md:mb-6">
         <div>
           <h1 className="font-bold text-2xl text-primary-800">Projeler</h1>
           <p className="text-sm text-neutral-500 mt-1">Tüm projelerinizi görüntüleyebilir ve yönetebilirsiniz.</p>
@@ -211,7 +211,7 @@ export default function AdminProjelerPage() {
         </div>
       )}
       {!loading && !error && filtered.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((p) => <ProjectCard key={p.id} project={p} />)}
         </div>
       )}

@@ -44,14 +44,14 @@ export default function AdminOdemelerPage() {
   const karPct   = tahsilat > 0 ? Math.round((kar / tahsilat) * 100) : 0
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="font-bold text-2xl text-primary-800">Finansal Analiz</h1>
         <p className="text-sm text-neutral-500 mt-1">Proje bazlı gelir, maliyet ve kârlılık takibi.</p>
       </div>
 
       {/* Özet kartlar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 md:mb-6">
         {[
           { label: 'Toplam Tahsilat', value: formatCompactTL(tahsilat), sub: 'Tahsil edilen', color: 'text-success-700', bg: 'bg-success-50' },
           { label: 'Toplam Maliyet',  value: formatCompactTL(maliyet),  sub: 'İnşaat maliyeti', color: 'text-danger-700',  bg: 'bg-danger-50' },
@@ -72,7 +72,7 @@ export default function AdminOdemelerPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Proje Listesi */}
         <div className="lg:col-span-2">
           {/* Tab */}

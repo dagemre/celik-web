@@ -35,7 +35,7 @@ export default function AdminVadeTakibiPage() {
   })
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="font-bold text-2xl text-primary-800">Vade Takibi</h1>
         <p className="text-sm text-neutral-500 mt-1">Vadesi yaklaşan ve geçmiş malik ödemeleri.</p>

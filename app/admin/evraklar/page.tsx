@@ -18,7 +18,7 @@ const CAT_COLORS: Record<string, string> = {
 
 export default function AdminEvraklarPage() {
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="font-bold text-2xl text-primary-800">Evraklar</h1>
