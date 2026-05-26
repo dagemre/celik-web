@@ -1,0 +1,662 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+type Project = {
+  id: string; name: string; slug: string
+  location: string; district: string; city: string
+  tip: string; status: string; floors: number
+  units_count: number; area: string
+  delivery_date: string | null; delivery_year: string | null
+  progress: number; image_url: string; description: string
+}
+type Tab = 'genel' | 'finansal' | 'daireler' | 'evraklar' | 'malikler' | 'notlar' | 'ayarlar'
+type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | null
+
+// ── Sabit veriler ──────────────────────────────────────────────────────────────
+const FINANSAL = { sozlesme: 18_000_000, tahsilEdilecek: 3_500_000, tahsilEdilen: 2_000_000, maliyet: 170_000 }
+
+const FEATURES = [
+  { key: 'kapali_otopark',  label: 'Kapalı Otopark',    icon: '/icons/bina-otopark.svg'    },
+  { key: 'acik_otopark',    label: 'Açık Otopark',       icon: '/icons/car.svg'             },
+  { key: 'guvenlik_724',    label: '7/24 Güvenlik',      icon: '/icons/security.svg'        },
+  { key: 'asansor',         label: 'Asansör',            icon: '/icons/elevator.svg'        },
+  { key: 'yesil_alan',      label: 'Yeşil Alan',         icon: '/icons/tree.svg'            },
+  { key: 'oyun_alani',      label: 'Çocuk Oyun Alanı',   icon: '/icons/playground.svg'     },
+  { key: 'spor_salonu',     label: 'Spor Salonu',        icon: '/icons/dumbbell.svg'        },
+  { key: 'jenerator',       label: 'Jeneratör',          icon: '/icons/generator.svg'       },
+  { key: 'guv_kamera',      label: 'Güvenlik Kamerası',  icon: '/icons/camera-security.svg' },
+  { key: 'yangin_alarmi',   label: 'Yangın Alarmı',      icon: '/icons/bell.svg'            },
+  { key: 'su_deposu',       label: 'Su Deposu',          icon: '/icons/bina-depo.svg'       },
+  { key: 'hidrofor',        label: 'Hidrofor Sistemi',   icon: '/icons/package.svg'         },
+  { key: 'merkezi_isitma',  label: 'Merkezi Isıtma',     icon: '/icons/home-roof.svg'       },
+  { key: 'yerden_isitma',   label: 'Yerden Isıtma',      icon: '/icons/bina-yerden.svg'     },
+  { key: 'dogalgaz',        label: 'Doğalgaz',           icon: '/icons/bina-klima.svg'      },
+  { key: 'fiber_internet',  label: 'Fiber İnternet',     icon: '/icons/phone.svg'           },
+  { key: 'akilli_ev',       label: 'Akıllı Ev Sistemi',  icon: '/icons/home-filled2.svg'    },
+  { key: 'ses_yalitim',     label: 'Ses Yalıtımı',       icon: '/icons/bina-banyo.svg'      },
+  { key: 'isi_yalitim',     label: 'Isı Yalıtımı',       icon: '/icons/home-outline.svg'    },
+  { key: 'engelli_erisim',  label: 'Engelli Erişimi',    icon: '/icons/bina-yon.svg'        },
+]
+
+const ACTIVE_MOCK = new Set([
+  'kapali_otopark','acik_otopark','guvenlik_724','asansor',
+  'yesil_alan','oyun_alani','spor_salonu','jenerator',
+  'guv_kamera','yangin_alarmi','su_deposu','hidrofor',
+  'yerden_isitma','dogalgaz','fiber_internet','isi_yalitim','engelli_erisim',
+])
+
+const PHASES = [
+  { label: 'Temel Kazı',        done: true  },
+  { label: 'Betonarme',         done: true  },
+  { label: 'Duvar Örme',        done: true  },
+  { label: 'Elektrik Tesisatı', done: false },
+  { label: 'İç Sıva',          done: false },
+  { label: 'Dış Cephe',         done: false },
+  { label: 'İç Mekan',          done: false },
+  { label: 'Peyzaj',            done: false },
+]
+
+const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  devam:      { bg: 'bg-success-50', text: 'text-success-700', label: 'Devam Ediyor' },
+  tamamlandi: { bg: 'bg-info-50',    text: 'text-info-700',    label: 'Tamamlandı'   },
+  yakinda:    { bg: 'bg-warning-50', text: 'text-warning-700', label: 'Planlama'     },
+  gecikmede:  { bg: 'bg-danger-50',  text: 'text-danger-700',  label: 'Gecikmede'    },
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const tl = (n: number) => new Intl.NumberFormat('tr-TR').format(n) + ' TL'
+const fmtDate = (d?: string | null) => {
+  if (!d) return '—'
+  if (/^\d{4}$/.test(d)) return d
+  return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
+}
+
+// ── Küçük bileşenler ───────────────────────────────────────────────────────────
+const EditBtn = ({ onClick }: { onClick: () => void }) => (
+  <button onClick={onClick}
+    className="flex items-center gap-1.5 border border-neutral-200 rounded-xl px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 transition-colors flex-shrink-0">
+    <img src="/icons/edit.svg" alt="" width={13} height={13} />
+    Düzenle
+  </button>
+)
+
+const Card = ({ title, onEdit, children, className = '' }: {
+  title: string; onEdit?: () => void; children: React.ReactNode; className?: string
+}) => (
+  <div className={`bg-white rounded-2xl border border-neutral-100 p-4 md:p-5 ${className}`}>
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="font-bold text-base text-primary-800">{title}</h2>
+      {onEdit && <EditBtn onClick={onEdit} />}
+    </div>
+    {children}
+  </div>
+)
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+const Modal = ({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) => (
+  <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+    <div className="absolute inset-0 bg-black/40" />
+    <div className="relative z-10 w-full md:max-w-lg bg-white rounded-t-3xl md:rounded-2xl px-5 pt-4 pb-10 md:pb-6 max-h-[85vh] overflow-y-auto"
+      onClick={e => e.stopPropagation()}>
+      <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4 md:hidden" />
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-bold text-lg text-primary-800">{title}</h3>
+        <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+      {children}
+      <button className="mt-5 w-full bg-primary-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors">
+        Kaydet
+      </button>
+    </div>
+  </div>
+)
+
+// ── Finansal Kartlar ───────────────────────────────────────────────────────────
+const FinansalKartlar = () => (
+  <Card title="Finansal Özet">
+    <div className="grid grid-cols-2 gap-3">
+      {[
+        { label: 'Sözleşme Bedeli',      v: FINANSAL.sozlesme,       icon: '/icons/document.svg', color: 'text-primary-800' },
+        { label: 'Tahsil Edilecek',      v: FINANSAL.tahsilEdilecek, icon: '/icons/wallet.svg',   color: 'text-warning-700' },
+        { label: 'Tahsil Edilen',        v: FINANSAL.tahsilEdilen,   icon: '/icons/card.svg',     color: 'text-success-700' },
+        { label: 'Güncel Proje Maliyeti', v: FINANSAL.maliyet,       icon: '/icons/building.svg', color: 'text-danger-700'  },
+      ].map(c => (
+        <div key={c.label} className="bg-neutral-50 rounded-xl p-3 md:p-4">
+          <img src={c.icon} alt="" width={26} height={26} className="mb-2.5 opacity-75" />
+          <p className="text-[11px] text-neutral-500 mb-1 leading-tight">{c.label}</p>
+          <p className={`font-bold text-sm md:text-base ${c.color} leading-tight`}>{tl(c.v)}</p>
+        </div>
+      ))}
+    </div>
+  </Card>
+)
+
+// ── Genel Bilgiler ─────────────────────────────────────────────────────────────
+const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () => void }) => {
+  const loc = [project.district, project.city].filter(Boolean).join(' / ') || project.location
+  const st  = STATUS_STYLE[project.status] ?? STATUS_STYLE['devam']
+  const rows = [
+    { l: 'Proje Adı',           v: project.name,                    badge: false },
+    { l: 'Toplam İnşaat Alanı', v: project.area || '—',             badge: false },
+    { l: 'Lokasyon',            v: loc,                             badge: false },
+    { l: 'Daire Sayısı',        v: String(project.units_count),     badge: false },
+    { l: 'Proje Tipi',          v: project.tip,                     badge: false },
+    { l: 'Teslim Tarihi',       v: fmtDate(project.delivery_date || project.delivery_year), badge: false },
+    { l: 'Arsa Alanı',          v: '1.250 m²',                      badge: false },
+    { l: 'Durum',               v: st.label,                        badge: true, badgeClass: `${st.bg} ${st.text}` },
+  ]
+  return (
+    <Card title="Genel Bilgiler" onEdit={onEdit}>
+      {/* Mobile: tek sütun */}
+      <div className="md:hidden divide-y divide-neutral-50">
+        {rows.map(r => (
+          <div key={r.l} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
+            <span className="text-sm text-neutral-500">{r.l}</span>
+            {r.badge
+              ? <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${r.badgeClass}`}>{r.v}</span>
+              : <span className="text-sm font-semibold text-primary-800 text-right max-w-[55%]">{r.v}</span>
+            }
+          </div>
+        ))}
+      </div>
+      {/* Desktop: iki sütun */}
+      <div className="hidden md:grid md:grid-cols-2 md:gap-x-8 divide-y divide-neutral-50">
+        {rows.map((r, i) => (
+          <div key={r.l} className={`flex items-center justify-between py-2.5 ${i < 2 ? 'pt-0' : ''} ${i >= rows.length - 2 ? 'pb-0' : ''}`}>
+            <span className="text-sm text-neutral-500 flex-shrink-0">{r.l}</span>
+            {r.badge
+              ? <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${r.badgeClass}`}>{r.v}</span>
+              : <span className="text-sm font-semibold text-primary-800 text-right">{r.v}</span>
+            }
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+const GenelBilgilerModal = ({ project, onClose }: { project: Project; onClose: () => void }) => {
+  const loc = [project.district, project.city].filter(Boolean).join(' / ') || project.location
+  return (
+    <Modal title="Genel Bilgileri Düzenle" onClose={onClose}>
+      {[
+        { label: 'Proje Adı',         value: project.name,   placeholder: 'Proje adı'  },
+        { label: 'Lokasyon',          value: loc,            placeholder: 'İlçe / Şehir' },
+        { label: 'Arsa Alanı (m²)',   value: '1250',         placeholder: 'm²'          },
+        { label: 'İnşaat Alanı (m²)', value: project.area || '', placeholder: 'm²'     },
+        { label: 'Daire Sayısı',      value: String(project.units_count), placeholder: 'Adet' },
+        { label: 'Teslim Tarihi',     value: fmtDate(project.delivery_date || project.delivery_year), placeholder: 'GG.AA.YYYY' },
+      ].map(({ label, value, placeholder }) => (
+        <div key={label} className="mb-4">
+          <label className="block text-xs text-neutral-500 mb-1.5 font-medium">{label}</label>
+          <input defaultValue={value} placeholder={placeholder}
+            className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors" />
+        </div>
+      ))}
+      <div className="mb-4">
+        <label className="block text-xs text-neutral-500 mb-1.5 font-medium">Proje Tipi</label>
+        <select defaultValue={project.tip}
+          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none appearance-none">
+          <option>Konut</option><option>Ticari</option>
+        </select>
+      </div>
+    </Modal>
+  )
+}
+
+// ── Bina Özellikleri ───────────────────────────────────────────────────────────
+const BinaOzellikleriKart = ({ activeFeatures, onEdit }: { activeFeatures: Set<string>; onEdit: () => void }) => (
+  <Card title="Bina Özellikleri" onEdit={onEdit}>
+    {/* Mobile: 4 sütun */}
+    <div className="grid grid-cols-4 md:hidden gap-3">
+      {FEATURES.map(f => {
+        const on = activeFeatures.has(f.key)
+        return (
+          <div key={f.key} className="flex flex-col items-center gap-1">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${on ? 'bg-primary-50' : 'bg-neutral-100'}`}>
+              <img src={f.icon} alt={f.label} width={24} height={24} className={on ? 'opacity-80' : 'opacity-25'} />
+            </div>
+            <p className={`text-[9px] text-center leading-tight ${on ? 'text-neutral-600' : 'text-neutral-400'}`}>{f.label}</p>
+            <p className={`text-[9px] font-bold ${on ? 'text-success-700' : 'text-neutral-400'}`}>{on ? 'Var' : 'Yok'}</p>
+          </div>
+        )
+      })}
+    </div>
+    {/* Desktop: 6 sütun */}
+    <div className="hidden md:grid grid-cols-6 gap-4">
+      {FEATURES.map(f => {
+        const on = activeFeatures.has(f.key)
+        return (
+          <div key={f.key} className="flex flex-col items-center gap-1.5">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${on ? 'bg-primary-50' : 'bg-neutral-100'}`}>
+              <img src={f.icon} alt={f.label} width={24} height={24} className={on ? 'opacity-80' : 'opacity-25'} />
+            </div>
+            <p className={`text-[10px] text-center leading-tight ${on ? 'text-neutral-600' : 'text-neutral-400'}`}>{f.label}</p>
+            <p className={`text-[10px] font-bold ${on ? 'text-success-700' : 'text-neutral-400'}`}>{on ? 'Var' : 'Yok'}</p>
+          </div>
+        )
+      })}
+    </div>
+  </Card>
+)
+
+const BinaOzellikleriModal = ({ activeFeatures, setActiveFeatures, onClose }: {
+  activeFeatures: Set<string>; setActiveFeatures: (s: Set<string>) => void; onClose: () => void
+}) => {
+  const toggle = (key: string) => {
+    const n = new Set(activeFeatures); n.has(key) ? n.delete(key) : n.add(key); setActiveFeatures(n)
+  }
+  return (
+    <Modal title="Bina Özelliklerini Düzenle" onClose={onClose}>
+      <div className="grid grid-cols-2 gap-2">
+        {FEATURES.map(f => {
+          const on = activeFeatures.has(f.key)
+          return (
+            <button key={f.key} onClick={() => toggle(f.key)}
+              className={`flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${on ? 'bg-primary-50 border-primary-200' : 'bg-neutral-50 border-neutral-100'}`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${on ? 'bg-white' : 'bg-neutral-100'}`}>
+                <img src={f.icon} alt="" width={18} height={18} className={on ? 'opacity-80' : 'opacity-30'} />
+              </div>
+              <div className="min-w-0">
+                <p className={`text-xs font-medium leading-tight ${on ? 'text-primary-800' : 'text-neutral-500'}`}>{f.label}</p>
+                <p className={`text-[10px] font-bold mt-0.5 ${on ? 'text-success-700' : 'text-neutral-400'}`}>{on ? 'Var' : 'Yok'}</p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </Modal>
+  )
+}
+
+// ── Proje İlerlemesi ───────────────────────────────────────────────────────────
+type PhaseList = typeof PHASES
+
+const ProjeIlerlemesiKart = ({ progress, phases, onEdit }: { progress: number; phases: PhaseList; onEdit: () => void }) => (
+  <Card title="Proje İlerlemesi" onEdit={onEdit}>
+    <p className="text-xs text-neutral-500 mb-1.5">Genel İlerleme</p>
+    <div className="flex items-center gap-3 mb-5">
+      <div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+        <div className="h-full bg-success-600 rounded-full" style={{ width: `${progress}%` }} />
+      </div>
+      <span className="font-bold text-sm text-success-700 w-9 text-right flex-shrink-0">%{progress}</span>
+    </div>
+    <div>
+      {phases.map((ph, i) => (
+        <div key={i} className="flex items-center justify-between py-3 border-b border-neutral-50 last:border-b-0">
+          <div className="flex items-center gap-3">
+            {ph.done
+              ? <div className="w-7 h-7 rounded-full bg-success-50 flex items-center justify-center flex-shrink-0">
+                  <img src="/icons/check.svg" alt="✓" width={14} height={14} />
+                </div>
+              : <div className="w-7 h-7 rounded-full border-2 border-neutral-200 bg-white flex-shrink-0" />
+            }
+            <span className={`text-sm ${ph.done ? 'text-primary-800 font-medium' : 'text-neutral-500'}`}>{ph.label}</span>
+          </div>
+          <span className={`text-xs font-bold ${ph.done ? 'text-success-700' : 'text-neutral-400'}`}>
+            {ph.done ? 'Tamamlandı' : 'Beklemede'}
+          </span>
+        </div>
+      ))}
+    </div>
+  </Card>
+)
+
+const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, onClose }: {
+  progress: number; setProgress: (n: number) => void
+  phases: PhaseList; setPhases: (p: PhaseList) => void; onClose: () => void
+}) => (
+  <Modal title="İlerlemeyi Düzenle" onClose={onClose}>
+    <div className="mb-6">
+      <div className="flex justify-between mb-2">
+        <label className="text-xs font-medium text-neutral-500">Genel İlerleme</label>
+        <span className="text-xs font-bold text-success-700">%{progress}</span>
+      </div>
+      <input type="range" min={0} max={100} value={progress}
+        onChange={e => setProgress(Number(e.target.value))} className="w-full accent-[#0F6E56]" />
+      <div className="flex justify-between text-[10px] text-neutral-400 mt-1"><span>%0</span><span>%100</span></div>
+    </div>
+    <p className="text-xs font-medium text-neutral-500 mb-3">Yapım Aşamaları</p>
+    <div className="space-y-2">
+      {phases.map((ph, i) => (
+        <button key={i} onClick={() => { const n = [...phases]; n[i] = { ...n[i], done: !n[i].done }; setPhases(n) }}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}>
+          <span className={`text-sm font-medium ${ph.done ? 'text-success-700' : 'text-neutral-600'}`}>{ph.label}</span>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${ph.done ? 'bg-success-600 border-success-600' : 'bg-white border-neutral-300'}`}>
+            {ph.done && <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+          </div>
+        </button>
+      ))}
+    </div>
+  </Modal>
+)
+
+// ── Görseller ──────────────────────────────────────────────────────────────────
+const GorsellerKart = ({ project }: { project: Project }) => {
+  const imgs = [project.image_url, project.image_url, project.image_url, project.image_url].filter(Boolean)
+  const [offset, setOffset] = useState(0)
+  return (
+    <Card title="Görseller">
+      <div className="flex items-center justify-between -mt-2 mb-3">
+        <span />
+        <div className="flex items-center gap-2">
+          <button className="flex items-center gap-1 text-xs font-semibold text-primary-500 hover:text-primary-700 transition-colors">
+            Tümünü Gör
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {/* Desktop nav arrows */}
+          <div className="hidden md:flex items-center gap-1 ml-2">
+            <button onClick={() => setOffset(Math.max(0, offset - 1))}
+              className="w-7 h-7 border border-neutral-200 rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40"
+              disabled={offset === 0}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" /></svg>
+            </button>
+            <button onClick={() => setOffset(Math.min(imgs.length - 1, offset + 1))}
+              className="w-7 h-7 border border-neutral-200 rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40"
+              disabled={offset >= imgs.length - 1}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        {imgs.slice(0, 4).map((src, i) => (
+          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
+            {src && <img src={src} alt="" className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />}
+            <button className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
+              <svg width="7" height="7" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button className="mt-3 w-full border border-dashed border-neutral-200 rounded-xl py-3 flex items-center justify-center gap-2 text-xs text-neutral-500 hover:bg-neutral-50 hover:border-primary-300 transition-colors">
+        <img src="/icons/plus.svg" alt="" width={13} height={13} className="opacity-50" />
+        Görsel Ekle
+      </button>
+    </Card>
+  )
+}
+
+// ── Notlar Tab ─────────────────────────────────────────────────────────────────
+const NotlarTab = () => (
+  <div className="max-w-2xl">
+    <Card title="Proje Notları">
+      <textarea
+        rows={6}
+        placeholder="Bu projeye ait notlarınızı buraya yazın..."
+        className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 resize-none placeholder:text-neutral-400 transition-colors"
+      />
+      <button className="mt-3 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+        Kaydet
+      </button>
+    </Card>
+  </div>
+)
+
+// ── Ayarlar Tab ────────────────────────────────────────────────────────────────
+const AyarlarTab = ({ project }: { project: Project }) => {
+  const st = STATUS_STYLE[project.status] ?? STATUS_STYLE['devam']
+  return (
+    <div className="max-w-2xl space-y-4">
+      <Card title="Proje Durumu">
+        <div className="space-y-3">
+          {Object.entries(STATUS_STYLE).map(([key, s]) => (
+            <label key={key} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${project.status === key ? `${s.bg} border-transparent` : 'bg-neutral-50 border-neutral-100 hover:bg-neutral-100'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${project.status === key ? 'border-primary-800 bg-primary-800' : 'border-neutral-300'}`}>
+                  {project.status === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                </div>
+                <span className={`text-sm font-medium ${project.status === key ? s.text : 'text-neutral-600'}`}>{s.label}</span>
+              </div>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${s.bg} ${s.text}`}>{s.label}</span>
+            </label>
+          ))}
+        </div>
+        <button className="mt-4 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+          Durumu Güncelle
+        </button>
+      </Card>
+
+      <Card title="Tehlikeli Alan">
+        <p className="text-sm text-neutral-500 mb-4">Bu işlemler geri alınamaz. Dikkatli olun.</p>
+        <button className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Projeyi Sil
+        </button>
+      </Card>
+    </div>
+  )
+}
+
+// ── Ana Sayfa ──────────────────────────────────────────────────────────────────
+export default function AdminProjeDetay({ params }: { params: { slug: string } }) {
+  const [project, setProject]               = useState<Project | null>(null)
+  const [loading, setLoading]               = useState(true)
+  const [tab, setTab]                       = useState<Tab>('genel')
+  const [editModal, setEditModal]           = useState<EditKey>(null)
+  const [progress, setProgress]             = useState(0)
+  const [phases, setPhases]                 = useState(PHASES)
+  const [activeFeatures, setActiveFeatures] = useState(ACTIVE_MOCK)
+
+  useEffect(() => {
+    supabase.from('projects').select('*').eq('slug', params.slug).single()
+      .then(({ data }) => {
+        if (data) { setProject(data); setProgress(data.progress ?? 0) }
+        setLoading(false)
+      })
+  }, [params.slug])
+
+  const TABS: { key: Tab; label: string; icon?: string }[] = [
+    { key: 'genel',     label: 'Genel Bakış' },
+    { key: 'finansal',  label: 'Finansal'    },
+    { key: 'daireler',  label: 'Daireler'    },
+    { key: 'evraklar',  label: 'Evraklar'    },
+    { key: 'malikler',  label: 'Malikler'    },
+    { key: 'notlar',    label: 'Notlar'      },
+    { key: 'ayarlar',   label: 'Ayarlar'     },
+  ]
+
+  if (loading) return (
+    <div className="p-4 md:p-6 space-y-4 animate-pulse">
+      <div className="h-8 bg-neutral-100 rounded w-1/3" />
+      <div className="h-28 bg-neutral-100 rounded-2xl" />
+      <div className="h-10 bg-neutral-100 rounded-xl" />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="h-64 bg-neutral-100 rounded-2xl" />
+        <div className="h-64 bg-neutral-100 rounded-2xl" />
+      </div>
+    </div>
+  )
+
+  if (!project) return (
+    <div className="flex flex-col items-center py-20 text-neutral-400">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <path d="M3 21V9l9-6 9 6v12H3z" stroke="#D3D1C7" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+      <p className="mt-3 font-medium">Proje bulunamadı</p>
+      <Link href="/admin/projeler" className="mt-2 text-sm text-primary-800 underline">Projelere dön</Link>
+    </div>
+  )
+
+  const loc = [project.district, project.city].filter(Boolean).join(' / ') || project.location
+  const st  = STATUS_STYLE[project.status] ?? STATUS_STYLE['devam']
+
+  return (
+    <div>
+      {/* ── Proje üst başlık ────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-neutral-100 px-4 md:px-6 pt-4 pb-0">
+
+        {/* Breadcrumb + Yeni Proje Ekle */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5 text-sm min-w-0">
+            <Link href="/admin/projeler" className="text-primary-500 font-medium hover:underline flex items-center gap-1 flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Projeler
+            </Link>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+              <path d="M9 18l6-6-6-6" stroke="#D3D1C7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-primary-800 font-semibold truncate">{project.name}</span>
+          </div>
+          <button className="flex-shrink-0 flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors ml-3">
+            <img src="/icons/plus.svg" alt="" width={14} height={14} />
+            <span className="hidden sm:inline">Yeni Proje Ekle</span>
+            <span className="sm:hidden">Ekle</span>
+          </button>
+        </div>
+
+        {/* ── Proje bilgisi — Mobil ── */}
+        <div className="md:hidden flex gap-3 mb-4">
+          <div className="w-[88px] h-[80px] rounded-xl overflow-hidden bg-neutral-100 flex-shrink-0 flex items-center justify-center">
+            {project.image_url
+              ? <img src={project.image_url} alt={project.name} className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />
+              : <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 21V9l9-6 9 6v12H3z" stroke="#D3D1C7" strokeWidth="1.5" strokeLinejoin="round" /></svg>
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-lg text-primary-800 leading-tight mb-0.5">{project.name}</h1>
+            <p className="flex items-center gap-1 text-xs text-neutral-500 mb-2.5">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#888780" /></svg>
+              {loc}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { l: 'Proje Tipi',   v: project.tip            },
+                { l: 'Daire Sayısı', v: String(project.units_count) },
+                { l: 'İnşaat Alanı', v: project.area || '—'   },
+              ].map(({ l, v }) => (
+                <div key={l}>
+                  <p className="text-[9px] text-neutral-400">{l}</p>
+                  <p className="font-bold text-xs text-primary-800 mt-0.5">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Proje bilgisi — Desktop ── */}
+        <div className="hidden md:flex gap-5 mb-5">
+          <div className="w-[180px] h-[130px] rounded-xl overflow-hidden bg-neutral-100 flex-shrink-0 flex items-center justify-center">
+            {project.image_url
+              ? <img src={project.image_url} alt={project.name} className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />
+              : <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 21V9l9-6 9 6v12H3z" stroke="#D3D1C7" strokeWidth="1.5" strokeLinejoin="round" /></svg>
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-2xl text-primary-800 leading-tight mb-1">{project.name}</h1>
+            <p className="flex items-center gap-1.5 text-sm text-neutral-500 mb-4">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#888780" /></svg>
+              {loc}
+            </p>
+            {/* Stats row with dividers + status badge */}
+            <div className="flex items-center gap-0">
+              {[
+                { l: 'Proje Tipi',   v: project.tip            },
+                { l: 'Daire Sayısı', v: String(project.units_count) },
+                { l: 'İnşaat Alanı', v: project.area || '—'   },
+                { l: 'Arsa Alanı',   v: '1.250 m²'             },
+                { l: 'Teslim Tarihi', v: fmtDate(project.delivery_date || project.delivery_year) },
+              ].map(({ l, v }, i) => (
+                <div key={l} className="flex items-center">
+                  <div className="px-4 first:pl-0">
+                    <p className="text-[11px] text-neutral-400 mb-0.5">{l}</p>
+                    <p className="font-bold text-sm text-primary-800">{v}</p>
+                  </div>
+                  {i < 4 && <div className="w-px h-8 bg-neutral-100 flex-shrink-0" />}
+                </div>
+              ))}
+              <div className="ml-6">
+                <span className={`${st.bg} ${st.text} text-xs font-bold px-3 py-1.5 rounded-xl`}>{st.label}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex overflow-x-auto -mx-4 md:-mx-6 px-4 md:px-6 gap-0">
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${tab === t.key
+                ? 'border-primary-800 text-primary-800'
+                : 'border-transparent text-neutral-500 hover:text-primary-700'}`}>
+              {(t.key === 'notlar' || t.key === 'ayarlar') && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" fill="currentColor" />
+                  <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              )}
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Tab içerikleri ───────────────────────────────────────────────── */}
+      <div className="p-4 md:p-6">
+
+        {/* GENEL BAKIŞ */}
+        {tab === 'genel' && (
+          <div className="md:flex md:gap-5 md:items-start">
+
+            {/* Sol kolon */}
+            <div className="md:flex-1 space-y-4 min-w-0">
+              {/* Mobil'de finansal kartlar üstte görünür */}
+              <div className="md:hidden">
+                <FinansalKartlar />
+              </div>
+              <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
+              <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
+              <GorsellerKart project={project} />
+            </div>
+
+            {/* Sağ kolon */}
+            <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
+              <FinansalKartlar />
+              <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+            </div>
+
+            {/* Mobil'de bina özellikleri altta */}
+            <div className="md:hidden mt-4">
+              <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+            </div>
+          </div>
+        )}
+
+        {/* NOTLAR */}
+        {tab === 'notlar' && <NotlarTab />}
+
+        {/* AYARLAR */}
+        {tab === 'ayarlar' && <AyarlarTab project={project} />}
+
+        {/* DİĞER TABLAR */}
+        {!['genel', 'notlar', 'ayarlar'].includes(tab) && (
+          <div className="flex flex-col items-center py-20">
+            <img src="/icons/folder.svg" alt="" width={48} height={48} className="opacity-30 mb-3" />
+            <p className="text-neutral-400 font-medium text-sm">Bu bölüm yakında eklenecek</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Modaller ────────────────────────────────────────────────────── */}
+      {editModal === 'bilgiler'   && <GenelBilgilerModal    project={project}         onClose={() => setEditModal(null)} />}
+      {editModal === 'ozellikler' && <BinaOzellikleriModal  activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} onClose={() => setEditModal(null)} />}
+      {editModal === 'ilerleme'   && <ProjeIlerlemesiModal  progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} onClose={() => setEditModal(null)} />}
+    </div>
+  )
+}
