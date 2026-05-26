@@ -24,16 +24,7 @@ const SIDEBAR_ITEMS = [
       </svg>
     ),
   },
-  {
-    href: '/admin/odemeler', label: 'Ödemeler', exact: false,
-    icon: (c: string) => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth="1.8"/>
-        <path d="M2 10h20" stroke={c} strokeWidth="1.8"/>
-        <rect x="5" y="13" width="4" height="2" rx="0.5" fill={c}/>
-      </svg>
-    ),
-  },
+  // { href: '/admin/odemeler', label: 'Ödemeler' } — gizlendi
   {
     href: '/admin/evraklar', label: 'Evraklar', exact: false,
     icon: (c: string) => (
@@ -43,18 +34,9 @@ const SIDEBAR_ITEMS = [
       </svg>
     ),
   },
+  // { href: '/admin/raporlar', label: 'Raporlar' } — gizlendi
   {
-    href: '/admin/raporlar', label: 'Raporlar', exact: false,
-    icon: (c: string) => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="12" width="4" height="9" rx="1" fill={c}/>
-        <rect x="10" y="7" width="4" height="14" rx="1" fill={c}/>
-        <rect x="17" y="3" width="4" height="18" rx="1" fill={c}/>
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/kisiler', label: 'Kişiler', exact: false,
+    href: '/admin/kisiler', label: 'Malikler', exact: false,
     icon: (c: string) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8"/>
