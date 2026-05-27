@@ -7,7 +7,22 @@ type PolicyKey = 'gizlilik' | 'kvkk' | 'cerez' | null
 const policies: Record<NonNullable<PolicyKey>, { title: string; content: string }> = {
   gizlilik: {
     title: 'Gizlilik Politikası',
-    content: '<!-- İçerik yakında eklenecek -->',
+    content: `
+      <h2 style="font-size:1rem;font-weight:700;color:#0A1F44;margin-bottom:4px;">GİZLİLİK POLİTİKASI</h2>
+      <p style="font-size:0.8rem;font-weight:600;color:#0A1F44;margin-bottom:16px;">ÇELİK TAAHHÜT MALİK PANELİ GİZLİLİK SÖZLEŞMESİ VE POLİTİKASI</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">1. Veri Güvenliği ve İzolasyonu</h3>
+      <p style="margin-bottom:16px;">Çelik Taahhüt, maliklerin panelde yer alan finansal ve kişisel verilerinin güvenliğine en üst düzeyde önem verir. Sistem, her malikin yalnızca kendi bağımsız bölümüne ait borç, bakiye ve detayları görebileceği şekilde izole edilmiştir. Hiçbir malik, bir diğer malikin kişisel veya finansal verisine erişemez.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">2. Şifreleme ve Altyapı Güvenliği</h3>
+      <p style="margin-bottom:16px;">Sistemde kullanılan kullanıcı şifreleri, geri döndürülemez biçimde şifrelenerek (hashing yöntemiyle) veri tabanında saklanır. <strong>celiktaahhut.com</strong> ve <strong>celiktaahhut.com.tr</strong> üzerindeki tüm veri trafiği SSL (Secure Sockets Layer) sertifikası ile şifrelenerek korunmaktadır.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">3. Ödeme Güvenliği Hakkında Bilgilendirme</h3>
+      <p style="margin-bottom:16px;">Bu web sitesi üzerinden kredi kartı, banka kartı veya herhangi bir online ödeme sistemi ile tahsilat yapılmamaktadır. Sitede yer alan ödeme paneli, yalnızca maliklerin banka yoluyla yaptığı ödemelerin takibi ve manuel beyanı (dekont/bildirim) amacıyla bilgilendirme odaklı çalışır. Sistem üzerinde kart bilgisi istenmez ve saklanmaz.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">4. Değişiklikler</h3>
+      <p>Çelik Taahhüt, sistem özelliklerine veya yasal mevzuata uyum amacıyla bu Gizlilik Politikası'nı dilediği zaman güncelleme hakkını saklı tutar.</p>
+    `,
   },
   kvkk: {
     title: 'KVKK Aydınlatma Metni',
