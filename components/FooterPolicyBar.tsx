@@ -87,11 +87,42 @@ const policies: Record<NonNullable<PolicyKey>, { title: string; content: string 
   },
 }
 
+type FormState = { adSoyad: string; email: string; telefon: string; mesaj: string }
+const EMPTY: FormState = { adSoyad: '', email: '', telefon: '', mesaj: '' }
+
 export default function FooterPolicyBar() {
   const [open, setOpen] = useState<PolicyKey>(null)
   const [showMre, setShowMre] = useState(false)
+  const [form, setForm] = useState<FormState>(EMPTY)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
 
   const policy = open ? policies[open] : null
+
+  function closeMre() {
+    setShowMre(false)
+    setTimeout(() => { setForm(EMPTY); setSent(false); setError('') }, 300)
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSending(true)
+    setError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) { setSent(true) }
+      else { setError('Bir hata oluştu, lütfen tekrar dene.') }
+    } catch {
+      setError('Bağlantı hatası, lütfen tekrar dene.')
+    } finally {
+      setSending(false)
+    }
+  }
 
   return (
     <>
@@ -128,21 +159,19 @@ export default function FooterPolicyBar() {
       {showMre && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setShowMre(false)}
+          onClick={closeMre}
         >
           <div
-            className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden"
+            className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Üst gradient bant */}
-            <div className="h-24 bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative flex items-end px-6 pb-0">
-              {/* Avatar */}
-              <div className="absolute -bottom-8 left-6 w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center border-2 border-white">
-                <span className="text-xl font-bold text-[#0A1F44]">ED</span>
+            <div className="h-20 bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative px-6">
+              <div className="absolute -bottom-7 left-6 w-14 h-14 rounded-2xl bg-white shadow-lg flex items-center justify-center border-2 border-white">
+                <span className="text-lg font-bold text-[#0A1F44]">ED</span>
               </div>
-              {/* Kapat */}
               <button
-                onClick={() => setShowMre(false)}
+                onClick={closeMre}
                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
@@ -151,22 +180,64 @@ export default function FooterPolicyBar() {
               </button>
             </div>
 
-            {/* İçerik */}
-            <div className="px-6 pt-12 pb-6">
-              <p className="text-xs font-semibold text-[#1E54C8] tracking-widest uppercase mb-1">{MRE.brand}</p>
-              <h3 className="text-xl font-bold text-[#0A1F44] mb-0.5">{MRE.name}</h3>
-              <p className="text-sm text-neutral-500 mb-6">{MRE.title}</p>
+            <div className="px-6 pt-10 pb-6">
+              <p className="text-xs font-semibold text-[#1E54C8] tracking-widest uppercase mb-0.5">{MRE.brand}</p>
+              <h3 className="text-lg font-bold text-[#0A1F44] mb-0.5">{MRE.name}</h3>
+              <p className="text-xs text-neutral-400 mb-5">{MRE.title}</p>
 
-              <a
-                href={`mailto:${MRE.email}?subject=Mre Creative ile iletişim&body=Merhaba Emre,%0A%0A`}
-                className="flex items-center justify-center gap-2 w-full bg-[#0A1F44] hover:bg-[#1E54C8] text-white text-sm font-semibold py-3 rounded-xl transition-colors"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
-                Mail Gönder
-              </a>
+              {sent ? (
+                <div className="text-center py-6">
+                  <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <p className="font-semibold text-[#0A1F44] mb-1">Mesajın ulaştı!</p>
+                  <p className="text-sm text-neutral-400">En kısa sürede geri döneceğim.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                  <input
+                    required
+                    type="text"
+                    placeholder="Ad Soyad *"
+                    value={form.adSoyad}
+                    onChange={e => setForm(f => ({ ...f, adSoyad: e.target.value }))}
+                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
+                  />
+                  <input
+                    required
+                    type="email"
+                    placeholder="E-posta *"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Telefon"
+                    value={form.telefon}
+                    onChange={e => setForm(f => ({ ...f, telefon: e.target.value }))}
+                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
+                  />
+                  <textarea
+                    required
+                    rows={4}
+                    placeholder="Mesajınız *"
+                    value={form.mesaj}
+                    onChange={e => setForm(f => ({ ...f, mesaj: e.target.value }))}
+                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors resize-none"
+                  />
+                  {error && <p className="text-red-500 text-xs">{error}</p>}
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="w-full bg-[#0A1F44] hover:bg-[#1E54C8] disabled:opacity-60 text-white text-sm font-semibold py-3 rounded-xl transition-colors"
+                  >
+                    {sending ? 'Gönderiliyor...' : 'Mesaj Gönder'}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
