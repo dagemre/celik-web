@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import KVKKModal from '@/components/malik/KVKKModal'
+import MalikNav from '@/components/malik/MalikNav'
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MALIK = {
@@ -66,8 +67,7 @@ function DonutChart({ percent }: { percent: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function MalikDashboardPage() {
   const router = useRouter()
-  const [activePage, setActivePage] = useState<'anasayfa' | 'projelerim' | string>('anasayfa')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activePage, setActivePage] = useState<string>('anasayfa')
   const [kvkkGoster, setKvkkGoster] = useState(false)
 
   // Sayfa yüklenince KVKK kontrolü — localStorage'a bakıyoruz
@@ -79,17 +79,6 @@ export default function MalikDashboardPage() {
 
   const remaining = MALIK.totalDebt - MALIK.paid
   const paidPercent = Math.round((MALIK.paid / MALIK.totalDebt) * 100)
-
-  const sidebarLinks = [
-    { key: 'anasayfa',    label: 'Ana Sayfa',       icon: <IcHome /> },
-    { key: 'projelerim',  label: 'Projelerim',       icon: <IcBuilding /> },
-    { key: 'odemeler',    label: 'Ödemeler',         icon: <IcCard /> },
-    { key: 'teknik',      label: 'Teknik Çizimler',  icon: <IcDoc /> },
-    { key: 'daire',       label: 'Daire Bilgilerim', icon: <IcGrid /> },
-    { key: 'bildirimler', label: 'Bildirimler',      icon: <IcBell /> },
-    { key: 'belgeler',    label: 'Belgeler',         icon: <IcFolder /> },
-    { key: 'ayarlar',     label: 'Ayarlar',          icon: <IcSettings /> },
-  ]
 
   return (
     <div className="flex h-screen bg-[#F4F6FA] overflow-hidden">
@@ -103,42 +92,14 @@ export default function MalikDashboardPage() {
         />
       )}
 
-      {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
-      <aside className={`fixed lg:static z-40 h-full w-[220px] bg-[#0A1F44] flex flex-col flex-shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="flex items-center justify-center px-5 py-5 border-b border-white/10">
-          <img src="/celik-logo.svg" alt="Çelik" className="h-14 w-auto brightness-0 invert" />
-        </div>
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
-          {sidebarLinks.map((link) => (
-            <button key={link.key} onClick={() => { setActivePage(link.key); setSidebarOpen(false) }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left ${activePage === link.key ? 'bg-white/15 text-white font-semibold' : 'text-white/55 hover:bg-white/8 hover:text-white/80 font-medium'}`}>
-              <span className={activePage === link.key ? 'opacity-100' : 'opacity-60'}>{link.icon}</span>
-              {link.label}
-            </button>
-          ))}
-        </nav>
-        <div className="mx-3 mb-4 p-3 bg-white/8 rounded-xl border border-white/10">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-7 h-7 bg-[#22C55E]/20 rounded-lg flex items-center justify-center">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </div>
-            <p className="text-white/60 text-xs">Destek Hattı</p>
-          </div>
-          <a href="tel:+902124210288" className="text-white font-bold text-sm">+90 (212) 421 02 88</a>
-          <p className="text-white/40 text-xs mt-1">Hafta içi 09:00 – 18:00 saatleri arasında hizmet vermekteyiz.</p>
-        </div>
-      </aside>
-
-      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {/* ── NAV (sidebar desktop / bottom nav mobil) ─────────────────── */}
+      <MalikNav activePage={activePage} setActivePage={setActivePage} />
 
       {/* ── RIGHT SIDE ────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* TOP BAR */}
         <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-4 flex-shrink-0">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-400">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round"/><line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round"/><line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round"/></svg>
-          </button>
           <div className="flex-1">
             <h1 className="text-base font-bold text-[#0A1F44] leading-tight">Merhaba, {MALIK.name}</h1>
             <button className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
@@ -169,7 +130,7 @@ export default function MalikDashboardPage() {
         </header>
 
         {/* ── CONTENT ───────────────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <div className="flex gap-5 p-5">
 
             {/* ── CENTER COLUMN ──────────────────────────── */}
@@ -273,13 +234,13 @@ export default function MalikDashboardPage() {
 
               </>}
 
-              {/* ══ PROJELERİM ════════════════════════════ */}
-              {activePage === 'projelerim' && <>
+              {/* ══ DAİRE BİLGİLERİM ══════════════════════ */}
+              {activePage === 'daire' && <>
 
-                {/* Başlık — butonsuz */}
+                {/* Başlık */}
                 <div>
-                  <h2 className="text-xl font-bold text-[#0A1F44]">Projelerim</h2>
-                  <p className="text-sm text-gray-400 mt-1">Tüm projelerinizi aşağıda görüntüleyebilir, detaylarına ulaşabilirsiniz.</p>
+                  <h2 className="text-xl font-bold text-[#0A1F44]">Daire Bilgilerim</h2>
+                  <p className="text-sm text-gray-400 mt-1">Dairenize ait tüm bilgileri aşağıda görüntüleyebilirsiniz.</p>
                 </div>
 
                 {/* ROW 1: Mutlu Apartman + Proje İlerleme — eşit 2 kolon */}
@@ -467,6 +428,83 @@ export default function MalikDashboardPage() {
                   </div>
                 </div>
 
+              </>}
+
+              {/* ══ ÖDEMELER ══════════════════════════════ */}
+              {activePage === 'odemeler' && <>
+                <div>
+                  <h2 className="text-xl font-bold text-[#0A1F44]">Ödemeler</h2>
+                  <p className="text-sm text-gray-400 mt-1">Ödeme geçmişinizi ve yaklaşan ödemelerinizi görüntüleyin.</p>
+                </div>
+
+                {/* Ödeme Durumu */}
+                <div className="bg-[#0A1F44] rounded-2xl p-5 relative overflow-hidden">
+                  <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5" />
+                  <div className="absolute -right-2 -bottom-10 w-24 h-24 rounded-full bg-white/5" />
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-4 relative">Ödeme Durumu</p>
+                  <div className="flex gap-8 mb-5 relative">
+                    <div><p className="text-white/50 text-xs mb-1">Toplam Borç</p><p className="text-white font-bold text-xl">{formatTL(MALIK.totalDebt)}</p></div>
+                    <div><p className="text-white/50 text-xs mb-1">Ödenen</p><p className="text-[#22C55E] font-bold text-xl">{formatTL(MALIK.paid)}</p></div>
+                    <div><p className="text-white/50 text-xs mb-1">Kalan Borç</p><p className="text-white font-bold text-xl">{formatTL(remaining)}</p></div>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-1.5">
+                    <div className="h-full bg-[#22C55E] rounded-full" style={{ width: `${paidPercent}%` }} />
+                  </div>
+                  <p className="text-white/50 text-xs text-right">%{paidPercent} ödendi</p>
+                </div>
+
+                {/* Son Ödemeler */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <p className="text-sm font-bold text-[#0A1F44] mb-4">Son Ödemelerim</p>
+                  {RECENT_PAYMENTS.map((p, i) => (
+                    <div key={p.id} className={`flex items-center gap-3 py-3 ${i < RECENT_PAYMENTS.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      <div className="w-9 h-9 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div className="flex-1"><p className="text-sm font-semibold text-[#0A1F44]">{p.date}</p><p className="text-xs text-gray-400">{p.method}</p></div>
+                      <p className="text-sm font-bold text-[#22C55E]">{formatTL(p.amount)}</p>
+                    </div>
+                  ))}
+                </div>
+              </>}
+
+              {/* ══ BELGELER ══════════════════════════════ */}
+              {activePage === 'belgeler' && <>
+                <div>
+                  <h2 className="text-xl font-bold text-[#0A1F44]">Belgeler</h2>
+                  <p className="text-sm text-gray-400 mt-1">Dairenize ait tüm belgeler ve teknik çizimler.</p>
+                </div>
+
+                {/* Belgeler */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <p className="text-sm font-bold text-[#0A1F44] mb-4">Dairenize Ait Belgeler</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {['Satış Sözleşmesi', 'Kat Planı', 'Daire Planı', 'Teknik Şartname', 'Tapu Belgesi', 'İskan Belgesi'].map((title) => (
+                      <button key={title} className="flex items-center gap-2.5 p-3 border border-gray-100 rounded-xl hover:border-red-200 hover:bg-red-50/30 transition-all text-left">
+                        <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round"/></svg>
+                        </div>
+                        <div className="min-w-0"><p className="text-xs font-semibold text-[#0A1F44] truncate">{title}</p><p className="text-xs text-gray-400">PDF</p></div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Teknik Çizimler */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <p className="text-sm font-bold text-[#0A1F44] mb-4">Teknik Çizimler</p>
+                  {TECHNICAL_DOCS.map((doc, i) => (
+                    <div key={doc.id} className={`flex items-center gap-3 py-3 ${i < TECHNICAL_DOCS.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round"/></svg>
+                      </div>
+                      <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-[#0A1F44] truncate">{doc.title}</p><p className="text-xs text-gray-400">PDF · {doc.size}</p></div>
+                      <button className="text-gray-300 hover:text-[#0A1F44] transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round"/><polyline points="7 10 12 15 17 10" strokeLinecap="round"/><line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </>}
 
             </div>{/* ── END CENTER COLUMN ── */}
