@@ -97,18 +97,21 @@ export default function FooterPolicyBar() {
     <>
       {/* Alt bar */}
       <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/30 text-xs">
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <p>© 2026 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
-          <button
-            onClick={() => setShowMre(true)}
-            className="flex items-center gap-1 text-white/20 hover:text-white/60 transition-colors group"
-          >
-            <span>Made with</span>
-            <span className="text-rose-400/50 group-hover:text-rose-400 transition-colors">♥</span>
-            <span>by <span className="font-medium text-white/30 group-hover:text-white/70 transition-colors">{MRE.brand}</span></span>
-          </button>
-        </div>
-        <div className="flex gap-5">
+        {/* Sol — telif */}
+        <p className="sm:w-1/3 text-center sm:text-left">© 2026 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
+
+        {/* Orta — Mre Creative */}
+        <button
+          onClick={() => setShowMre(true)}
+          className="sm:w-1/3 flex items-center justify-center gap-1 text-white/20 hover:text-white/60 transition-colors group"
+        >
+          <span>Made with</span>
+          <span className="text-rose-400/50 group-hover:text-rose-400 transition-colors">♥</span>
+          <span className="font-medium text-white/30 group-hover:text-white/70 transition-colors">{MRE.brand}</span>
+        </button>
+
+        {/* Sağ — politika linkleri */}
+        <div className="sm:w-1/3 flex justify-center sm:justify-end gap-5">
           <button onClick={() => setOpen('gizlilik')} className="hover:text-white transition-colors">
             Gizlilik Politikası
           </button>
@@ -155,7 +158,7 @@ export default function FooterPolicyBar() {
               <p className="text-sm text-neutral-500 mb-6">{MRE.title}</p>
 
               <a
-                href={`mailto:${MRE.email}`}
+                href={`mailto:${MRE.email}?subject=Mre Creative ile iletişim&body=Merhaba Emre,%0A%0A`}
                 className="flex items-center justify-center gap-2 w-full bg-[#0A1F44] hover:bg-[#1E54C8] text-white text-sm font-semibold py-3 rounded-xl transition-colors"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
