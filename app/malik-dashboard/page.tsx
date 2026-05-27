@@ -140,29 +140,29 @@ export default function MalikDashboardPage() {
               {activePage === 'anasayfa' && <>
 
                 {/* Ödeme Durumu */}
-                <div className="bg-[#0A1F44] rounded-2xl p-5 relative overflow-hidden">
-                  <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5" />
-                  <div className="absolute -right-2 -bottom-10 w-24 h-24 rounded-full bg-white/5" />
-                  <div className="flex items-center justify-between mb-4 relative">
-                    <p className="text-white/60 text-xs font-semibold uppercase tracking-widest">Ödeme Durumu</p>
-                    <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/></svg>
+                <div className="bg-[#0A1F44] rounded-2xl px-4 py-3 relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-2 relative">
+                    <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest">Ödeme Durumu</p>
+                    <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="1" y1="10" x2="23" y2="10" strokeLinecap="round"/></svg>
                     </div>
                   </div>
-                  <div className="flex gap-8 mb-5 relative">
-                    <div><p className="text-white/50 text-xs mb-1">Toplam Borç</p><p className="text-white font-bold text-xl">{formatTL(MALIK.totalDebt)}</p></div>
-                    <div><p className="text-white/50 text-xs mb-1">Ödenen</p><p className="text-[#22C55E] font-bold text-xl">{formatTL(MALIK.paid)}</p></div>
-                    <div><p className="text-white/50 text-xs mb-1">Kalan Borç</p><p className="text-white font-bold text-xl">{formatTL(remaining)}</p></div>
+                  <div className="flex gap-5 mb-2.5 relative">
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Toplam Borç</p><p className="text-white font-bold text-sm">{formatTL(MALIK.totalDebt)}</p></div>
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Ödenen</p><p className="text-[#22C55E] font-bold text-sm">{formatTL(MALIK.paid)}</p></div>
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Kalan Borç</p><p className="text-white font-bold text-sm">{formatTL(remaining)}</p></div>
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-1.5">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1">
                     <div className="h-full bg-[#22C55E] rounded-full" style={{ width: `${paidPercent}%` }} />
                   </div>
-                  <p className="text-white/50 text-xs text-right mb-3">%{paidPercent} ödendi</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-[#22C55E] flex items-center justify-center">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <p className="text-white/50 text-[10px]">Ödemeleriniz düzenli</p>
                     </div>
-                    <p className="text-white/60 text-xs">Ödemeleriniz düzenli, teşekkür ederiz.</p>
+                    <p className="text-white/50 text-[10px]">%{paidPercent} ödendi</p>
                   </div>
                 </div>
 
@@ -438,19 +438,17 @@ export default function MalikDashboardPage() {
                 </div>
 
                 {/* Ödeme Durumu */}
-                <div className="bg-[#0A1F44] rounded-2xl p-5 relative overflow-hidden">
-                  <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/5" />
-                  <div className="absolute -right-2 -bottom-10 w-24 h-24 rounded-full bg-white/5" />
-                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-4 relative">Ödeme Durumu</p>
-                  <div className="flex gap-8 mb-5 relative">
-                    <div><p className="text-white/50 text-xs mb-1">Toplam Borç</p><p className="text-white font-bold text-xl">{formatTL(MALIK.totalDebt)}</p></div>
-                    <div><p className="text-white/50 text-xs mb-1">Ödenen</p><p className="text-[#22C55E] font-bold text-xl">{formatTL(MALIK.paid)}</p></div>
-                    <div><p className="text-white/50 text-xs mb-1">Kalan Borç</p><p className="text-white font-bold text-xl">{formatTL(remaining)}</p></div>
+                <div className="bg-[#0A1F44] rounded-2xl px-4 py-3 relative overflow-hidden">
+                  <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest mb-2 relative">Ödeme Durumu</p>
+                  <div className="flex gap-5 mb-2.5 relative">
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Toplam Borç</p><p className="text-white font-bold text-sm">{formatTL(MALIK.totalDebt)}</p></div>
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Ödenen</p><p className="text-[#22C55E] font-bold text-sm">{formatTL(MALIK.paid)}</p></div>
+                    <div><p className="text-white/50 text-[10px] mb-0.5">Kalan Borç</p><p className="text-white font-bold text-sm">{formatTL(remaining)}</p></div>
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-1.5">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1">
                     <div className="h-full bg-[#22C55E] rounded-full" style={{ width: `${paidPercent}%` }} />
                   </div>
-                  <p className="text-white/50 text-xs text-right">%{paidPercent} ödendi</p>
+                  <p className="text-white/50 text-[10px] text-right">%{paidPercent} ödendi</p>
                 </div>
 
                 {/* Son Ödemeler */}
