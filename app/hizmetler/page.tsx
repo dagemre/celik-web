@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function Icon({ name, size = 48, style }: { name: string; size?: number; style?: React.CSSProperties }) {
   return (
@@ -115,8 +115,28 @@ const WHITE_FILTER = 'brightness(0) invert(1)'
 
 export default function HizmetlerPage() {
   const [acik, setAcik] = useState<number | null>(null)
+  const [cols, setCols] = useState(6) // SSR için desktop varsayılan
+
+  useEffect(() => {
+    const update = () => {
+      if (window.innerWidth >= 1024) setCols(6)
+      else if (window.innerWidth >= 768) setCols(3)
+      else setCols(2)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
 
   const toggle = (i: number) => setAcik(prev => (prev === i ? null : i))
+
+  // Kartları satırlara böl (cols sayısına göre)
+  const satirlar: { h: typeof HIZMETLER[0]; index: number }[][] = []
+  for (let i = 0; i < HIZMETLER.length; i += cols) {
+    satirlar.push(
+      HIZMETLER.slice(i, i + cols).map((h, j) => ({ h, index: i + j }))
+    )
+  }
 
   return (
     <>
@@ -161,92 +181,104 @@ export default function HizmetlerPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {HIZMETLER.map((h, i) => {
-              const aktif = acik === i
+          <div className="flex flex-col gap-4">
+            {satirlar.map((satir, satirIndex) => {
+              // Bu satırda aktif kart var mı?
+              const satirdaAcik = acik !== null && satir.some(({ index }) => index === acik)
+
               return (
-                <button
-                  key={h.title}
-                  onClick={() => toggle(i)}
-                  className={`bg-white rounded-2xl border p-5 transition-all duration-200 group cursor-pointer flex flex-col items-center text-center w-full text-left
-                    ${aktif
-                      ? 'border-[#1E54C8] shadow-lg ring-2 ring-[#1E54C8]/20'
-                      : 'border-gray-100 hover:shadow-lg hover:border-[#1E54C8]/30'
-                    }`}
-                >
-                  <div className="mb-4">
-                    <Icon
-                      name={h.icon}
-                      size={48}
-                      style={{ filter: aktif ? 'brightness(0) saturate(100%) invert(22%) sepia(90%) saturate(700%) hue-rotate(200deg)' : BLUE_FILTER }}
-                    />
+                <div key={satirIndex}>
+                  {/* Kart satırı */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {satir.map(({ h, index }) => {
+                      const aktif = acik === index
+                      return (
+                        <button
+                          key={h.title}
+                          onClick={() => toggle(index)}
+                          className={`bg-white rounded-2xl border p-5 transition-all duration-200 cursor-pointer flex flex-col items-center text-center w-full
+                            ${aktif
+                              ? 'border-[#1E54C8] shadow-lg ring-2 ring-[#1E54C8]/20'
+                              : 'border-gray-100 hover:shadow-lg hover:border-[#1E54C8]/30'
+                            }`}
+                        >
+                          <div className="mb-4">
+                            <Icon
+                              name={h.icon}
+                              size={48}
+                              style={{ filter: aktif ? 'brightness(0) saturate(100%) invert(22%) sepia(90%) saturate(700%) hue-rotate(200deg)' : BLUE_FILTER }}
+                            />
+                          </div>
+                          <h3 className={`font-bold text-sm mb-2 ${aktif ? 'text-[#1E54C8]' : 'text-[#0A1F44]'}`}>{h.title}</h3>
+                          <p className="text-gray-400 text-xs leading-relaxed mb-4 hidden lg:block">{h.desc}</p>
+                          <div className="flex items-center gap-1 text-[#1E54C8] text-xs font-semibold mt-auto">
+                            {aktif ? 'Kapat' : 'Detaylı Bilgi'}
+                            <span
+                              className="inline-block transition-transform duration-200"
+                              style={{ transform: aktif ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                            >
+                              <Icon name="arrow-right" size={12} style={{ filter: BLUE_FILTER }} />
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
-                  <h3 className={`font-bold text-sm mb-2 ${aktif ? 'text-[#1E54C8]' : 'text-[#0A1F44]'}`}>{h.title}</h3>
-                  <p className="text-gray-400 text-xs leading-relaxed mb-4 hidden lg:block">{h.desc}</p>
-                  <div className={`flex items-center gap-1 text-xs font-semibold mt-auto transition-colors ${aktif ? 'text-[#1E54C8]' : 'text-[#1E54C8]'}`}>
-                    {aktif ? 'Kapat' : 'Detaylı Bilgi'}
-                    <span
-                      className="inline-block transition-transform duration-200"
-                      style={{ transform: aktif ? 'rotate(90deg)' : 'rotate(0deg)' }}
-                    >
-                      <Icon name="arrow-right" size={12} style={{ filter: BLUE_FILTER }} />
-                    </span>
-                  </div>
-                </button>
+
+                  {/* Detay paneli — bu satırda aktif kart varsa hemen altında göster */}
+                  {satirdaAcik && acik !== null && (
+                    <div className="mt-3 bg-white rounded-2xl border border-[#1E54C8]/20 shadow-lg overflow-hidden animate-fadeIn">
+                      <div className="flex flex-col lg:flex-row">
+                        {/* Sol — İkon + başlık */}
+                        <div className="bg-[#0A1F44] text-white p-6 lg:w-56 flex flex-col items-center justify-center text-center shrink-0">
+                          <div className="bg-white/10 rounded-2xl p-4 mb-3">
+                            <Icon name={HIZMETLER[acik].icon} size={40} style={{ filter: WHITE_FILTER }} />
+                          </div>
+                          <h3 className="font-bold text-base leading-tight">{HIZMETLER[acik].title}</h3>
+                        </div>
+
+                        {/* Sağ — Detay içeriği */}
+                        <div className="p-6 flex-1">
+                          <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                            {HIZMETLER[acik].detay.ozet}
+                          </p>
+
+                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6">
+                            {HIZMETLER[acik].detay.maddeler.map((m) => (
+                              <li key={m} className="flex items-start gap-3">
+                                <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-[#1E54C8]/10 flex items-center justify-center">
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                    <path d="M2 5L4.5 7.5L8 3" stroke="#1E54C8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </span>
+                                <span className="text-gray-600 text-sm leading-snug">{m}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <a
+                              href="/iletisim?konu=teklif"
+                              className="inline-flex items-center justify-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-6 py-3 rounded-xl hover:bg-[#1E54C8] transition-colors"
+                            >
+                              Teklif Alın
+                              <Icon name="arrow-right" size={14} style={{ filter: WHITE_FILTER }} />
+                            </a>
+                            <a
+                              href="/iletisim"
+                              className="inline-flex items-center justify-center gap-2 border border-[#0A1F44]/20 text-[#0A1F44] text-sm font-semibold px-6 py-3 rounded-xl hover:border-[#1E54C8] hover:text-[#1E54C8] transition-colors"
+                            >
+                              Bize Ulaşın
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
-
-          {/* ── Detay Paneli ── */}
-          {acik !== null && (
-            <div className="mt-4 bg-white rounded-2xl border border-[#1E54C8]/20 shadow-lg overflow-hidden animate-fadeIn">
-              <div className="flex flex-col lg:flex-row">
-                {/* Sol — İkon + başlık */}
-                <div className="bg-[#0A1F44] text-white p-8 lg:w-64 flex flex-col items-center justify-center text-center shrink-0">
-                  <div className="bg-white/10 rounded-2xl p-4 mb-4">
-                    <Icon name={HIZMETLER[acik].icon} size={48} style={{ filter: WHITE_FILTER }} />
-                  </div>
-                  <h3 className="font-bold text-lg leading-tight">{HIZMETLER[acik].title}</h3>
-                </div>
-
-                {/* Sağ — Detay içeriği */}
-                <div className="p-8 flex-1">
-                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                    {HIZMETLER[acik].detay.ozet}
-                  </p>
-
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                    {HIZMETLER[acik].detay.maddeler.map((m) => (
-                      <li key={m} className="flex items-start gap-3">
-                        <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-[#1E54C8]/10 flex items-center justify-center">
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path d="M2 5L4.5 7.5L8 3" stroke="#1E54C8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </span>
-                        <span className="text-gray-600 text-sm leading-snug">{m}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href="/iletisim?konu=teklif"
-                      className="inline-flex items-center justify-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-6 py-3 rounded-xl hover:bg-[#1E54C8] transition-colors"
-                    >
-                      Teklif Alın
-                      <Icon name="arrow-right" size={14} style={{ filter: WHITE_FILTER }} />
-                    </a>
-                    <a
-                      href="/iletisim"
-                      className="inline-flex items-center justify-center gap-2 border border-[#0A1F44]/20 text-[#0A1F44] text-sm font-semibold px-6 py-3 rounded-xl hover:border-[#1E54C8] hover:text-[#1E54C8] transition-colors"
-                    >
-                      Bize Ulaşın
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
