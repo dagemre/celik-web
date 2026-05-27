@@ -58,7 +58,25 @@ const policies: Record<NonNullable<PolicyKey>, { title: string; content: string 
   },
   cerez: {
     title: 'Çerez Politikası',
-    content: '<!-- İçerik yakında eklenecek -->',
+    content: `
+      <h2 style="font-size:1rem;font-weight:700;color:#0A1F44;margin-bottom:4px;">ÇEREZ (COOKIE) POLİTİKASI</h2>
+      <p style="font-size:0.8rem;font-weight:600;color:#0A1F44;margin-bottom:12px;">ÇELİK TAAHHÜT WEB SİTESİ ÇEREZ POLİTİKASI</p>
+      <p style="margin-bottom:16px;">Çelik Taahhüt olarak, <strong>celiktaahhut.com</strong> ve <strong>celiktaahhut.com.tr</strong> web sitelerimizde kullanıcı deneyiminizi geliştirmek ve Malik Paneli'nin güvenli çalışmasını sağlamak adına çerezler (cookies) kullanmaktayız.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">1. Kullanılan Çerez Türleri ve Amaçları</h3>
+      <p style="margin-bottom:8px;">Sitemizde yalnızca "Zorunlu ve Teknik Çerezler" kullanılmaktadır. Bu çerezler:</p>
+      <ul style="list-style:disc;padding-left:20px;margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+        <li>Maliklerin panele giriş yaptıktan sonra oturumlarının açık kalmasını sağlamak,</li>
+        <li>Sayfalar arası geçişte kullanıcının kimliğini doğrulamak,</li>
+        <li>Panel güvenliğini korumak amacıyla zorunludur.</li>
+      </ul>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">2. Üçüncü Taraf ve Reklam Çerezleri</h3>
+      <p style="margin-bottom:16px;">Web sitemizde kullanıcıları takip eden, profil çıkaran veya reklam gösterimi amacıyla veri toplayan üçüncü taraf (pazarlama/reklam) çerezleri kullanılmamaktadır.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">3. Çerezleri Nasıl Kontrol Edebilirsiniz?</h3>
+      <p>Kullandığınız internet tarayıcısının (Chrome, Safari, Edge vb.) ayarlar bölümünden çerezleri tamamen engelleyebilir veya silebilirsiniz. Ancak zorunlu teknik çerezleri engellemeniz halinde, Malik Paneli'ne giriş yapmanız ve paneli fonksiyonel kullanmanız teknik olarak mümkün olmayacaktır.</p>
+    `,
   },
 }
 
