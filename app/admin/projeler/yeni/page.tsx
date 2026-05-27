@@ -11,6 +11,25 @@ const STATUS_OPTIONS = [
   { key: 'tamamlandi', label: 'Tamamlandı'   },
 ]
 
+const FEATURE_OPTIONS = [
+  { key: 'kapali-otopark',    icon: '🏎️',  label: 'Kapalı Otopark'     },
+  { key: 'acik-otopark',      icon: '🅿️',  label: 'Açık Otopark'       },
+  { key: 'asansor',           icon: '🛗',  label: 'Asansör'             },
+  { key: 'guvenlik-kamerasi', icon: '📷',  label: 'Güvenlik Kamerası'   },
+  { key: 'gorevli-guvenlik',  icon: '💂',  label: 'Görevli Güvenlik'    },
+  { key: 'jenerator',         icon: '⚡',  label: 'Jeneratör'           },
+  { key: 'dogalgaz',          icon: '🔥',  label: 'Doğalgaz'            },
+  { key: 'kombili',           icon: '🌡️', label: 'Kombi (Her Daireye)' },
+  { key: 'merkezi-isitma',    icon: '♨️',  label: 'Merkezi Isıtma'      },
+  { key: 'interkom',          icon: '🔔',  label: 'İnterkom / Diafon'   },
+  { key: 'yangin-merdiveni',  icon: '🚒',  label: 'Yangın Merdiveni'    },
+  { key: 'teras',             icon: '🏡',  label: 'Teras / Çatı Katı'   },
+  { key: 'bahce',             icon: '🌿',  label: 'Bahçe / Yeşil Alan'  },
+  { key: 'deprem-yalitim',    icon: '🏗️', label: 'Deprem Yalıtımı'     },
+  { key: 'isı-yalitim',       icon: '🧱',  label: 'Isı Yalıtımı'        },
+  { key: 'ses-yalitim',       icon: '🔇',  label: 'Ses Yalıtımı'        },
+]
+
 function slugify(text: string) {
   return text
     .toLowerCase()
@@ -36,10 +55,17 @@ export default function ProjeEklePage() {
   const [deliveryYear, setDeliveryYear] = useState('')
   const [progress,     setProgress]     = useState('0')
   const [description,  setDescription]  = useState('')
+  const [features,     setFeatures]     = useState<string[]>([])
 
   const [saving,  setSaving]  = useState(false)
   const [success, setSuccess] = useState(false)
   const [error,   setError]   = useState('')
+
+  function toggleFeature(key: string) {
+    setFeatures(prev =>
+      prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key]
+    )
+  }
 
   async function handleSave() {
     if (!name.trim())     { setError('Proje adı zorunlu.'); return }
@@ -65,6 +91,7 @@ export default function ProjeEklePage() {
       delivery_year: deliveryYear.trim() || null,
       progress:      parseInt(progress) || 0,
       description:   description.trim() || null,
+      features:      features.length > 0 ? features : null,
     })
 
     setSaving(false)
@@ -216,6 +243,36 @@ export default function ProjeEklePage() {
           <div className="flex justify-between mt-1">
             <span className="text-xs text-neutral-400">0%</span>
             <span className="text-xs text-neutral-400">100%</span>
+          </div>
+        </div>
+
+        {/* Bina Özellikleri */}
+        <div>
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
+            Bina Özellikleri
+            <span className="font-normal normal-case text-neutral-400 ml-1">
+              ({features.length} seçildi)
+            </span>
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {FEATURE_OPTIONS.map((f) => {
+              const selected = features.includes(f.key)
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => toggleFeature(f.key)}
+                  className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl border text-left transition-all ${
+                    selected
+                      ? 'bg-primary-800 border-primary-800 text-white'
+                      : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="text-base leading-none">{f.icon}</span>
+                  <span className="text-sm font-medium leading-tight">{f.label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
