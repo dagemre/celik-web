@@ -11,7 +11,35 @@ const policies: Record<NonNullable<PolicyKey>, { title: string; content: string 
   },
   kvkk: {
     title: 'KVKK Aydınlatma Metni',
-    content: '<!-- İçerik yakında eklenecek -->',
+    content: `
+      <h2 style="font-size:1rem;font-weight:700;color:#0A1F44;margin-bottom:4px;">KVKK AYDINLATMA METNİ</h2>
+      <p style="font-size:0.8rem;font-weight:600;color:#0A1F44;margin-bottom:16px;">ÇELİK TAAHHÜT – MALİK PANELİ KVKK AYDINLATMA METNİ</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">1. Veri Sorumlusu</h3>
+      <p style="margin-bottom:16px;">6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz; veri sorumlusu olarak [Şirket Tam Unvanı Yazılacak] ("Şirket" veya "Çelik Taahhüt") tarafından aşağıda açıklanan kapsamda işlenebilecektir.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">2. İşlenen Kişisel Verileriniz</h3>
+      <p style="margin-bottom:16px;">Malik Paneli'ni kullanımınız kapsamında; Ad-Soyad, T.C. Kimlik No (gerekliyse), Telefon Numarası, E-posta Adresi, Bağımsız Bölüm (Daire/Dükkan) Numarası, Borç/Alacak/Bakiye Bilgileri ve Manuel Ödeme Bildirim Kayıtları işlenmektedir.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">3. Kişisel Verilerin İşlenme Amacı</h3>
+      <p style="margin-bottom:8px;">Kişisel verileriniz;</p>
+      <ul style="list-style:disc;padding-left:20px;margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+        <li>Maliklerin panele güvenli giriş yapabilmesi ve kimlik doğrulaması,</li>
+        <li>Bina/site yönetimi kapsamındaki borç, aidat ve finansal durumların takibi,</li>
+        <li>Maliklere borç, bakiye, genel kurul ve bina detaylarına ilişkin bilgilendirme ile bildirimlerin (SMS/E-posta) gönderilmesi,</li>
+        <li>Yönetim ile malikler arasındaki iletişimin sağlıklı yürütülmesi</li>
+      </ul>
+      <p style="margin-bottom:16px;">yasal amaçlarıyla KVKK'nın 5. maddesinde belirtilen hukuki sebeplere uygun olarak işlenmektedir.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">4. İşlenen Kişisel Verilerin Kimlere ve Hangi Amaçla Aktarılabileceği</h3>
+      <p style="margin-bottom:16px;">Kişisel verileriniz, üçüncü taraf reklam veya pazarlama şirketleriyle kesinlikle paylaşılmaz. Verileriniz yalnızca; bilgi teknolojileri altyapısının sağlanması amacıyla yurt içindeki güvenli sunucu (hosting) sağlayıcımıza ve yasal bir zorunluluk doğması halinde yetkili kamu kurum ve kuruluşlarına aktarılabilecektir.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">5. Kişisel Veri Toplamanın Yöntemi ve Hukuki Sebebi</h3>
+      <p style="margin-bottom:16px;">Kişisel verileriniz, admin paneli üzerinden yönetim tarafından manuel olarak veya maliklerin siteye ilk kayıt/giriş esnasında elektronik ortamda veri formlarını doldurması yöntemiyle toplanmaktadır. Bu süreç, KVKK m.5/2-c uyarınca "Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" ve "Veri sorumlusunun hukuki yükümlülüğü" hukuki sebeplerine dayanır.</p>
+
+      <h3 style="font-weight:600;color:#0A1F44;margin-bottom:6px;">6. İlgili Kişinin (Malikin) Hakları</h3>
+      <p>KVKK'nın 11. maddesi uyarınca, [Şirket E-posta Adresi] adresine yazılı başvuruda bulunarak; verilerinizin işlenip işlenmediğini öğrenme, düzeltilmesini veya silinmesini talep etme hakkına sahipsiniz.</p>
+    `,
   },
   cerez: {
     title: 'Çerez Politikası',
