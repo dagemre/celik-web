@@ -168,28 +168,45 @@ export default function MalikDashboardPage() {
 
                 {/* Proje Kartı */}
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="sm:w-64 h-44 sm:h-auto flex-shrink-0">
+                  {/* Üst kısım: görsel + başlık */}
+                  <div className="flex items-center gap-4 p-4">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
                       <img src={MALIK.imageUri} alt={MALIK.projectName} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex-1 p-5">
-                      <h2 className="text-lg font-bold text-[#0A1F44]">{MALIK.projectName}</h2>
-                      <div className="flex items-center gap-1.5 mt-1 mb-4">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-base font-bold text-[#0A1F44] leading-tight">{MALIK.projectName}</h2>
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         <p className="text-xs text-gray-400">{MALIK.location}</p>
                       </div>
-                      <div className="flex gap-5 flex-wrap">
-                        <div><p className="text-xs text-gray-400 mb-1">Proje Durumu</p><span className="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-lg">Devam Ediyor</span></div>
-                        <div><p className="text-xs text-gray-400 mb-1">Blok</p><p className="text-sm font-bold text-[#0A1F44]">{MALIK.block} Blok</p></div>
-                        <div><p className="text-xs text-gray-400 mb-1">Daire No</p><p className="text-sm font-bold text-[#0A1F44]">{MALIK.unitNumber}</p></div>
-                        <div><p className="text-xs text-gray-400 mb-1">Kat</p><p className="text-sm font-bold text-[#0A1F44]">{MALIK.floor}</p></div>
-                      </div>
-                      <button className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#0A1F44] hover:text-blue-600 transition-colors">
-                        Proje detayına git
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </button>
                     </div>
                   </div>
+
+                  {/* Ayırıcı + 4 kolon */}
+                  <div className="border-t border-gray-100 grid grid-cols-4 divide-x divide-gray-100 px-2 py-3">
+                    <div className="px-3">
+                      <p className="text-[10px] text-gray-400 mb-1.5 leading-tight">Proje Durumu</p>
+                      <span className="inline-block bg-green-50 text-green-700 text-[11px] font-semibold px-2 py-0.5 rounded-lg">Devam Ediyor</span>
+                    </div>
+                    <div className="px-3">
+                      <p className="text-[10px] text-gray-400 mb-1.5">Blok</p>
+                      <p className="text-sm font-bold text-[#0A1F44]">{MALIK.block} Blok</p>
+                    </div>
+                    <div className="px-3">
+                      <p className="text-[10px] text-gray-400 mb-1.5">Daire No</p>
+                      <p className="text-sm font-bold text-[#0A1F44]">{MALIK.unitNumber}</p>
+                    </div>
+                    <div className="px-3">
+                      <p className="text-[10px] text-gray-400 mb-1.5">Kat</p>
+                      <p className="text-sm font-bold text-[#0A1F44]">{MALIK.floor}</p>
+                    </div>
+                  </div>
+
+                  {/* Alt link */}
+                  <button className="w-full flex items-center justify-between px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                    <p className="text-xs font-medium text-gray-500">Proje detayına git</p>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
                 </div>
 
                 {/* Hızlı Aksiyonlar */}
