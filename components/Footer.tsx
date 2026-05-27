@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import FooterIletisim from './FooterIletisim'
+import FooterPolicyBar from './FooterPolicyBar'
 
 export default function Footer() {
   return (
@@ -75,15 +76,7 @@ export default function Footer() {
           <FooterIletisim />
         </div>
 
-        {/* Alt bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/30 text-xs">
-          <p>© 2024 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
-          <div className="flex gap-5">
-            <a href="#" className="hover:text-white transition-colors">Gizlilik Politikası</a>
-            <a href="#" className="hover:text-white transition-colors">KVKK</a>
-            <a href="#" className="hover:text-white transition-colors">Çerez Politikası</a>
-          </div>
-        </div>
+        <FooterPolicyBar />
       </div>
     </footer>
   )
