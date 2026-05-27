@@ -167,15 +167,15 @@ export default function IletisimPage() {
               {/* Map info card */}
               <div className="absolute top-5 left-5 bg-white rounded-2xl shadow-lg p-5 w-[230px] z-10">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 bg-[#0A1F44] rounded-xl flex items-center justify-center shrink-0">
-                    <Icon name="building" size={18} style={{ filter: WHITE_FILTER }} />
+                  <div className="w-9 h-9 bg-[#0A1F44] rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                    <img src="/celik-logo.svg" alt="Çelik Taahhüt" className="w-7 h-7 object-contain brightness-0 invert" />
                   </div>
-                  <p className="text-[#0A1F44] font-bold text-sm">Çelik İnşaat</p>
+                  <p className="text-[#0A1F44] font-bold text-sm">Çelik Taahhüt</p>
                 </div>
                 <p className="text-gray-500 text-xs leading-relaxed mb-4">
-                  Ambarlı Petrol Ofisi Cad. No:4<br />
-                  Güzelce Plaza B Blok Kat:7<br />
-                  Avcılar / İstanbul
+                  Zeytinlik Mah. Türkçü Sok.<br />
+                  Kayalı Apt. B Blok No:6 D:4<br />
+                  Bakırköy / İstanbul
                 </p>
                 <a
                   href="https://maps.google.com/?q=40.978696,28.872451"
