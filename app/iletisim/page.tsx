@@ -154,7 +154,7 @@ export default function IletisimPage() {
             {/* Sağ — Harita */}
             <div className="relative rounded-2xl overflow-hidden border border-gray-100 min-h-[500px]">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3011.2!2d28.7195!3d40.9812!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14caa5d3890b86fd%3A0x3a3c8b5b5f5f5f5f!2sAvc%C4%B1lar%2C%20%C4%B0stanbul!5e0!3m2!1str!2str!4v1"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3011.2!2d28.872451!3d40.978696!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDU4JzQzLjMiTiAyOMKwNTInMjAuOCJF!5e0!3m2!1str!2str!4v1"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: 500 }}
@@ -178,7 +178,7 @@ export default function IletisimPage() {
                   Avcılar / İstanbul
                 </p>
                 <a
-                  href="https://maps.google.com/?q=Avcilar+Istanbul"
+                  href="https://maps.google.com/?q=40.978696,28.872451"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-[#0A1F44] text-xs font-semibold hover:gap-3 transition-all"
