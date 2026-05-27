@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import KVKKModal from '@/components/malik/KVKKModal'
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MALIK = {
@@ -67,6 +68,14 @@ export default function MalikDashboardPage() {
   const router = useRouter()
   const [activePage, setActivePage] = useState<'anasayfa' | 'projelerim' | string>('anasayfa')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [kvkkGoster, setKvkkGoster] = useState(false)
+
+  // Sayfa yüklenince KVKK kontrolü — localStorage'a bakıyoruz
+  // Gerçek auth gelince Supabase'den owner.kvkk_onay kontrol edilecek
+  useEffect(() => {
+    const onay = localStorage.getItem('kvkk_onay')
+    if (!onay) setKvkkGoster(true)
+  }, [])
 
   const remaining = MALIK.totalDebt - MALIK.paid
   const paidPercent = Math.round((MALIK.paid / MALIK.totalDebt) * 100)
@@ -84,6 +93,15 @@ export default function MalikDashboardPage() {
 
   return (
     <div className="flex h-screen bg-[#F4F6FA] overflow-hidden">
+
+      {/* ── KVKK Modal — ilk girişte gösterilir ── */}
+      {kvkkGoster && (
+        <KVKKModal
+          ownerEmail={MALIK.email}
+          ownerId={undefined}
+          onOnaylandi={() => setKvkkGoster(false)}
+        />
+      )}
 
       {/* ── SIDEBAR ───────────────────────────────────────────────────── */}
       <aside className={`fixed lg:static z-40 h-full w-[220px] bg-[#0A1F44] flex flex-col flex-shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
