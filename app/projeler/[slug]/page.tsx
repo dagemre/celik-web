@@ -3,25 +3,25 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import ProjeDetayClient from './ProjeDetayClient'
 
-// Bina özelliği → emoji + etiket (admin paneldekiyle birebir)
-const FEATURE_OPTIONS: Record<string, { emoji: string; label: string }> = {
-  'kapali-otopark':    { emoji: '🏎️',  label: 'Kapalı Otopark'      },
-  'acik-otopark':      { emoji: '🅿️',  label: 'Açık Otopark'        },
-  'asansor':           { emoji: '🛗',  label: 'Asansör'              },
-  'guvenlik-kamerasi': { emoji: '📷',  label: 'Güvenlik Kamerası'    },
-  'gorevli-guvenlik':  { emoji: '💂',  label: 'Görevli Güvenlik'     },
-  'jenerator':         { emoji: '⚡',  label: 'Jeneratör'            },
-  'dogalgaz':          { emoji: '🔥',  label: 'Doğalgaz'             },
-  'kombili':           { emoji: '🌡️', label: 'Kombi (Her Daireye)'  },
-  'merkezi-isitma':    { emoji: '♨️',  label: 'Merkezi Isıtma'       },
-  'interkom':          { emoji: '🔔',  label: 'İnterkom / Diafon'    },
-  'yangin-merdiveni':  { emoji: '🚒',  label: 'Yangın Merdiveni'     },
-  'teras':             { emoji: '🏡',  label: 'Teras / Çatı Katı'    },
-  'bahce':             { emoji: '🌿',  label: 'Bahçe / Yeşil Alan'   },
-  'deprem-yalitim':    { emoji: '🏗️', label: 'Deprem Yalıtımı'      },
-  'isı-yalitim':       { emoji: '🧱',  label: 'Isı Yalıtımı'         },
-  'isi-yalitim':       { emoji: '🧱',  label: 'Isı Yalıtımı'         }, // eski kayıtlar için
-  'ses-yalitim':       { emoji: '🔇',  label: 'Ses Yalıtımı'         },
+// Bina özelliği → SVG ikon + etiket
+const FEATURE_OPTIONS: Record<string, { icon: string; label: string }> = {
+  'kapali-otopark':    { icon: 'bina-otopark',     label: 'Kapalı Otopark'      },
+  'acik-otopark':      { icon: 'car',              label: 'Açık Otopark'        },
+  'asansor':           { icon: 'elevator',         label: 'Asansör'             },
+  'guvenlik-kamerasi': { icon: 'camera-security',  label: 'Güvenlik Kamerası'   },
+  'gorevli-guvenlik':  { icon: 'security',         label: 'Görevli Güvenlik'    },
+  'jenerator':         { icon: 'generator',        label: 'Jeneratör'           },
+  'dogalgaz':          { icon: 'generator',        label: 'Doğalgaz'            },
+  'kombili':           { icon: 'bina-klima',       label: 'Kombi (Her Daireye)' },
+  'merkezi-isitma':    { icon: 'bina-klima',       label: 'Merkezi Isıtma'      },
+  'interkom':          { icon: 'bell',             label: 'İnterkom / Diafon'   },
+  'yangin-merdiveni':  { icon: 'building',         label: 'Yangın Merdiveni'    },
+  'teras':             { icon: 'bina-balkon',      label: 'Teras / Çatı Katı'   },
+  'bahce':             { icon: 'tree',             label: 'Bahçe / Yeşil Alan'  },
+  'deprem-yalitim':    { icon: 'building',         label: 'Deprem Yalıtımı'     },
+  'isı-yalitim':       { icon: 'bina-yerden',      label: 'Isı Yalıtımı'        },
+  'isi-yalitim':       { icon: 'bina-yerden',      label: 'Isı Yalıtımı'        },
+  'ses-yalitim':       { icon: 'bina-depo',        label: 'Ses Yalıtımı'        },
 }
 
 // Galeri resimleri — slug'a göre statik eşleme (public klasöründen)
@@ -179,7 +179,7 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
   // Bina özellikleri
   const rawFeatures: string[] = Array.isArray(proje.features) ? proje.features : []
   const ozellikler = rawFeatures.map(key => ({
-    emoji: FEATURE_OPTIONS[key]?.emoji ?? '🏢',
+    icon:  FEATURE_OPTIONS[key]?.icon  ?? 'building',
     label: FEATURE_OPTIONS[key]?.label ?? key,
   }))
 
