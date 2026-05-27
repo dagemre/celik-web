@@ -75,12 +75,11 @@ const BOTTOM_NAV = [
     ),
   },
   {
-    href: '/admin/odemeler', label: 'Ödemeler', exact: false,
+    href: '/admin/kisiler', label: 'Malikler', exact: false,
     icon: (active: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="5" width="20" height="14" rx="2" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
-        <path d="M2 10h20" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
-        <rect x="5" y="13" width="4" height="2" rx="0.5" fill={active ? '#0A1F44' : '#A5A49C'}/>
+        <circle cx="12" cy="8" r="4" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinecap="round"/>
       </svg>
     ),
   },
