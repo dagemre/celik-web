@@ -226,6 +226,29 @@ export default function MalikDashboardPage() {
                   </div>
                 </div>
 
+                {/* Son Ödemeler */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-base font-bold text-[#0A1F44]">Son Ödemeler</p>
+                    <button className="text-xs font-medium text-gray-400 hover:text-[#0A1F44] transition-colors">Tümünü Gör</button>
+                  </div>
+                  {RECENT_PAYMENTS.map((p, i) => (
+                    <div key={p.id} className={`flex items-center gap-3 py-3.5 ${i < RECENT_PAYMENTS.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-[#0A1F44]">{p.date}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{p.method}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-green-500">{formatTL(p.amount)}</p>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
                 {/* Duyurular */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-5">
                   <div className="flex items-center gap-2.5 mb-4">
