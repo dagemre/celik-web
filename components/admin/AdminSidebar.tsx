@@ -87,7 +87,9 @@ export default function AdminSidebar({ open, onClose }: Props) {
 
         {/* Logo */}
         <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
-          <img src="/icons/celik-logo.svg" alt="Çelik Taahhüt" className="h-12 w-auto brightness-0 invert" />
+          <Link href="/admin" onClick={onClose}>
+            <img src="/icons/celik-logo.svg" alt="Çelik Taahhüt" className="h-14 w-auto brightness-0 invert" />
+          </Link>
           <button className="md:hidden" onClick={onClose}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
