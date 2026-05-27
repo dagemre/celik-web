@@ -4,6 +4,13 @@ import { useState } from 'react'
 
 type PolicyKey = 'gizlilik' | 'kvkk' | 'cerez' | null
 
+const MRE = {
+  name: 'Emre Dağ',
+  brand: 'Mre Creative',
+  title: 'UI/UX ve Digital Tasarım Deneyimi',
+  email: 'dagemre@gmail.com',
+}
+
 const policies: Record<NonNullable<PolicyKey>, { title: string; content: string }> = {
   gizlilik: {
     title: 'Gizlilik Politikası',
@@ -82,6 +89,7 @@ const policies: Record<NonNullable<PolicyKey>, { title: string; content: string 
 
 export default function FooterPolicyBar() {
   const [open, setOpen] = useState<PolicyKey>(null)
+  const [showMre, setShowMre] = useState(false)
 
   const policy = open ? policies[open] : null
 
@@ -89,7 +97,17 @@ export default function FooterPolicyBar() {
     <>
       {/* Alt bar */}
       <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/30 text-xs">
-        <p>© 2026 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <p>© 2026 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
+          <button
+            onClick={() => setShowMre(true)}
+            className="flex items-center gap-1 text-white/20 hover:text-white/60 transition-colors group"
+          >
+            <span>Made with</span>
+            <span className="text-rose-400/50 group-hover:text-rose-400 transition-colors">♥</span>
+            <span>by <span className="font-medium text-white/30 group-hover:text-white/70 transition-colors">{MRE.brand}</span></span>
+          </button>
+        </div>
         <div className="flex gap-5">
           <button onClick={() => setOpen('gizlilik')} className="hover:text-white transition-colors">
             Gizlilik Politikası
@@ -103,7 +121,55 @@ export default function FooterPolicyBar() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Mre Creative Modal */}
+      {showMre && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowMre(false)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Üst gradient bant */}
+            <div className="h-24 bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative flex items-end px-6 pb-0">
+              {/* Avatar */}
+              <div className="absolute -bottom-8 left-6 w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center border-2 border-white">
+                <span className="text-xl font-bold text-[#0A1F44]">ED</span>
+              </div>
+              {/* Kapat */}
+              <button
+                onClick={() => setShowMre(false)}
+                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            {/* İçerik */}
+            <div className="px-6 pt-12 pb-6">
+              <p className="text-xs font-semibold text-[#1E54C8] tracking-widest uppercase mb-1">{MRE.brand}</p>
+              <h3 className="text-xl font-bold text-[#0A1F44] mb-0.5">{MRE.name}</h3>
+              <p className="text-sm text-neutral-500 mb-6">{MRE.title}</p>
+
+              <a
+                href={`mailto:${MRE.email}`}
+                className="flex items-center justify-center gap-2 w-full bg-[#0A1F44] hover:bg-[#1E54C8] text-white text-sm font-semibold py-3 rounded-xl transition-colors"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                Mail Gönder
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Politika Modal */}
       {open && policy && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
