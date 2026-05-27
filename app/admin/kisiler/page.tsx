@@ -433,13 +433,19 @@ export default function AdminKisilerPage() {
     if (editId === id) setShowPanel(false)
   }
 
+  const [mobileView, setMobileView] = useState<'projects' | 'owners'>('projects')
   const selectedProject = PROJELER.find(p => p.id === selectedProjectId)
+
+  const selectProject = (id: string) => {
+    setSelectedProjectId(id)
+    setMobileView('owners')
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-[1400px] mx-auto">
 
-      {/* Sayfa başlığı */}
-      <div className="flex items-center justify-between mb-6">
+      {/* ── Sayfa başlığı — Masaüstü ── */}
+      <div className="hidden md:flex items-center justify-between mb-6">
         <div>
           <h1 className="font-bold text-2xl text-primary-800">Malikler</h1>
           <p className="text-sm text-neutral-500 mt-1">Projelerinize ait daire ve ödeme bilgileriyle malikleri yönetin.</p>
@@ -455,7 +461,182 @@ export default function AdminKisilerPage() {
         </button>
       </div>
 
-      <div className="flex gap-5 items-start">
+      {/* ── Mobil: Proje listesi görünümü ── */}
+      {mobileView === 'projects' && (
+        <div className="md:hidden">
+          {/* Başlık */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h1 className="font-bold text-2xl text-primary-800">Malikler</h1>
+              <p className="text-sm text-neutral-400 mt-0.5">Proje seçin</p>
+            </div>
+            <button
+              onClick={openAdd}
+              className="flex items-center gap-2 bg-primary-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Ekle
+            </button>
+          </div>
+
+          {/* Proje kartları */}
+          <div className="space-y-3">
+            {PROJELER.map((p) => {
+              const pOwners  = owners.filter(o => o.projectId === p.id)
+              const pDebt    = pOwners.reduce((s, o) => s + o.totalPay, 0)
+              const pPaid    = pOwners.reduce((s, o) => s + o.paid, 0)
+              const pRate    = pDebt > 0 ? Math.round((pPaid / pDebt) * 100) : 0
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => selectProject(p.id)}
+                  className="w-full bg-white border border-neutral-100 rounded-2xl p-4 text-left hover:border-primary-200 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="#0A1F44" strokeWidth="1.8"/>
+                        <path d="M3 9h18M9 9v12M15 9v12" stroke="#0A1F44" strokeWidth="1.4"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-primary-800 truncate">{p.name}</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">{p.location}</p>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 18l6-6-6-6" stroke="#B0ADA6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-500">{pOwners.length} Malik</span>
+                    <span className="text-neutral-500">{formatCompactTL(pPaid)} / {formatCompactTL(pDebt)}</span>
+                    <span className={`font-bold px-2 py-0.5 rounded-lg ${pRate >= 70 ? 'text-success-700 bg-success-50' : pRate >= 40 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'}`}>
+                      %{pRate}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobil: Malik listesi görünümü ── */}
+      {mobileView === 'owners' && (
+        <div className="md:hidden">
+          {/* Geri + başlık */}
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setMobileView('projects')}
+              className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-lg text-primary-800 truncate">{selectedProject?.name}</h2>
+              <p className="text-xs text-neutral-400">{projectOwners.length} malik</p>
+            </div>
+            <button
+              onClick={openAdd}
+              className="flex items-center gap-1.5 bg-primary-800 text-white text-xs font-semibold px-3 py-2 rounded-xl"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+              Malik Ekle
+            </button>
+          </div>
+
+          {/* Özet istatistikler */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {[
+              { label: 'Toplam Malik',   value: String(projectOwners.length),   color: 'text-primary-800' },
+              { label: 'Tahsilat Oranı', value: `%${collRate}`,                 color: collRate >= 70 ? 'text-success-700' : 'text-warning-700' },
+              { label: 'Tahsil Edilen',  value: formatCompactTL(totalPaid),     color: 'text-success-700' },
+              { label: 'Toplam Borç',    value: formatCompactTL(totalDebt),     color: 'text-danger-600'  },
+            ].map((s) => (
+              <div key={s.label} className="bg-white border border-neutral-100 rounded-2xl p-3">
+                <p className="text-xs text-neutral-400 mb-1">{s.label}</p>
+                <p className={`font-bold text-base ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Arama */}
+          <div className="relative mb-4">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2" width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="#B0ADA6" strokeWidth="1.8"/>
+              <path d="M21 21l-4.35-4.35" stroke="#B0ADA6" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Malik adı veya telefon ara..."
+              className="w-full bg-white border border-neutral-100 rounded-xl pl-11 pr-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
+            />
+          </div>
+
+          {/* Malik kartları */}
+          {filtered.length === 0 ? (
+            <EmptyState onAdd={openAdd} />
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((owner) => {
+                const pct         = owner.totalPay > 0 ? Math.round((owner.paid / owner.totalPay) * 100) : 0
+                const remaining   = Math.max(owner.totalPay - owner.paid, 0)
+                const avatarColor = getAvatarColor(owner.name)
+                const initials    = getInitials(owner.name)
+                const rateColor   = pct >= 100 ? 'text-success-700 bg-success-50' : pct > 0 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'
+                return (
+                  <div key={owner.id} className="bg-white rounded-2xl border border-neutral-100 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ backgroundColor: avatarColor }}>
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-primary-800">{owner.name}</p>
+                        <p className="text-xs text-neutral-400 mt-0.5">Daire {owner.unitNo} · {owner.unitType} · {owner.floor}. Kat</p>
+                      </div>
+                      <button onClick={() => openEdit(owner)} className="w-8 h-8 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-xs text-neutral-500 mb-3">{owner.phone}</p>
+                    <ProgressBar pct={pct} />
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex gap-3">
+                        <div>
+                          <p className="text-[10px] text-neutral-400">Ödenen</p>
+                          <p className="font-bold text-xs text-success-700">{formatTL(owner.paid)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-neutral-400">Kalan</p>
+                          <p className="font-bold text-xs text-danger-600">{formatTL(remaining)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-neutral-400">Toplam</p>
+                          <p className="font-bold text-xs text-primary-800">{formatTL(owner.totalPay)}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${rateColor}`}>%{pct}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Masaüstü layout ── */}
+      <div className="hidden md:flex gap-5 items-start">
 
         {/* ── Sol panel: Proje listesi ── */}
         <div className="hidden md:block w-72 flex-shrink-0 space-y-2">
@@ -581,74 +762,8 @@ export default function AdminKisilerPage() {
             <EmptyState onAdd={openAdd} />
           ) : (
             <>
-              {/* ── Mobil kart görünümü (md altı) ── */}
-              <div className="md:hidden space-y-3">
-                {filtered.map((owner) => {
-                  const pct         = owner.totalPay > 0 ? Math.round((owner.paid / owner.totalPay) * 100) : 0
-                  const remaining   = Math.max(owner.totalPay - owner.paid, 0)
-                  const avatarColor = getAvatarColor(owner.name)
-                  const initials    = getInitials(owner.name)
-                  const rateColor   = pct >= 100 ? 'text-success-700 bg-success-50' : pct > 0 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'
-
-                  return (
-                    <div key={owner.id} className="bg-white rounded-2xl border border-neutral-100 p-4">
-                      {/* Üst satır: avatar + isim + düzenle */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
-                          style={{ backgroundColor: avatarColor }}
-                        >
-                          {initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-primary-800">{owner.name}</p>
-                          <p className="text-xs text-neutral-400 mt-0.5">
-                            Daire {owner.unitNo} · {owner.unitType} · {owner.floor}. Kat
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => openEdit(owner)}
-                          className="w-8 h-8 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Telefon */}
-                      <p className="text-xs text-neutral-500 mb-3">{owner.phone}</p>
-
-                      {/* Progress */}
-                      <ProgressBar pct={pct} />
-
-                      {/* Tutarlar + oran */}
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex gap-3">
-                          <div>
-                            <p className="text-[10px] text-neutral-400">Ödenen</p>
-                            <p className="font-bold text-xs text-success-700">{formatTL(owner.paid)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-neutral-400">Kalan</p>
-                            <p className="font-bold text-xs text-danger-600">{formatTL(remaining)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-neutral-400">Toplam</p>
-                            <p className="font-bold text-xs text-primary-800">{formatTL(owner.totalPay)}</p>
-                          </div>
-                        </div>
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${rateColor}`}>%{pct}</span>
-                      </div>
-                    </div>
-                  )
-                })}
-                <p className="text-xs text-neutral-400 text-center py-2">Toplam {filtered.length} kayıt</p>
-              </div>
-
-              {/* ── Masaüstü tablo görünümü (md ve üstü) ── */}
-              <div className="hidden md:block bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+              {/* ── Masaüstü tablo görünümü ── */}
+              <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
                 {/* Başlıklar */}
                 <div className="grid grid-cols-[1fr_140px_140px_180px_100px_80px] gap-4 px-5 py-3 border-b border-neutral-100 bg-neutral-50">
                   {['Malik', 'Daire', 'Telefon', 'Ödenen / Toplam', 'Ödeme Oranı', 'İşlemler'].map((h) => (
