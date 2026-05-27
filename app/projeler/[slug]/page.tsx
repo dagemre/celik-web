@@ -3,43 +3,25 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import ProjeDetayClient from './ProjeDetayClient'
 
-// Bina özelliği → ikon eşlemesi
-const FEATURE_ICONS: Record<string, string> = {
-  'kapali-otopark':    'bina-otopark',
-  'acik-otopark':      'bina-otopark',
-  'asansor':           'elevator',
-  'guvenlik-kamerasi': 'camera-security',
-  'gorevli-guvenlik':  'camera-security',
-  'jenerator':         'generator',
-  'dogalgaz':          'generator',
-  'kombili':           'generator',
-  'merkezi-isitma':    'generator',
-  'interkom':          'camera-security',
-  'yangin-merdiveni':  'building',
-  'teras':             'building',
-  'bahce':             'map-pin',
-  'deprem-yalitim':    'building',
-  'isi-yalitim':       'building',
-  'ses-yalitim':       'building',
-}
-
-const FEATURE_LABELS: Record<string, string> = {
-  'kapali-otopark':    'Kapalı Otopark',
-  'acik-otopark':      'Açık Otopark',
-  'asansor':           'Asansör',
-  'guvenlik-kamerasi': 'Güvenlik Kamerası',
-  'gorevli-guvenlik':  'Görevli Güvenlik',
-  'jenerator':         'Jeneratör',
-  'dogalgaz':          'Doğalgaz',
-  'kombili':           'Kombi',
-  'merkezi-isitma':    'Merkezi Isıtma',
-  'interkom':          'İnterkom',
-  'yangin-merdiveni':  'Yangın Merdiveni',
-  'teras':             'Teras',
-  'bahce':             'Bahçe',
-  'deprem-yalitim':    'Deprem Yalıtımı',
-  'isi-yalitim':       'Isı Yalıtımı',
-  'ses-yalitim':       'Ses Yalıtımı',
+// Bina özelliği → emoji + etiket (admin paneldekiyle birebir)
+const FEATURE_OPTIONS: Record<string, { emoji: string; label: string }> = {
+  'kapali-otopark':    { emoji: '🏎️',  label: 'Kapalı Otopark'      },
+  'acik-otopark':      { emoji: '🅿️',  label: 'Açık Otopark'        },
+  'asansor':           { emoji: '🛗',  label: 'Asansör'              },
+  'guvenlik-kamerasi': { emoji: '📷',  label: 'Güvenlik Kamerası'    },
+  'gorevli-guvenlik':  { emoji: '💂',  label: 'Görevli Güvenlik'     },
+  'jenerator':         { emoji: '⚡',  label: 'Jeneratör'            },
+  'dogalgaz':          { emoji: '🔥',  label: 'Doğalgaz'             },
+  'kombili':           { emoji: '🌡️', label: 'Kombi (Her Daireye)'  },
+  'merkezi-isitma':    { emoji: '♨️',  label: 'Merkezi Isıtma'       },
+  'interkom':          { emoji: '🔔',  label: 'İnterkom / Diafon'    },
+  'yangin-merdiveni':  { emoji: '🚒',  label: 'Yangın Merdiveni'     },
+  'teras':             { emoji: '🏡',  label: 'Teras / Çatı Katı'    },
+  'bahce':             { emoji: '🌿',  label: 'Bahçe / Yeşil Alan'   },
+  'deprem-yalitim':    { emoji: '🏗️', label: 'Deprem Yalıtımı'      },
+  'isı-yalitim':       { emoji: '🧱',  label: 'Isı Yalıtımı'         },
+  'isi-yalitim':       { emoji: '🧱',  label: 'Isı Yalıtımı'         }, // eski kayıtlar için
+  'ses-yalitim':       { emoji: '🔇',  label: 'Ses Yalıtımı'         },
 }
 
 // Galeri resimleri — slug'a göre statik eşleme (public klasöründen)
@@ -197,8 +179,8 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
   // Bina özellikleri
   const rawFeatures: string[] = Array.isArray(proje.features) ? proje.features : []
   const ozellikler = rawFeatures.map(key => ({
-    icon:  FEATURE_ICONS[key]  ?? 'building',
-    label: FEATURE_LABELS[key] ?? key,
+    emoji: FEATURE_OPTIONS[key]?.emoji ?? '🏢',
+    label: FEATURE_OPTIONS[key]?.label ?? key,
   }))
 
   // Galeri
@@ -208,10 +190,12 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
   // Stats bar için ek bilgiler
   const stats = [
     { icon: 'map-pin',  label: 'Konum',        value: `${proje.district ?? ''}, ${proje.city ?? 'İstanbul'}` },
-    { icon: 'building', label: 'Kat / Daire',   value: proje.floors ? `${proje.floors} Kat / ${proje.units_count ?? '—'} Daire` : '—' },
-    { icon: 'check',    label: 'Durum',         value: statusLabel },
-    { icon: 'calendar', label: 'Teslim',        value: proje.delivery_year ?? '—' },
-  ].filter(s => s.value && s.value !== '—')
+    { icon: 'building', label: 'Kat Sayısı',   value: proje.floors ? `${proje.floors} Kat` : null },
+    { icon: 'building', label: 'Daire Sayısı', value: proje.units_count ? `${proje.units_count} Daire` : null },
+    { icon: 'check',    label: 'Alan',         value: proje.area ? `${proje.area} m²` : null },
+    { icon: 'calendar', label: 'Teslim Yılı',  value: proje.delivery_year ?? null },
+    { icon: 'check',    label: 'Durum',        value: statusLabel },
+  ].filter(s => s.value)
 
   return (
     <ProjeDetayClient

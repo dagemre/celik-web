@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-type OzellikItem = { icon: string; label: string }
+type OzellikItem = { emoji: string; label: string }
 type StatItem    = { icon: string; label: string; value: string }
 
 type ProjeProps = {
@@ -197,13 +197,13 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
             <div className="bg-white rounded-2xl border border-gray-100 p-8">
               <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Bina Özellikleri</h3>
               {proje.ozellikler.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   {proje.ozellikler.map((o, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2 text-center">
-                      <div className="w-12 h-12 bg-[#0A1F44]/6 rounded-xl flex items-center justify-center">
-                        <Icon name={o.icon} size={22} />
+                    <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-100">
+                        <span className="text-xl leading-none">{o.emoji}</span>
                       </div>
-                      <p className="text-gray-500 text-xs leading-tight">{o.label}</p>
+                      <p className="text-gray-700 text-xs font-medium leading-tight">{o.label}</p>
                     </div>
                   ))}
                 </div>
