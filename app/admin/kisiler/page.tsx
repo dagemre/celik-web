@@ -576,101 +576,144 @@ export default function AdminKisilerPage() {
             )}
           </div>
 
-          {/* Tablo */}
+          {/* Liste */}
           {filtered.length === 0 ? (
             <EmptyState onAdd={openAdd} />
           ) : (
-            <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
-              {/* Tablo başlıkları */}
-              <div className="grid grid-cols-[1fr_140px_140px_180px_100px_80px] gap-4 px-5 py-3 border-b border-neutral-100 bg-neutral-50">
-                {['Malik', 'Daire', 'Telefon', 'Ödenen / Toplam', 'Ödeme Oranı', 'İşlemler'].map((h) => (
-                  <p key={h} className="text-xs font-semibold text-neutral-400">{h}</p>
-                ))}
-              </div>
+            <>
+              {/* ── Mobil kart görünümü (md altı) ── */}
+              <div className="md:hidden space-y-3">
+                {filtered.map((owner) => {
+                  const pct         = owner.totalPay > 0 ? Math.round((owner.paid / owner.totalPay) * 100) : 0
+                  const remaining   = Math.max(owner.totalPay - owner.paid, 0)
+                  const avatarColor = getAvatarColor(owner.name)
+                  const initials    = getInitials(owner.name)
+                  const rateColor   = pct >= 100 ? 'text-success-700 bg-success-50' : pct > 0 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'
 
-              {/* Satırlar */}
-              {filtered.map((owner, idx) => {
-                const pct       = owner.totalPay > 0 ? Math.round((owner.paid / owner.totalPay) * 100) : 0
-                const remaining = Math.max(owner.totalPay - owner.paid, 0)
-                const avatarColor = getAvatarColor(owner.name)
-                const initials    = getInitials(owner.name)
-                const rateColor   = pct >= 100 ? 'text-success-700 bg-success-50' : pct >= 50 ? 'text-warning-700 bg-warning-50' : pct > 0 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'
-
-                return (
-                  <div
-                    key={owner.id}
-                    className={`grid grid-cols-[1fr_140px_140px_180px_100px_80px] gap-4 px-5 py-4 items-center ${idx < filtered.length - 1 ? 'border-b border-neutral-100' : ''} hover:bg-neutral-50 transition-colors`}
-                  >
-                    {/* Malik */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
-                        style={{ backgroundColor: avatarColor }}
-                      >
-                        {initials}
+                  return (
+                    <div key={owner.id} className="bg-white rounded-2xl border border-neutral-100 p-4">
+                      {/* Üst satır: avatar + isim + düzenle */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
+                          style={{ backgroundColor: avatarColor }}
+                        >
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-primary-800">{owner.name}</p>
+                          <p className="text-xs text-neutral-400 mt-0.5">
+                            Daire {owner.unitNo} · {owner.unitType} · {owner.floor}. Kat
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => openEdit(owner)}
+                          className="w-8 h-8 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-primary-800 truncate">{owner.name}</p>
-                        <p className="text-xs text-neutral-400">Malik</p>
-                      </div>
-                    </div>
 
-                    {/* Daire */}
-                    <div>
-                      <p className="font-medium text-sm text-primary-800">Daire {owner.unitNo} · {owner.unitType}</p>
-                      <p className="text-xs text-neutral-400">{owner.floor}. Kat</p>
-                    </div>
+                      {/* Telefon */}
+                      <p className="text-xs text-neutral-500 mb-3">{owner.phone}</p>
 
-                    {/* Telefon */}
-                    <p className="text-sm text-neutral-600">{owner.phone}</p>
-
-                    {/* Ödenen / Toplam */}
-                    <div>
-                      <p className="text-sm text-neutral-700 mb-1">
-                        <span className="font-semibold text-success-700">{formatTL(owner.paid)}</span>
-                        <span className="text-neutral-400"> / {formatTL(owner.totalPay)}</span>
-                      </p>
+                      {/* Progress */}
                       <ProgressBar pct={pct} />
-                    </div>
 
-                    {/* Ödeme Oranı */}
-                    <div>
-                      <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${rateColor}`}>
-                        %{pct}
-                      </span>
+                      {/* Tutarlar + oran */}
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex gap-3">
+                          <div>
+                            <p className="text-[10px] text-neutral-400">Ödenen</p>
+                            <p className="font-bold text-xs text-success-700">{formatTL(owner.paid)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-neutral-400">Kalan</p>
+                            <p className="font-bold text-xs text-danger-600">{formatTL(remaining)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-neutral-400">Toplam</p>
+                            <p className="font-bold text-xs text-primary-800">{formatTL(owner.totalPay)}</p>
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${rateColor}`}>%{pct}</span>
+                      </div>
                     </div>
-
-                    {/* İşlemler */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => openEdit(owner)}
-                        className="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center hover:bg-neutral-200 transition-colors"
-                        title="Düzenle"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(owner.id)}
-                        className="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center hover:bg-danger-50 hover:text-danger-600 transition-colors"
-                        title="Sil"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {/* Alt bar */}
-              <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50 flex items-center justify-between">
-                <p className="text-xs text-neutral-400">Toplam {filtered.length} kayıt</p>
+                  )
+                })}
+                <p className="text-xs text-neutral-400 text-center py-2">Toplam {filtered.length} kayıt</p>
               </div>
-            </div>
+
+              {/* ── Masaüstü tablo görünümü (md ve üstü) ── */}
+              <div className="hidden md:block bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+                {/* Başlıklar */}
+                <div className="grid grid-cols-[1fr_140px_140px_180px_100px_80px] gap-4 px-5 py-3 border-b border-neutral-100 bg-neutral-50">
+                  {['Malik', 'Daire', 'Telefon', 'Ödenen / Toplam', 'Ödeme Oranı', 'İşlemler'].map((h) => (
+                    <p key={h} className="text-xs font-semibold text-neutral-400">{h}</p>
+                  ))}
+                </div>
+
+                {/* Satırlar */}
+                {filtered.map((owner, idx) => {
+                  const pct         = owner.totalPay > 0 ? Math.round((owner.paid / owner.totalPay) * 100) : 0
+                  const avatarColor = getAvatarColor(owner.name)
+                  const initials    = getInitials(owner.name)
+                  const rateColor   = pct >= 100 ? 'text-success-700 bg-success-50' : pct > 0 ? 'text-warning-700 bg-warning-50' : 'text-neutral-400 bg-neutral-100'
+
+                  return (
+                    <div
+                      key={owner.id}
+                      className={`grid grid-cols-[1fr_140px_140px_180px_100px_80px] gap-4 px-5 py-4 items-center ${idx < filtered.length - 1 ? 'border-b border-neutral-100' : ''} hover:bg-neutral-50 transition-colors`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-xs" style={{ backgroundColor: avatarColor }}>
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-primary-800 truncate">{owner.name}</p>
+                          <p className="text-xs text-neutral-400">Malik</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-primary-800">Daire {owner.unitNo} · {owner.unitType}</p>
+                        <p className="text-xs text-neutral-400">{owner.floor}. Kat</p>
+                      </div>
+                      <p className="text-sm text-neutral-600">{owner.phone}</p>
+                      <div>
+                        <p className="text-sm text-neutral-700 mb-1">
+                          <span className="font-semibold text-success-700">{formatTL(owner.paid)}</span>
+                          <span className="text-neutral-400"> / {formatTL(owner.totalPay)}</span>
+                        </p>
+                        <ProgressBar pct={pct} />
+                      </div>
+                      <div>
+                        <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${rateColor}`}>%{pct}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(owner)} className="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center hover:bg-neutral-200 transition-colors" title="Düzenle">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                        <button onClick={() => handleDelete(owner.id)} className="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center hover:bg-danger-50 transition-colors" title="Sil">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50">
+                  <p className="text-xs text-neutral-400">Toplam {filtered.length} kayıt</p>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
