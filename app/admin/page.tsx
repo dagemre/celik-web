@@ -39,10 +39,10 @@ const DUE_OWNERS = [
 ]
 
 const QUICK_ACTIONS = [
-  { label: 'Tahsilat Ekle', bg: 'bg-success-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#0F6E56" strokeWidth="1.8"/><path d="M2 10h20M12 14v-2m0 0v-2m0 2h-2m2 0h2" stroke="#0F6E56" strokeWidth="1.8" strokeLinecap="round"/></svg> },
-  { label: 'Proje Ekle',    bg: 'bg-info-50',    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/></svg> },
-  { label: 'Malik Ekle',   bg: 'bg-purple-50',  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#7C3AED" strokeWidth="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"/></svg> },
-  { label: 'Evrak Yükle',  bg: 'bg-warning-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#BA7517" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 2v6h6M12 12v6M9 15l3-3 3 3" stroke="#BA7517" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+  { label: 'Tahsilat Ekle', href: '/admin/odemeler/yeni',  bg: 'bg-success-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#0F6E56" strokeWidth="1.8"/><path d="M2 10h20M12 14v-2m0 0v-2m0 2h-2m2 0h2" stroke="#0F6E56" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+  { label: 'Proje Ekle',    href: '/admin/projeler/yeni',  bg: 'bg-info-50',    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="#185FA5" strokeWidth="1.8"/></svg> },
+  { label: 'Malik Ekle',    href: '/admin/kisiler/yeni',   bg: 'bg-purple-50',  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#7C3AED" strokeWidth="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+  { label: 'Evrak Yükle',   href: '/admin/evraklar/yeni',  bg: 'bg-warning-50', icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#BA7517" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 2v6h6M12 12v6M9 15l3-3 3 3" stroke="#BA7517" strokeWidth="1.8" strokeLinecap="round"/></svg> },
 ]
 
 // ── Status badge styles ───────────────────────────────
@@ -250,15 +250,16 @@ export default function AdminDashboard() {
             <h2 className="font-bold text-base text-primary-800 mb-4">Hızlı İşlemler</h2>
             <div className="grid grid-cols-4 gap-3">
               {QUICK_ACTIONS.map((action) => (
-                <button
+                <Link
                   key={action.label}
+                  href={action.href}
                   className="flex flex-col items-center gap-2 bg-neutral-50 hover:bg-neutral-100 rounded-2xl p-4 transition-colors"
                 >
                   <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center`}>
                     {action.icon}
                   </div>
                   <span className="text-xs font-medium text-primary-800 text-center leading-tight">{action.label}</span>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
