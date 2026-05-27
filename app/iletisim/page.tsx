@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useFirmaConfig } from '@/components/FirmaIletisimBilgi'
 
 function Icon({ name, size = 24, style }: { name: string; size?: number; style?: React.CSSProperties }) {
   return <img src={`/icons/${name}.svg`} alt={name} width={size} height={size} style={style} />
@@ -10,17 +11,18 @@ const BLUE_FILTER  = 'brightness(0) saturate(100%) invert(22%) sepia(90%) satura
 const WHITE_FILTER = 'brightness(0) invert(1)'
 const NAVY_FILTER  = 'brightness(0) saturate(100%) invert(10%) sepia(30%) saturate(800%) hue-rotate(190deg)'
 
-const INFO = [
-  { icon: 'map-pin',       label: 'Adres',            lines: ['Ambarlı Petrol Ofisi Cad. No:4', 'Güzelce Plaza B Blok Kat:7 Avcılar / İstanbul'] },
-  { icon: 'phone',         label: 'Telefon',           lines: ['+90 212 421 02 88', '+90 532 272 30 33'] },
-  { icon: 'Envelope-open', label: 'E-posta',           lines: ['snrclk@hotmail.com.tr'] },
-  { icon: 'calendar',      label: 'Çalışma Saatleri',  lines: ['Pazartesi - Cuma: 09:00 - 18:00', 'Cumartesi: 10:00 - 15:00'] },
-]
-
 const KONULAR = ['Genel Bilgi', 'Proje Talebi', 'Teklif Al', 'İş Ortaklığı', 'Diğer']
 
 export default function IletisimPage() {
+  const firma = useFirmaConfig()
   const [form, setForm] = useState({ ad: '', eposta: '', telefon: '', konu: '', mesaj: '', kvkk: false })
+
+  const INFO = [
+    { icon: 'map-pin',       label: 'Adres',            lines: firma.adres.split(',').map(s => s.trim()) },
+    { icon: 'phone',         label: 'Telefon',           lines: [firma.telefon, firma.cepTelefonu].filter(Boolean) },
+    { icon: 'Envelope-open', label: 'E-posta',           lines: [firma.eposta] },
+    { icon: 'calendar',      label: 'Çalışma Saatleri',  lines: ['Pazartesi - Cuma: 09:00 - 18:00', 'Cumartesi: 10:00 - 15:00'] },
+  ]
   const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
 
   return (
