@@ -157,7 +157,10 @@ const Card = ({ title, onEdit, children, className = '' }: {
 )
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
-const Modal = ({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) => (
+const Modal = ({ title, onClose, onSave, saveLabel = 'Kaydet', saving = false, children }: {
+  title: string; onClose: () => void; onSave?: () => void
+  saveLabel?: string; saving?: boolean; children: React.ReactNode
+}) => (
   <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
     <div className="absolute inset-0 bg-black/40" />
     <div className="relative z-10 w-full md:max-w-lg bg-white rounded-t-3xl md:rounded-2xl px-5 pt-4 pb-10 md:pb-6 max-h-[85vh] overflow-y-auto"
@@ -172,9 +175,13 @@ const Modal = ({ title, onClose, children }: { title: string; onClose: () => voi
         </button>
       </div>
       {children}
-      <button className="mt-5 w-full bg-primary-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors">
-        Kaydet
-      </button>
+      {onSave && (
+        <button onClick={onSave} disabled={saving}
+          className="mt-5 w-full bg-primary-800 text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+          {saving && <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>}
+          {saveLabel}
+        </button>
+      )}
     </div>
   </div>
 )
@@ -366,11 +373,22 @@ const ProjeIlerlemesiKart = ({ progress, phases, onEdit }: { progress: number; p
   </Card>
 )
 
-const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, onClose }: {
+const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projectId, onClose }: {
   progress: number; setProgress: (n: number) => void
-  phases: PhaseList; setPhases: (p: PhaseList) => void; onClose: () => void
-}) => (
-  <Modal title="İlerlemeyi Düzenle" onClose={onClose}>
+  phases: PhaseList; setPhases: (p: PhaseList) => void
+  projectId: string; onClose: () => void
+}) => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await supabase.from('projects').update({ progress }).eq('id', projectId)
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+  <Modal title="İlerlemeyi Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
     <div className="mb-6">
       <div className="flex justify-between mb-2">
         <label className="text-xs font-medium text-neutral-500">Genel İlerleme</label>
@@ -393,7 +411,8 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, onClos
       ))}
     </div>
   </Modal>
-)
+  )
+}
 
 // ── Görseller ──────────────────────────────────────────────────────────────────
 const GorsellerKart = ({ project }: { project: Project }) => {
@@ -1966,7 +1985,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       {/* ── Modaller ────────────────────────────────────────────────────── */}
       {editModal === 'bilgiler'   && <GenelBilgilerModal   project={project}         onClose={() => setEditModal(null)} />}
       {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} onClose={() => setEditModal(null)} />}
-      {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} onClose={() => setEditModal(null)} />}
+      {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} projectId={project.id} onClose={() => setEditModal(null)} />}
     </div>
   )
 }
