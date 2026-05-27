@@ -166,10 +166,7 @@ export default function FooterPolicyBar() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Üst gradient bant */}
-            <div className="h-20 bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative px-6">
-              <div className="absolute -bottom-7 left-6 w-14 h-14 rounded-2xl bg-white shadow-lg flex items-center justify-center border-2 border-white">
-                <span className="text-lg font-bold text-[#0A1F44]">ED</span>
-              </div>
+            <div className="bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative px-6 pt-8 pb-6 flex flex-col items-center text-center">
               <button
                 onClick={closeMre}
                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
@@ -178,12 +175,15 @@ export default function FooterPolicyBar() {
                   <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
                 </svg>
               </button>
+              <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4">
+                <span className="text-xl font-bold text-[#0A1F44]">MC</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-1">{MRE.brand}</h3>
+              <p className="text-sm text-white/70 mb-2">Markanız İçin Kreatif Çözümler ve Estetik Dokunuşlar.</p>
+              <p className="text-xs font-semibold text-white/90 tracking-wide">Hemen İletişime Geçin.</p>
             </div>
 
-            <div className="px-6 pt-10 pb-6">
-              <p className="text-xs font-semibold text-[#1E54C8] tracking-widest uppercase mb-0.5">{MRE.brand}</p>
-              <h3 className="text-lg font-bold text-[#0A1F44] mb-0.5">{MRE.name}</h3>
-              <p className="text-xs text-neutral-400 mb-5">{MRE.title}</p>
+            <div className="px-6 pt-5 pb-6">
 
               {sent ? (
                 <div className="text-center py-6">
