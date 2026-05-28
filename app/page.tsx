@@ -2,6 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+
+type ProjeKart = {
+  slug: string; name: string; location: string
+  status: string; statusCls: string
+  floors: number | null; units: number | null; year: string | null
+  img: string
+}
+
+function statusBilgi(s: string) {
+  if (s === 'devam')      return { label: 'Devam Ediyor', cls: 'bg-[#0A1F44] text-white' }
+  if (s === 'tamamlandi') return { label: 'Tamamlandı',   cls: 'bg-emerald-600 text-white' }
+  return                         { label: 'Planlama',     cls: 'bg-amber-500 text-white' }
+}
 
 // ─── Video Modal ───────────────────────────────────────────────────────────────
 function VideoModal({ onClose }: { onClose: () => void }) {
@@ -102,25 +116,40 @@ function Hero() {
 }
 
 // ─── Projeler ─────────────────────────────────────────────────────────────────
-const PROJECTS = [
-  { slug: 'degirmen-sokak',   name: 'Değirmen Sokak',   location: 'İstanbul / Avcılar', status: 'Devam Ediyor', statusCls: 'bg-[#0A1F44] text-white',   floors: 7,  units: 14, year: '2025', img: '/projeler/degirmen-sokak/DJI_20240922001110_0317_D.JPG' },
-  { slug: 'papatya-sokak',    name: 'Papatya Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2022', img: '/projeler/papatya-sokak/DJI_20240920224940_0193_D.JPG' },
-  { slug: 'mahmutoglu-sokak', name: 'Mahmutoğlu Sokak', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2023', img: '/projeler/mahmutoglu-sokak/DJI_20240921210940_0209_D.JPG' },
-  { slug: 'oya-sokak',        name: 'Oya Sokak',        location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2022', img: '/projeler/oya-sokak/DJI_20240920222607_0175_D.JPG' },
-  { slug: 'sukrubey-caddesi', name: 'Şükrübey Caddesi', location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 4,  units: 6,  year: '2023', img: '/projeler/sukrubey-caddesi/DJI_20240921231700_0289_D.JPG' },
-  { slug: 'menekse-sokak',    name: 'Menekşe Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 5,  units: 10, year: '2023', img: '/projeler/menekse-sokak/DJI_20240921212429_0222_D.JPG' },
-  { slug: 'koroglu-sokak',    name: 'Köroğlu Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2023', img: '/projeler/koroglu-sokak/DJI_20240921223036_0261_D.JPG' },
-  { slug: 'ds-ahmet-caddesi', name: 'D.S. Ahmet Cad.',  location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 4,  units: 8,  year: '2022', img: '/projeler/ds-ahmet-caddesi/DJI_20240920213730_0137_D.JPG' },
-  { slug: 'afacan-sokak',     name: 'Afacan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 5,  units: 10, year: '2023', img: '/projeler/afacan-sokak/DJI_20240921214713_0237_D.JPG' },
-  { slug: 'hacibey-sokak',    name: 'Hacıbey Sokak',    location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2023', img: '/projeler/hacibey-sokak/DJI_20240921234703_0299_D.JPG' },
-  { slug: 'turna-sokak',      name: 'Turna Sokak',      location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2022', img: '/projeler/turna-sokak/DJI_20240920212530_0131_D.JPG' },
-  { slug: 'yazgan-sokak',     name: 'Yazgan Sokak',     location: 'İstanbul / Avcılar', status: 'Tamamlandı',   statusCls: 'bg-emerald-600 text-white', floors: 6,  units: 12, year: '2022', img: '/projeler/yazgan-sokak/DJI_20240920204659_0103_D.JPG' },
-]
-
 function Projeler() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [scrollPct, setScrollPct] = useState(0)
+  const [projects, setProjects] = useState<ProjeKart[]>([])
   const CARD_W = 272 // w-64 (256) + gap-4 (16)
+
+  useEffect(() => {
+    supabase
+      .from('projects')
+      .select('slug, name, district, city, status, floors, units_count, delivery_year, image_url')
+      .order('status', { ascending: true }) // devam önce gelsin
+      .then(({ data }) => {
+        if (!data) return
+        const sorted = [
+          ...data.filter(p => p.status === 'devam'),
+          ...data.filter(p => p.status !== 'devam'),
+        ]
+        setProjects(sorted.map(p => {
+          const s = statusBilgi(p.status)
+          return {
+            slug:      p.slug,
+            name:      p.name,
+            location:  p.district ? `${p.district}, ${p.city ?? 'İstanbul'}` : (p.city ?? 'İstanbul'),
+            status:    s.label,
+            statusCls: s.cls,
+            floors:    p.floors,
+            units:     p.units_count,
+            year:      p.delivery_year,
+            img:       p.image_url ?? '',
+          }
+        }))
+      })
+  }, [])
+
 
   const onScroll = () => {
     const el = scrollRef.current
@@ -172,7 +201,14 @@ function Projeler() {
         onScroll={onScroll}
         className="flex gap-4 overflow-x-auto pb-4 px-6 max-w-7xl mx-auto scrollbar-hide snap-x snap-mandatory"
       >
-        {PROJECTS.map((p) => (
+        {projects.length === 0 && (
+          <div className="flex gap-4 px-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-64 h-72 bg-gray-100 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        )}
+        {projects.map((p) => (
           <Link
             key={p.slug}
             href={`/projeler/${p.slug}`}

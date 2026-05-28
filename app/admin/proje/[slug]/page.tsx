@@ -12,6 +12,7 @@ type Project = {
   units_count: number; area: string
   delivery_date: string | null; delivery_year: string | null
   progress: number; image_url: string; description: string
+  features: string[] | null
 }
 type Tab = 'genel' | 'finansal' | 'daireler' | 'evraklar' | 'malikler' | 'notlar' | 'ayarlar'
 type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | null
@@ -79,35 +80,25 @@ const INITIAL_DAIRELER: DaireItem[] = [
   { id:24, katNo:6, no:24, tip:'3+1',    brut:120, durum:'rezerve'                         },
 ]
 
+// Anahtarlar yeni/page.tsx ile aynı (kebab-case) — Supabase features sütunuyla eşleşmeli
 const FEATURES = [
-  { key: 'kapali_otopark',  label: 'Kapalı Otopark',    icon: '/icons/bina-otopark.svg'    },
-  { key: 'acik_otopark',    label: 'Açık Otopark',       icon: '/icons/car.svg'             },
-  { key: 'guvenlik_724',    label: '7/24 Güvenlik',      icon: '/icons/security.svg'        },
-  { key: 'asansor',         label: 'Asansör',            icon: '/icons/elevator.svg'        },
-  { key: 'yesil_alan',      label: 'Yeşil Alan',         icon: '/icons/tree.svg'            },
-  { key: 'oyun_alani',      label: 'Çocuk Oyun Alanı',   icon: '/icons/playground.svg'     },
-  { key: 'spor_salonu',     label: 'Spor Salonu',        icon: '/icons/dumbbell.svg'        },
-  { key: 'jenerator',       label: 'Jeneratör',          icon: '/icons/generator.svg'       },
-  { key: 'guv_kamera',      label: 'Güvenlik Kamerası',  icon: '/icons/camera-security.svg' },
-  { key: 'yangin_alarmi',   label: 'Yangın Alarmı',      icon: '/icons/bell.svg'            },
-  { key: 'su_deposu',       label: 'Su Deposu',          icon: '/icons/bina-depo.svg'       },
-  { key: 'hidrofor',        label: 'Hidrofor Sistemi',   icon: '/icons/package.svg'         },
-  { key: 'merkezi_isitma',  label: 'Merkezi Isıtma',     icon: '/icons/home-roof.svg'       },
-  { key: 'yerden_isitma',   label: 'Yerden Isıtma',      icon: '/icons/bina-yerden.svg'     },
-  { key: 'dogalgaz',        label: 'Doğalgaz',           icon: '/icons/bina-klima.svg'      },
-  { key: 'fiber_internet',  label: 'Fiber İnternet',     icon: '/icons/phone.svg'           },
-  { key: 'akilli_ev',       label: 'Akıllı Ev Sistemi',  icon: '/icons/home-filled2.svg'    },
-  { key: 'ses_yalitim',     label: 'Ses Yalıtımı',       icon: '/icons/bina-banyo.svg'      },
-  { key: 'isi_yalitim',     label: 'Isı Yalıtımı',       icon: '/icons/home-outline.svg'    },
-  { key: 'engelli_erisim',  label: 'Engelli Erişimi',    icon: '/icons/bina-yon.svg'        },
+  { key: 'kapali-otopark',    label: 'Kapalı Otopark',       icon: '/icons/bina-otopark.svg'    },
+  { key: 'acik-otopark',      label: 'Açık Otopark',          icon: '/icons/car.svg'             },
+  { key: 'asansor',           label: 'Asansör',               icon: '/icons/elevator.svg'        },
+  { key: 'guvenlik-kamerasi', label: 'Güvenlik Kamerası',     icon: '/icons/camera-security.svg' },
+  { key: 'gorevli-guvenlik',  label: 'Görevli Güvenlik',      icon: '/icons/security.svg'        },
+  { key: 'jenerator',         label: 'Jeneratör',             icon: '/icons/generator.svg'       },
+  { key: 'dogalgaz',          label: 'Doğalgaz',              icon: '/icons/bina-klima.svg'      },
+  { key: 'kombili',           label: 'Kombi (Her Daireye)',   icon: '/icons/home-roof.svg'       },
+  { key: 'merkezi-isitma',    label: 'Merkezi Isıtma',        icon: '/icons/home-roof.svg'       },
+  { key: 'interkom',          label: 'İnterkom / Diafon',     icon: '/icons/bell.svg'            },
+  { key: 'yangin-merdiveni',  label: 'Yangın Merdiveni',      icon: '/icons/building.svg'        },
+  { key: 'teras',             label: 'Teras / Çatı Katı',     icon: '/icons/bina-balkon.svg'     },
+  { key: 'bahce',             label: 'Bahçe / Yeşil Alan',    icon: '/icons/tree.svg'            },
+  { key: 'deprem-yalitim',    label: 'Deprem Yalıtımı',       icon: '/icons/building.svg'        },
+  { key: 'isı-yalitim',       label: 'Isı Yalıtımı',          icon: '/icons/bina-yerden.svg'     },
+  { key: 'ses-yalitim',       label: 'Ses Yalıtımı',          icon: '/icons/bina-depo.svg'       },
 ]
-
-const ACTIVE_MOCK = new Set([
-  'kapali_otopark','acik_otopark','guvenlik_724','asansor',
-  'yesil_alan','oyun_alani','spor_salonu','jenerator',
-  'guv_kamera','yangin_alarmi','su_deposu','hidrofor',
-  'yerden_isitma','dogalgaz','fiber_internet','isi_yalitim','engelli_erisim',
-])
 
 const PHASES = [
   { label: 'Temel Kazı',        done: true  },
@@ -248,28 +239,50 @@ const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () =
   )
 }
 
-const GenelBilgilerModal = ({ project, onClose }: { project: Project; onClose: () => void }) => {
-  const loc = [project.district, project.city].filter(Boolean).join(' / ') || project.location
+const GenelBilgilerModal = ({ project, onClose, onSaved }: {
+  project: Project; onClose: () => void; onSaved: (updates: Partial<Project>) => void
+}) => {
+  const [name,     setName]     = useState(project.name)
+  const [district, setDistrict] = useState(project.district || '')
+  const [city,     setCity]     = useState(project.city || '')
+  const [area,     setArea]     = useState(project.area || '')
+  const [units,    setUnits]    = useState(String(project.units_count || ''))
+  const [delivery, setDelivery] = useState(project.delivery_year || project.delivery_date || '')
+  const [tip,      setTip]      = useState(project.tip || 'Konut')
+  const [saving,   setSaving]   = useState(false)
+
+  const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors"
+  const lbl      = (t: string) => <label className="block text-xs text-neutral-500 mb-1.5 font-medium">{t}</label>
+
+  const handleSave = async () => {
+    if (!name.trim()) return
+    setSaving(true)
+    const updates: Partial<Project> = {
+      name:          name.trim(),
+      district:      district.trim(),
+      city:          city.trim(),
+      area:          area.trim(),
+      units_count:   parseInt(units) || project.units_count,
+      delivery_year: delivery.trim() || null,
+      tip,
+    }
+    await supabase.from('projects').update(updates).eq('id', project.id)
+    onSaved(updates)
+    setSaving(false)
+    onClose()
+  }
+
   return (
-    <Modal title="Genel Bilgileri Düzenle" onClose={onClose}>
-      {[
-        { label: 'Proje Adı',         value: project.name,   placeholder: 'Proje adı'  },
-        { label: 'Lokasyon',          value: loc,            placeholder: 'İlçe / Şehir' },
-        { label: 'Arsa Alanı (m²)',   value: '1250',         placeholder: 'm²'          },
-        { label: 'İnşaat Alanı (m²)', value: project.area || '', placeholder: 'm²'     },
-        { label: 'Daire Sayısı',      value: String(project.units_count), placeholder: 'Adet' },
-        { label: 'Teslim Tarihi',     value: fmtDate(project.delivery_date || project.delivery_year), placeholder: 'GG.AA.YYYY' },
-      ].map(({ label, value, placeholder }) => (
-        <div key={label} className="mb-4">
-          <label className="block text-xs text-neutral-500 mb-1.5 font-medium">{label}</label>
-          <input defaultValue={value} placeholder={placeholder}
-            className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors" />
-        </div>
-      ))}
+    <Modal title="Genel Bilgileri Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
+      <div className="mb-4">{lbl('Proje Adı')}<input value={name} onChange={e => setName(e.target.value)} placeholder="Proje adı" className={inputCls} /></div>
+      <div className="mb-4">{lbl('İlçe')}<input value={district} onChange={e => setDistrict(e.target.value)} placeholder="Bağcılar" className={inputCls} /></div>
+      <div className="mb-4">{lbl('Şehir')}<input value={city} onChange={e => setCity(e.target.value)} placeholder="İstanbul" className={inputCls} /></div>
+      <div className="mb-4">{lbl('İnşaat Alanı (m²)')}<input value={area} onChange={e => setArea(e.target.value)} placeholder="850 m²" className={inputCls} /></div>
+      <div className="mb-4">{lbl('Daire Sayısı')}<input type="number" value={units} onChange={e => setUnits(e.target.value)} placeholder="24" className={inputCls} /></div>
+      <div className="mb-4">{lbl('Teslim Yılı')}<input value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="2026" className={inputCls} /></div>
       <div className="mb-4">
-        <label className="block text-xs text-neutral-500 mb-1.5 font-medium">Proje Tipi</label>
-        <select defaultValue={project.tip}
-          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none appearance-none">
+        {lbl('Proje Tipi')}
+        <select value={tip} onChange={e => setTip(e.target.value)} className={inputCls + ' appearance-none cursor-pointer'}>
           <option>Konut</option><option>Ticari</option>
         </select>
       </div>
@@ -311,14 +324,25 @@ const BinaOzellikleriKart = ({ activeFeatures, onEdit }: { activeFeatures: Set<s
   </Card>
 )
 
-const BinaOzellikleriModal = ({ activeFeatures, setActiveFeatures, onClose }: {
-  activeFeatures: Set<string>; setActiveFeatures: (s: Set<string>) => void; onClose: () => void
+const BinaOzellikleriModal = ({ activeFeatures, setActiveFeatures, projectId, onClose }: {
+  activeFeatures: Set<string>; setActiveFeatures: (s: Set<string>) => void
+  projectId: string; onClose: () => void
 }) => {
+  const [saving, setSaving] = useState(false)
+
   const toggle = (key: string) => {
     const n = new Set(activeFeatures); n.has(key) ? n.delete(key) : n.add(key); setActiveFeatures(n)
   }
+
+  const handleSave = async () => {
+    setSaving(true)
+    await supabase.from('projects').update({ features: Array.from(activeFeatures) }).eq('id', projectId)
+    setSaving(false)
+    onClose()
+  }
+
   return (
-    <Modal title="Bina Özelliklerini Düzenle" onClose={onClose}>
+    <Modal title="Bina Özelliklerini Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
       <div className="grid grid-cols-2 gap-2">
         {FEATURES.map(f => {
           const on = activeFeatures.has(f.key)
@@ -1793,12 +1817,16 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
   const [editModal, setEditModal]           = useState<EditKey>(null)
   const [progress, setProgress]             = useState(0)
   const [phases, setPhases]                 = useState(PHASES)
-  const [activeFeatures, setActiveFeatures] = useState(ACTIVE_MOCK)
+  const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     supabase.from('projects').select('*').eq('slug', params.slug).single()
       .then(({ data }) => {
-        if (data) { setProject(data); setProgress(data.progress ?? 0) }
+        if (data) {
+          setProject(data)
+          setProgress(data.progress ?? 0)
+          setActiveFeatures(new Set(Array.isArray(data.features) ? data.features : []))
+        }
         setLoading(false)
       })
   }, [params.slug])
@@ -1983,8 +2011,8 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       </div>
 
       {/* ── Modaller ────────────────────────────────────────────────────── */}
-      {editModal === 'bilgiler'   && <GenelBilgilerModal   project={project}         onClose={() => setEditModal(null)} />}
-      {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} onClose={() => setEditModal(null)} />}
+      {editModal === 'bilgiler'   && <GenelBilgilerModal   project={project} onClose={() => setEditModal(null)} onSaved={updates => setProject(prev => prev ? { ...prev, ...updates } : prev)} />}
+      {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} projectId={project.id} onClose={() => setEditModal(null)} />}
       {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} projectId={project.id} onClose={() => setEditModal(null)} />}
     </div>
   )
