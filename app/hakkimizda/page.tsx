@@ -175,7 +175,7 @@ export default function HakkimizdaPage() {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 ),
-                value: '500+',
+                value: '5000+',
                 label: 'Mutlu Müşteri',
               },
               {
