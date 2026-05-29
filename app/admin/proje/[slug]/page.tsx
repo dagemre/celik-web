@@ -37,20 +37,9 @@ const MALIYET_KALEMLERI = [
 
 const KALEM_RENKLER = ['#3B82F6','#22C55E','#F59E0B','#6B7280','#8B5CF6','#EF4444','#06B6D4','#F97316']
 
-const INIT_TAHSILATLAR: TahsilatItem[] = [
-  { id: 't1', ad: 'Emre Dağ',     tutar:   500_000, tarih: '15.01.2026' },
-  { id: 't2', ad: 'Ahmet Yılmaz', tutar: 1_200_000, tarih: '20.02.2026' },
-  { id: 't3', ad: 'Mehmet Kaya',  tutar:   300_000, tarih: '10.03.2026' },
-]
+const INIT_TAHSILATLAR: TahsilatItem[] = []
 
-const INIT_KALEMLER: KalemItem[] = [
-  { id: 'k1', label: 'İnşaat İşleri',       tutar: 8_950_000, tarih: '01.03.2026', color: '#3B82F6' },
-  { id: 'k2', label: 'Malzeme Giderleri',   tutar: 4_650_000, tarih: '15.03.2026', color: '#22C55E' },
-  { id: 'k3', label: 'İşçilik Giderleri',   tutar: 2_450_000, tarih: '20.03.2026', color: '#F59E0B' },
-  { id: 'k4', label: 'Elektrik - Mekanik',  tutar: 1_050_000, tarih: '25.03.2026', color: '#6B7280' },
-  { id: 'k5', label: 'Proje - Danışmanlık', tutar:   620_000, tarih: '28.03.2026', color: '#8B5CF6' },
-  { id: 'k6', label: 'Diğer Giderler',      tutar:   520_000, tarih: '30.03.2026', color: '#EF4444' },
-]
+const INIT_KALEMLER: KalemItem[] = []
 
 const MASRAFLAR = [
   { aciklama: 'Malzeme Giderleri - Çimento Alımı - 50 Ton',          tutar: 125_000, tarih: '24.05.2026', kategori: 'Malzeme', katBg: 'bg-warning-50',  katText: 'text-warning-700' },
@@ -695,10 +684,10 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
 
 // ── Finansal Tab ───────────────────────────────────────────────────────────────
 const FinansalTab = ({ slug }: { slug: string }) => {
-  const lsKey = `finansal_${slug}`
+  const lsKey = `finansal_v2_${slug}`
 
-  const [sozlesme, setSozlesme]           = useState(18_000_000)
-  const [sozlesmeInput, setSozlesmeInput] = useState('18000000')
+  const [sozlesme, setSozlesme]           = useState(0)
+  const [sozlesmeInput, setSozlesmeInput] = useState('0')
   const [tahsilatlar, setTahsilatlar]     = useState<TahsilatItem[]>(INIT_TAHSILATLAR)
   const [kalemler, setKalemler]           = useState<KalemItem[]>(INIT_KALEMLER)
   const [lsLoaded, setLsLoaded]           = useState(false)
