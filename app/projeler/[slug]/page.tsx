@@ -216,23 +216,29 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
       ? proje.phases
       : defaultPhases.map((ph, i) => ({ ...ph, done: (proje.progress ?? 0) >= (i + 1) * 12.5 }))
 
+  // Yakın yerler
+  const nearbyPlaces: { label: string; desc: string }[] =
+    Array.isArray(proje.nearby_places) ? proje.nearby_places : []
+
   return (
     <ProjeDetayClient
       proje={{
-        slug:        params.slug,
-        name:        proje.name,
-        location:    `${proje.district ?? ''}, ${proje.city ?? 'İstanbul'}`,
-        description: proje.description ?? 'Çelik İnşaat tarafından geliştirilen proje; modern cephe mimarisi ve yüksek kaliteli malzeme kullanımıyla inşa edilmiştir.',
+        slug:         params.slug,
+        name:         proje.name,
+        location:     `${proje.district ?? ''}, ${proje.city ?? 'İstanbul'}`,
+        description:  proje.description ?? 'Çelik İnşaat tarafından geliştirilen proje; modern cephe mimarisi ve yüksek kaliteli malzeme kullanımıyla inşa edilmiştir.',
         statusLabel,
         statusBg,
-        ilerleme:    proje.progress ?? 0,
+        ilerleme:     proje.progress ?? 0,
         ozellikler,
         phases,
         gallery,
         heroImage,
         stats,
-        floors:      proje.floors,
-        unitsCount:  proje.units_count,
+        mapEmbedUrl:  proje.map_embed_url ?? null,
+        nearbyPlaces,
+        floors:       proje.floors,
+        unitsCount:   proje.units_count,
         deliveryYear: proje.delivery_year,
       }}
     />

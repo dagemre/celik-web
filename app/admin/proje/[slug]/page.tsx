@@ -15,7 +15,8 @@ type Project = {
   features: string[] | null
 }
 type Tab = 'genel' | 'finansal' | 'daireler' | 'evraklar' | 'malikler' | 'notlar' | 'ayarlar'
-type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | null
+type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | 'konum' | null
+type NearbyPlace = { label: string; desc: string }
 type DaireDurum = 'satildi' | 'musait' | 'rezerve'
 type DaireItem = { id: number; katNo: number; no: number; tip: string; brut: number; durum: DaireDurum; malik?: string }
 type DaireForm  = { tip: string; brut: string; malik: string }
@@ -1385,6 +1386,120 @@ const EvrakEkleForm = ({ form, setForm, klasorler, onEkle, onClose }: {
   </div>
 )
 
+// ── Konum Kartı ────────────────────────────────────────────────────────────────
+const KonumKart = ({ mapEmbedUrl, nearbyPlaces, onEdit }: {
+  mapEmbedUrl: string; nearbyPlaces: NearbyPlace[]; onEdit: () => void
+}) => (
+  <Card title="Konum & Harita" onEdit={onEdit}>
+    {mapEmbedUrl ? (
+      <div className="rounded-xl overflow-hidden h-40 mb-3 bg-neutral-100">
+        <iframe src={mapEmbedUrl} className="w-full h-full" loading="lazy" />
+      </div>
+    ) : (
+      <div className="rounded-xl h-40 mb-3 bg-neutral-100 flex flex-col items-center justify-center gap-2">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#D3D1C7" strokeWidth="1.5"/><circle cx="12" cy="9" r="2.5" stroke="#D3D1C7" strokeWidth="1.5"/></svg>
+        <p className="text-xs text-neutral-400">Harita URL'si girilmemiş</p>
+      </div>
+    )}
+    {nearbyPlaces.length > 0 ? (
+      <div className="space-y-1.5">
+        {nearbyPlaces.map((p, i) => (
+          <div key={i} className="flex items-center gap-2.5 text-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary-400 flex-shrink-0" />
+            <span className="font-semibold text-primary-800">{p.label}</span>
+            <span className="text-neutral-400 text-xs truncate">{p.desc}</span>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-xs text-neutral-400">Yakın yerler girilmemiş</p>
+    )}
+  </Card>
+)
+
+// ── Konum Modal ─────────────────────────────────────────────────────────────────
+const KonumModal = ({ mapEmbedUrl, setMapEmbedUrl, nearbyPlaces, setNearbyPlaces, projectId, onClose }: {
+  mapEmbedUrl: string; setMapEmbedUrl: (v: string) => void
+  nearbyPlaces: NearbyPlace[]; setNearbyPlaces: (v: NearbyPlace[]) => void
+  projectId: string; onClose: () => void
+}) => {
+  const [saving, setSaving] = useState(false)
+  const [localUrl, setLocalUrl]       = useState(mapEmbedUrl)
+  const [localPlaces, setLocalPlaces] = useState<NearbyPlace[]>(
+    nearbyPlaces.length > 0 ? nearbyPlaces : [{ label: '', desc: '' }]
+  )
+
+  const handleSave = async () => {
+    setSaving(true)
+    const places = localPlaces.filter(p => p.label.trim())
+    await supabase.from('projects').update({
+      map_embed_url:  localUrl.trim() || null,
+      nearby_places:  places.length > 0 ? places : null,
+    }).eq('id', projectId)
+    setMapEmbedUrl(localUrl.trim())
+    setNearbyPlaces(places)
+    setSaving(false)
+    onClose()
+  }
+
+  const updatePlace = (i: number, field: 'label' | 'desc', val: string) => {
+    const n = [...localPlaces]; n[i] = { ...n[i], [field]: val }; setLocalPlaces(n)
+  }
+  const addPlace    = () => setLocalPlaces([...localPlaces, { label: '', desc: '' }])
+  const deletePlace = (i: number) => setLocalPlaces(localPlaces.filter((_, idx) => idx !== i))
+
+  return (
+    <Modal title="Konum Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
+
+      {/* Harita Embed URL */}
+      <div className="mb-5">
+        <label className="block text-xs font-semibold text-neutral-500 mb-1.5">Google Maps Embed URL</label>
+        <textarea
+          value={localUrl}
+          onChange={e => setLocalUrl(e.target.value)}
+          rows={3}
+          placeholder='Google Maps → Paylaş → Haritayı Yerleştir → src="..." kısmını buraya yapıştır'
+          className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2.5 text-xs text-primary-800 outline-none focus:border-primary-300 resize-none font-mono placeholder:font-sans placeholder:text-neutral-400"
+        />
+        <p className="text-[10px] text-neutral-400 mt-1">
+          Google Maps → Paylaş → Haritayı Yerleştir → iframe src URL'sini kopyala
+        </p>
+      </div>
+
+      {/* Yakın Yerler */}
+      <div>
+        <label className="block text-xs font-semibold text-neutral-500 mb-2">Yakın Yerler</label>
+        <div className="space-y-2 mb-2">
+          {localPlaces.map((p, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={p.label}
+                onChange={e => updatePlace(i, 'label', e.target.value)}
+                placeholder="Metrobüse 5 dk"
+                className="w-2/5 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300"
+              />
+              <input
+                value={p.desc}
+                onChange={e => updatePlace(i, 'desc', e.target.value)}
+                placeholder="Yürüme mesafesinde"
+                className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300"
+              />
+              <button onClick={() => deletePlace(i)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-danger-50 transition-colors flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={addPlace}
+          className="w-full flex items-center justify-center gap-1.5 border border-dashed border-neutral-300 rounded-xl py-2 text-xs text-neutral-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          Yer Ekle
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
 // ── Evraklar Tab ───────────────────────────────────────────────────────────────
 const EvraklarTab = () => {
   const [evraklar, setEvraklar]         = useState<EvrakItem[]>(EVRAKLAR_MOCK)
@@ -1949,6 +2064,8 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
   const [progress, setProgress]             = useState(0)
   const [phases, setPhases]                 = useState(PHASES)
   const [activeFeatures, setActiveFeatures] = useState<Set<string>>(new Set())
+  const [mapEmbedUrl,   setMapEmbedUrl]     = useState('')
+  const [nearbyPlaces,  setNearbyPlaces]    = useState<NearbyPlace[]>([])
 
   useEffect(() => {
     supabase.from('projects').select('*').eq('slug', params.slug).single()
@@ -1957,9 +2074,9 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
           setProject(data)
           setProgress(data.progress ?? 0)
           setActiveFeatures(new Set(Array.isArray(data.features) ? data.features : []))
-          if (Array.isArray(data.phases) && data.phases.length > 0) {
-            setPhases(data.phases)
-          }
+          if (Array.isArray(data.phases) && data.phases.length > 0) setPhases(data.phases)
+          if (data.map_embed_url) setMapEmbedUrl(data.map_embed_url)
+          if (Array.isArray(data.nearby_places)) setNearbyPlaces(data.nearby_places)
         }
         setLoading(false)
       })
@@ -2121,9 +2238,11 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
             <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
               <FinansalKartlar />
               <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+              <KonumKart mapEmbedUrl={mapEmbedUrl} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
             </div>
-            <div className="md:hidden mt-4">
+            <div className="md:hidden mt-4 space-y-4">
               <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+              <KonumKart mapEmbedUrl={mapEmbedUrl} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
             </div>
           </div>
         )}
@@ -2148,6 +2267,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       {editModal === 'bilgiler'   && <GenelBilgilerModal   project={project} onClose={() => setEditModal(null)} onSaved={updates => setProject(prev => prev ? { ...prev, ...updates } : prev)} />}
       {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} projectId={project.id} onClose={() => setEditModal(null)} />}
       {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} projectId={project.id} onClose={() => setEditModal(null)} />}
+      {editModal === 'konum'      && <KonumModal mapEmbedUrl={mapEmbedUrl} setMapEmbedUrl={setMapEmbedUrl} nearbyPlaces={nearbyPlaces} setNearbyPlaces={setNearbyPlaces} projectId={project.id} onClose={() => setEditModal(null)} />}
     </div>
   )
 }

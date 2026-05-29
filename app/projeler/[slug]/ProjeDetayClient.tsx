@@ -7,6 +7,8 @@ type OzellikItem = { icon: string; label: string }
 type StatItem    = { icon: string; label: string; value: string }
 type PhaseItem   = { label: string; done: boolean }
 
+type NearbyPlace = { label: string; desc: string }
+
 type ProjeProps = {
   slug:         string
   name:         string
@@ -20,6 +22,8 @@ type ProjeProps = {
   gallery:      string[]
   heroImage:    string
   stats:        StatItem[]
+  mapEmbedUrl:  string | null
+  nearbyPlaces: NearbyPlace[]
   floors:       number | null
   unitsCount:   number | null
   deliveryYear: string | null
@@ -298,51 +302,53 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
       )}
 
       {/* ── Konum ── */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-[#0A1F44] mb-8">Konum</h2>
-          <div className="grid lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2 rounded-2xl h-72 overflow-hidden bg-gray-200">
-              <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(proje.location)}&output=embed`}
-                className="w-full h-full"
-                loading="lazy"
-              />
-            </div>
-            <div className="space-y-3">
-              {[
-                { icon: 'map-pin', label: 'Metroya 5 dk',     desc: 'Yürüme mesafesinde'              },
-                { icon: 'map-pin', label: "AVM'ye 3 dk",      desc: 'Alışveriş merkezlerine yakın'    },
-                { icon: 'map-pin', label: "Hastane'ye 7 dk",  desc: 'Sağlık kurumuna kolay erişim'    },
-                { icon: 'map-pin', label: "E-5'e Bağlantı 4 dk", desc: 'Ana arterlere hızlı ulaşım'  },
-              ].map((u, i) => (
-                <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-4 border border-gray-100">
-                  <div className="w-9 h-9 bg-[#0A1F44]/8 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Icon name={u.icon} size={16} />
+      {(proje.mapEmbedUrl || proje.nearbyPlaces.length > 0) && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <h2 className="text-2xl font-bold text-[#0A1F44] mb-8">Konum</h2>
+            <div className="grid lg:grid-cols-3 gap-6 items-start">
+
+              {/* Harita */}
+              <div className="lg:col-span-2 rounded-2xl h-72 overflow-hidden bg-gray-200">
+                {proje.mapEmbedUrl ? (
+                  <iframe src={proje.mapEmbedUrl} className="w-full h-full" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                    Harita eklenmemiş
                   </div>
-                  <div>
-                    <p className="font-semibold text-[#0A1F44] text-sm">{u.label}</p>
-                    <p className="text-gray-400 text-xs">{u.desc}</p>
+                )}
+              </div>
+
+              {/* Yakın Yerler */}
+              <div className="space-y-3">
+                {proje.nearbyPlaces.map((u, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-4 border border-gray-100">
+                    <div className="w-9 h-9 bg-[#0A1F44]/8 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Icon name="map-pin" size={16} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#0A1F44] text-sm">{u.label}</p>
+                      <p className="text-gray-400 text-xs">{u.desc}</p>
+                    </div>
                   </div>
+                ))}
+                <div className="bg-[#0A1F44] rounded-xl p-5 text-white">
+                  <p className="font-bold">{proje.name}</p>
+                  <p className="text-white/60 text-sm mt-1">{proje.location}</p>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(proje.location)}`}
+                    target="_blank" rel="noreferrer"
+                    className="mt-4 flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-semibold transition-colors"
+                  >
+                    Yol Tarifi Al
+                    <Icon name="arrow-right" size={14} className="brightness-0 invert opacity-80" />
+                  </a>
                 </div>
-              ))}
-              <div className="bg-[#0A1F44] rounded-xl p-5 text-white">
-                <p className="font-bold">{proje.name}</p>
-                <p className="text-white/60 text-sm mt-1">{proje.location}</p>
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(proje.location)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-semibold transition-colors"
-                >
-                  Yol Tarifi Al
-                  <Icon name="arrow-right" size={14} className="brightness-0 invert opacity-80" />
-                </a>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── CTA ── */}
       <section className="bg-[#071628] py-16">
