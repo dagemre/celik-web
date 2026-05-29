@@ -54,12 +54,9 @@ export default function HakkimizdaPage() {
               </div>
 
               {/* İmza */}
-              <div className="mt-8 flex items-center gap-4">
-                <img src="/snr-imza.svg" alt="Soner Çelik İmza" width={110} height={52} />
-                <div>
-                  <p className="font-bold text-[#0A1F44] text-base">Soner Çelik</p>
-                  <p className="text-gray-400 text-xs mt-0.5">Kurucu & Genel Müdür</p>
-                </div>
+              <div className="mt-8 flex flex-col gap-2">
+                <img src="/snr-imza.svg" alt="Soner Çelik İmza" width={160} height={72} />
+                <p className="text-gray-400 text-xs">Kurucu & Genel Müdür</p>
               </div>
             </div>
 
