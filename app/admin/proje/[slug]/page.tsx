@@ -1250,7 +1250,7 @@ function MalikEkleForm({ daire, form, setForm, onKaydet, onClose }: {
   onKaydet: () => void
   onClose: () => void
 }) {
-  const [showSifre, setShowSifre] = React.useState(false)
+  const [showSifre, setShowSifre] = useState(false)
   const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors placeholder:text-neutral-400"
   return (
     <div>

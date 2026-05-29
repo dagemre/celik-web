@@ -36,6 +36,7 @@ type OwnerForm = {
   totalPay: string
   paid: string
   dueDate: string
+  sifre: string
 }
 
 const UNIT_TYPES = ['1+1', '2+1', '3+1', 'Dükkan']
@@ -104,9 +105,11 @@ function MalikForm({
   onClose: () => void
   saving: boolean
 }) {
+  const [showSifre, setShowSifre] = useState(false)
   const totalPay = Number(form.totalPay.replace(/\D/g, '')) || 0
   const paid     = Number(form.paid.replace(/\D/g, ''))     || 0
   const floors   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
 
   return (
     <div>
@@ -290,6 +293,46 @@ function MalikForm({
           </div>
         </div>
 
+        {/* Giriş Bilgileri */}
+        <div>
+          <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-2">Giriş Bilgileri</p>
+          <div className="bg-info-50 border border-info-100 rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0 mt-0.5">
+              <circle cx="12" cy="12" r="10" stroke="#0E7490" strokeWidth="1.8"/>
+              <path d="M12 8v4M12 16h.01" stroke="#0E7490" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <p className="text-xs text-info-700">Malik, <strong>telefon numarası veya e-posta</strong> + şifre ile giriş yapabilecek.</p>
+          </div>
+          <label className="block text-xs font-medium text-neutral-400 mb-1">Şifre {!editId && '*'}</label>
+          <div className="relative">
+            <input
+              type={showSifre ? 'text' : 'password'}
+              value={form.sifre}
+              onChange={e => setForm(f => ({ ...f, sifre: e.target.value }))}
+              placeholder="En az 6 karakter"
+              className={inputCls + ' pr-10'}
+            />
+            <button
+              type="button"
+              onClick={() => setShowSifre(p => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+            >
+              {showSifre ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* Butonlar */}
         <div className="flex gap-3 pt-1 pb-2">
           <button onClick={onClose} className="flex-1 border border-neutral-200 text-neutral-600 text-sm font-semibold py-3 rounded-xl hover:bg-neutral-50 transition-colors">
@@ -326,6 +369,7 @@ export default function AdminKisilerPage() {
     floor: 1, unitNo: '', unitType: '2+1',
     name: '', phone: '', email: '',
     totalPay: '', paid: '', dueDate: '',
+    sifre: '',
   }
   const [form, setForm] = useState<OwnerForm>(emptyForm)
 
@@ -414,6 +458,12 @@ export default function AdminKisilerPage() {
 
   const openEdit = (o: Owner) => {
     setEditId(o.id)
+    // Mevcut şifreyi credentials store'dan getir
+    let mevcutSifre = ''
+    try {
+      const creds: { id: string; sifre: string }[] = JSON.parse(localStorage.getItem('malik_credentials') || '[]')
+      mevcutSifre = creds.find(c => c.id === o.id)?.sifre || ''
+    } catch {}
     setForm({
       projectId: o.projectId,
       floor:    o.floor,
@@ -425,6 +475,7 @@ export default function AdminKisilerPage() {
       totalPay: String(o.totalPay),
       paid:     String(o.paid),
       dueDate:  '',
+      sifre:    mevcutSifre,
     })
     setShowPanel(true)
   }
@@ -528,6 +579,29 @@ export default function AdminKisilerPage() {
           setOwners(prev => [newOwner, ...prev])
         }
         setSelectedProjectId(projectId)
+      }
+
+      // Giriş bilgilerini global credentials store'a kaydet
+      if (form.sifre.trim()) {
+        try {
+          const creds: { id: string; telefon: string; email: string; sifre: string; slug: string; daireNo: string }[] =
+            JSON.parse(localStorage.getItem('malik_credentials') || '[]')
+          const credId = editId || `m${Date.now()}`
+          const project = projects.find(p => p.id === (form.projectId || selectedProjectId))
+          const newCred = {
+            id:      credId,
+            ad:      form.name.trim(),
+            telefon: form.phone.trim(),
+            email:   form.email.trim(),
+            sifre:   form.sifre.trim(),
+            slug:    project?.slug || '',
+            daireNo: form.unitNo.trim(),
+          }
+          const updated = editId
+            ? creds.map(c => c.id === editId ? newCred : c)
+            : [...creds, newCred]
+          localStorage.setItem('malik_credentials', JSON.stringify(updated))
+        } catch {}
       }
 
       setShowPanel(false)
