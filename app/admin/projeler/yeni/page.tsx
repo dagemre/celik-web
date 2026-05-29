@@ -2,33 +2,35 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
+// ── Sabitler ─────────────────────────────────────────────────────────────────
 const TIP_OPTIONS    = ['Konut', 'Ticari']
 const STATUS_OPTIONS = [
-  { key: 'devam',      label: 'Devam Ediyor' },
-  { key: 'yakinda',    label: 'Planlama'     },
-  { key: 'tamamlandi', label: 'Tamamlandı'   },
+  { key: 'yakinda',    label: 'Planlama',      bg: 'bg-warning-50',  text: 'text-warning-700' },
+  { key: 'devam',      label: 'Devam Ediyor',  bg: 'bg-success-50',  text: 'text-success-700' },
+  { key: 'tamamlandi', label: 'Tamamlandı',    bg: 'bg-info-50',     text: 'text-info-700'    },
+  { key: 'gecikmede',  label: 'Gecikmede',     bg: 'bg-danger-50',   text: 'text-danger-700'  },
 ]
-
 const FEATURE_OPTIONS = [
-  { key: 'kapali-otopark',    icon: '🏎️',  label: 'Kapalı Otopark'     },
-  { key: 'acik-otopark',      icon: '🅿️',  label: 'Açık Otopark'       },
-  { key: 'asansor',           icon: '🛗',  label: 'Asansör'             },
-  { key: 'guvenlik-kamerasi', icon: '📷',  label: 'Güvenlik Kamerası'   },
-  { key: 'gorevli-guvenlik',  icon: '💂',  label: 'Görevli Güvenlik'    },
-  { key: 'jenerator',         icon: '⚡',  label: 'Jeneratör'           },
-  { key: 'dogalgaz',          icon: '🔥',  label: 'Doğalgaz'            },
-  { key: 'kombili',           icon: '🌡️', label: 'Bireysel Kombi'      },
-  { key: 'merkezi-isitma',    icon: '♨️',  label: 'Merkezi Isıtma'      },
-  { key: 'interkom',          icon: '🔔',  label: 'İnterkom / Diafon'   },
-  { key: 'yangin-merdiveni',  icon: '🚒',  label: 'Yangın Merdiveni'    },
-  { key: 'teras',             icon: '🏡',  label: 'Teras / Çatı Katı'   },
-  { key: 'bahce',             icon: '🌿',  label: 'Bahçe / Yeşil Alan'  },
-  { key: 'deprem-yalitim',    icon: '🏗️', label: 'Deprem İzolatörü'    },
-  { key: 'isı-yalitim',       icon: '🧱',  label: 'Isı Yalıtımı'        },
-  { key: 'ses-yalitim',       icon: '🔇',  label: 'Ses Yalıtımı'        },
-  { key: 'elektrikli-panjur', icon: '🪟',  label: 'Elektrikli Panjür'   },
+  { key: 'kapali-otopark',    label: 'Kapalı Otopark'    },
+  { key: 'acik-otopark',      label: 'Açık Otopark'      },
+  { key: 'asansor',           label: 'Asansör'            },
+  { key: 'guvenlik-kamerasi', label: 'Güvenlik Kamerası'  },
+  { key: 'gorevli-guvenlik',  label: 'Görevli Güvenlik'   },
+  { key: 'jenerator',         label: 'Jeneratör'          },
+  { key: 'dogalgaz',          label: 'Doğalgaz'           },
+  { key: 'kombili',           label: 'Bireysel Kombi'     },
+  { key: 'merkezi-isitma',    label: 'Merkezi Isıtma'     },
+  { key: 'interkom',          label: 'İnterkom / Diafon'  },
+  { key: 'yangin-merdiveni',  label: 'Yangın Merdiveni'   },
+  { key: 'teras',             label: 'Teras / Çatı Katı'  },
+  { key: 'bahce',             label: 'Bahçe / Yeşil Alan' },
+  { key: 'deprem-yalitim',    label: 'Deprem İzolatörü'   },
+  { key: 'isı-yalitim',       label: 'Isı Yalıtımı'       },
+  { key: 'ses-yalitim',       label: 'Ses Yalıtımı'       },
+  { key: 'elektrikli-panjur', label: 'Elektrikli Panjür'  },
 ]
 
 function slugify(text: string) {
@@ -36,298 +38,310 @@ function slugify(text: string) {
     .toLowerCase()
     .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
     .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')
 }
 
+const inCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors placeholder:text-neutral-400"
+const lblCls = "block text-xs font-medium text-neutral-500 mb-1.5"
+
+// ── Kart bileşeni ─────────────────────────────────────────────────────────────
+const Card = ({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) => (
+  <div className={`bg-white rounded-2xl border border-neutral-100 p-4 md:p-5 ${className}`}>
+    <h2 className="font-bold text-base text-primary-800 mb-4">{title}</h2>
+    {children}
+  </div>
+)
+
+// ── Ana Sayfa ─────────────────────────────────────────────────────────────────
 export default function ProjeEklePage() {
   const router = useRouter()
 
   const [name,         setName]         = useState('')
-  const [location,     setLocation]     = useState('')
   const [district,     setDistrict]     = useState('')
   const [city,         setCity]         = useState('İstanbul')
+  const [location,     setLocation]     = useState('')
   const [tip,          setTip]          = useState('Konut')
   const [status,       setStatus]       = useState('yakinda')
   const [floors,       setFloors]       = useState('')
   const [unitsCount,   setUnitsCount]   = useState('')
   const [area,         setArea]         = useState('')
   const [deliveryYear, setDeliveryYear] = useState('')
-  const [progress,     setProgress]     = useState('0')
+  const [progress,     setProgress]     = useState(0)
   const [description,  setDescription]  = useState('')
   const [features,     setFeatures]     = useState<string[]>([])
+  const [saving,       setSaving]       = useState(false)
+  const [error,        setError]        = useState('')
 
-  const [saving,  setSaving]  = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error,   setError]   = useState('')
+  const loc = [district, city].filter(Boolean).join(' / ') || 'Konum girilmedi'
+  const st  = STATUS_OPTIONS.find(s => s.key === status) ?? STATUS_OPTIONS[0]
 
   function toggleFeature(key: string) {
-    setFeatures(prev =>
-      prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key]
-    )
+    setFeatures(prev => prev.includes(key) ? prev.filter(f => f !== key) : [...prev, key])
   }
 
   async function handleSave() {
     if (!name.trim())     { setError('Proje adı zorunlu.'); return }
-    if (!location.trim()) { setError('Konum zorunlu.'); return }
     if (!district.trim()) { setError('İlçe zorunlu.'); return }
-
-    setSaving(true)
-    setError('')
-
+    setSaving(true); setError('')
     const slug = slugify(name.trim()) + '-' + Date.now().toString().slice(-4)
-
     const { error: err } = await supabase.from('projects').insert({
-      name:          name.trim(),
-      slug,
-      location:      location.trim(),
-      district:      district.trim(),
-      city:          city.trim() || 'İstanbul',
-      tip,
-      status,
-      floors:        floors     ? parseInt(floors)     : null,
-      units_count:   unitsCount ? parseInt(unitsCount) : null,
+      name: name.trim(), slug,
+      location: location.trim() || district.trim(),
+      district: district.trim(),
+      city: city.trim() || 'İstanbul',
+      tip, status,
+      floors:        floors      ? parseInt(floors)      : null,
+      units_count:   unitsCount  ? parseInt(unitsCount)  : null,
       area:          area.trim() || null,
       delivery_year: deliveryYear.trim() || null,
-      progress:      parseInt(progress) || 0,
+      progress,
       description:   description.trim() || null,
       features:      features.length > 0 ? features : null,
     })
-
     setSaving(false)
     if (err) { setError('Hata: ' + err.message); return }
-    setSuccess(true)
-    setTimeout(() => router.push('/admin/projeler'), 1500)
+    router.push(`/admin/proje/${slug}`)
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 pb-36">
+    <div className="min-h-screen bg-neutral-50 pb-24">
 
-      {/* Başlık */}
-      <div className="bg-white border-b border-neutral-100 px-5 pt-5 pb-4 flex items-center gap-3">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 rounded-xl bg-neutral-100 flex items-center justify-center flex-shrink-0"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5M12 19l-7-7 7-7" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <div>
-          <h1 className="font-bold text-xl text-primary-800">Proje Ekle</h1>
-          <p className="text-xs text-neutral-500 mt-0.5">Yeni inşaat projesini sisteme kaydet.</p>
-        </div>
-      </div>
+      {/* ── Üst başlık (proje detay ile aynı stil) ── */}
+      <div className="bg-white border-b border-neutral-100 px-4 md:px-6 pt-4 pb-0">
 
-      <div className="px-4 pt-5 space-y-6 max-w-lg mx-auto">
-
-        {/* Proje Adı */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Proje Adı</p>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => { setName(e.target.value); setError('') }}
-            placeholder="Örn: Kemal Apartmanı"
-            className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-base font-medium text-primary-800 outline-none focus:border-primary-400 placeholder:text-neutral-300"
-          />
-        </div>
-
-        {/* Tip */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Proje Tipi</p>
-          <div className="flex gap-2">
-            {TIP_OPTIONS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTip(t)}
-                className={`flex-1 py-3 rounded-2xl text-sm font-semibold border transition-all ${
-                  tip === t
-                    ? 'bg-primary-800 text-white border-primary-800'
-                    : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Durum */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Durum</p>
-          <div className="flex gap-2">
-            {STATUS_OPTIONS.map((s) => (
-              <button
-                key={s.key}
-                onClick={() => setStatus(s.key)}
-                className={`flex-1 py-2.5 rounded-2xl text-sm font-medium border transition-all ${
-                  status === s.key
-                    ? 'bg-primary-800 text-white border-primary-800'
-                    : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Konum */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Konum</p>
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={district}
-              onChange={(e) => { setDistrict(e.target.value); setError('') }}
-              placeholder="İlçe — Örn: Avcılar"
-              className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-sm text-neutral-700 outline-none focus:border-primary-400 placeholder:text-neutral-300"
-            />
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Şehir — Örn: İstanbul"
-              className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-sm text-neutral-700 outline-none focus:border-primary-400 placeholder:text-neutral-300"
-            />
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => { setLocation(e.target.value); setError('') }}
-              placeholder="Tam adres / sokak — Örn: Türkçü Sok. No:6"
-              className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-sm text-neutral-700 outline-none focus:border-primary-400 placeholder:text-neutral-300"
-            />
-          </div>
-        </div>
-
-        {/* Rakamlar */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Proje Detayları</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'Kat Sayısı',     value: floors,       setter: setFloors,       placeholder: 'Örn: 8',    type: 'number' },
-              { label: 'Daire Sayısı',   value: unitsCount,   setter: setUnitsCount,   placeholder: 'Örn: 24',   type: 'number' },
-              { label: 'Brüt m²',        value: area,         setter: setArea,         placeholder: 'Örn: 120',  type: 'text'   },
-              { label: 'Teslim Yılı',    value: deliveryYear, setter: setDeliveryYear, placeholder: 'Örn: 2026', type: 'text'   },
-            ].map((f) => (
-              <div key={f.label} className="bg-white border border-neutral-200 rounded-2xl px-4 py-3">
-                <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">{f.label}</p>
-                <input
-                  type={f.type}
-                  inputMode={f.type === 'number' ? 'numeric' : 'text'}
-                  value={f.value}
-                  onChange={(e) => f.setter(e.target.value)}
-                  placeholder={f.placeholder}
-                  className="w-full text-base font-bold text-primary-800 outline-none placeholder:text-neutral-300 placeholder:font-normal"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* İlerleme */}
-        <div>
-          <div className="flex justify-between mb-3">
-            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">İnşaat İlerlemesi</p>
-            <span className="text-sm font-bold text-primary-800">%{progress}</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={progress}
-            onChange={(e) => setProgress(e.target.value)}
-            className="w-full accent-primary-800"
-          />
-          <div className="flex justify-between mt-1">
-            <span className="text-xs text-neutral-400">0%</span>
-            <span className="text-xs text-neutral-400">100%</span>
-          </div>
-        </div>
-
-        {/* Bina Özellikleri */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
-            Bina Özellikleri
-            <span className="font-normal normal-case text-neutral-400 ml-1">
-              ({features.length} seçildi)
-            </span>
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {FEATURE_OPTIONS.map((f) => {
-              const selected = features.includes(f.key)
-              return (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => toggleFeature(f.key)}
-                  className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl border text-left transition-all ${
-                    selected
-                      ? 'bg-primary-800 border-primary-800 text-white'
-                      : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300'
-                  }`}
-                >
-                  <span className="text-base leading-none">{f.icon}</span>
-                  <span className="text-sm font-medium leading-tight">{f.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Açıklama */}
-        <div>
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
-            Açıklama <span className="font-normal normal-case text-neutral-400">(opsiyonel)</span>
-          </p>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Proje hakkında kısa bilgi..."
-            rows={3}
-            className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 outline-none focus:border-primary-400 placeholder:text-neutral-300 resize-none"
-          />
-        </div>
-
-        {/* Hata / Başarı */}
-        {error && (
-          <div className="bg-danger-50 border border-danger-100 rounded-2xl px-4 py-3 text-sm text-danger-700">{error}</div>
-        )}
-        {success && (
-          <div className="bg-success-50 border border-success-100 rounded-2xl px-4 py-3 text-sm text-success-700 flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <polyline points="20 6 9 17 4 12" stroke="#0F6E56" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Proje kaydedildi! Yönlendiriliyor...
-          </div>
-        )}
-
-      </div>
-
-      {/* Kaydet — sabit alt */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 pt-3"
-        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
-      >
-        <button
-          onClick={handleSave}
-          disabled={saving || success}
-          className="w-full max-w-lg mx-auto flex items-center justify-center gap-2 bg-primary-800 text-white font-bold text-base py-4 rounded-2xl disabled:opacity-60 transition-all active:scale-[0.98]"
-        >
-          {saving ? (
-            <>
-              <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+        {/* Breadcrumb + Kaydet butonu */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1.5 text-sm min-w-0">
+            <Link href="/admin/projeler" className="text-primary-500 font-medium hover:underline flex items-center gap-1 flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Kaydediliyor...
-            </>
-          ) : 'Projeyi Kaydet'}
-        </button>
+              Projeler
+            </Link>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+              <path d="M9 18l6-6-6-6" stroke="#D3D1C7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="text-primary-800 font-semibold truncate">
+              {name.trim() || 'Yeni Proje'}
+            </span>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-shrink-0 flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 disabled:opacity-60 transition-colors ml-3">
+            {saving
+              ? <><svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg> Kaydediliyor</>
+              : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/><polyline points="17 21 17 13 7 13 7 21" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/><polyline points="7 3 7 8 15 8" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/></svg> Kaydet</>
+            }
+          </button>
+        </div>
+
+        {/* Proje bilgisi satırı — Mobil */}
+        <div className="md:hidden flex gap-3 mb-4">
+          <div className="w-[88px] h-[80px] rounded-xl bg-neutral-100 flex-shrink-0 flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 21V9l9-6 9 6v12H3z" stroke="#D3D1C7" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-lg text-primary-800 leading-tight mb-0.5">
+              {name.trim() || <span className="text-neutral-400 font-normal">Proje adı giriniz...</span>}
+            </h1>
+            <p className="flex items-center gap-1 text-xs text-neutral-500 mb-2.5">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#888780"/></svg>
+              {loc}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${st.bg} ${st.text}`}>{st.label}</span>
+              <span className="text-[10px] text-neutral-400">{tip}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Proje bilgisi satırı — Desktop */}
+        <div className="hidden md:flex gap-5 mb-5">
+          <div className="w-[180px] h-[130px] rounded-xl bg-neutral-100 flex-shrink-0 flex items-center justify-center">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M3 21V9l9-6 9 6v12H3z" stroke="#D3D1C7" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+          </div>
+          <div className="flex-1 min-w-0 py-1">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h1 className="font-bold text-2xl text-primary-800 leading-tight">
+                {name.trim() || <span className="text-neutral-400 font-normal text-xl">Proje adı giriniz...</span>}
+              </h1>
+              <span className={`flex-shrink-0 text-xs font-bold px-2.5 py-1.5 rounded-xl ${st.bg} ${st.text}`}>{st.label}</span>
+            </div>
+            <p className="flex items-center gap-1 text-sm text-neutral-500 mb-3">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#888780"/></svg>
+              {loc}
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { l: 'Proje Tipi',    v: tip },
+                { l: 'Daire Sayısı',  v: unitsCount || '—' },
+                { l: 'İnşaat Alanı',  v: area ? `${area} m²` : '—' },
+                { l: 'Teslim',        v: deliveryYear || '—' },
+              ].map(({ l, v }) => (
+                <div key={l}>
+                  <p className="text-[10px] text-neutral-400">{l}</p>
+                  <p className="font-bold text-sm text-primary-800 mt-0.5">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tab bar (tek tab: Genel Bakış) */}
+        <div className="flex overflow-x-auto -mx-4 md:-mx-6 px-4 md:px-6 gap-0">
+          <button className="flex-shrink-0 px-4 py-3 text-sm font-semibold border-b-2 border-primary-800 text-primary-800 whitespace-nowrap">
+            Genel Bakış
+          </button>
+          {['Finansal', 'Daireler', 'Evraklar', 'Notlar'].map(t => (
+            <button key={t} className="flex-shrink-0 px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-neutral-400 whitespace-nowrap cursor-not-allowed" title="Önce projeyi kaydedin">
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* ── İçerik ── */}
+      <div className="p-4 md:p-6">
+        {error && (
+          <div className="bg-danger-50 border border-danger-100 rounded-xl px-4 py-3 text-sm text-danger-700 mb-4">{error}</div>
+        )}
+
+        <div className="md:flex md:gap-5 md:items-start">
+          {/* Sol kolon */}
+          <div className="md:flex-1 space-y-4 min-w-0">
+
+            {/* Proje Adı */}
+            <Card title="Proje Adı">
+              <input value={name} onChange={e => { setName(e.target.value); setError('') }}
+                placeholder="Örn: Kemal Apartmanı" className={inCls} autoFocus />
+            </Card>
+
+            {/* Durum & Tip */}
+            <Card title="Durum ve Tip">
+              <label className={lblCls}>Proje Tipi</label>
+              <div className="flex gap-2 mb-4">
+                {TIP_OPTIONS.map(t => (
+                  <button key={t} onClick={() => setTip(t)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${tip === t ? 'bg-primary-800 text-white border-primary-800' : 'bg-neutral-50 text-neutral-600 border-neutral-100 hover:border-primary-300'}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <label className={lblCls}>Durum</label>
+              <div className="grid grid-cols-2 gap-2">
+                {STATUS_OPTIONS.map(s => (
+                  <button key={s.key} onClick={() => setStatus(s.key)}
+                    className={`py-2.5 rounded-xl text-sm font-medium border transition-colors ${status === s.key ? `${s.bg} ${s.text} border-transparent` : 'bg-neutral-50 text-neutral-600 border-neutral-100 hover:border-primary-300'}`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+
+            {/* Genel Bilgiler */}
+            <Card title="Genel Bilgiler">
+              <div className="space-y-3">
+                <div>
+                  <label className={lblCls}>İlçe <span className="text-danger-500">*</span></label>
+                  <input value={district} onChange={e => { setDistrict(e.target.value); setError('') }}
+                    placeholder="Örn: Avcılar" className={inCls} />
+                </div>
+                <div>
+                  <label className={lblCls}>Şehir</label>
+                  <input value={city} onChange={e => setCity(e.target.value)}
+                    placeholder="İstanbul" className={inCls} />
+                </div>
+                <div>
+                  <label className={lblCls}>Tam Adres / Sokak</label>
+                  <input value={location} onChange={e => setLocation(e.target.value)}
+                    placeholder="Örn: Türkçü Sok. No:6" className={inCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lblCls}>Kat Sayısı</label>
+                    <input type="number" value={floors} onChange={e => setFloors(e.target.value)}
+                      placeholder="8" className={inCls} />
+                  </div>
+                  <div>
+                    <label className={lblCls}>Daire Sayısı</label>
+                    <input type="number" value={unitsCount} onChange={e => setUnitsCount(e.target.value)}
+                      placeholder="24" className={inCls} />
+                  </div>
+                  <div>
+                    <label className={lblCls}>İnşaat Alanı (m²)</label>
+                    <input value={area} onChange={e => setArea(e.target.value)}
+                      placeholder="850 m²" className={inCls} />
+                  </div>
+                  <div>
+                    <label className={lblCls}>Teslim Yılı</label>
+                    <input value={deliveryYear} onChange={e => setDeliveryYear(e.target.value)}
+                      placeholder="2026" className={inCls} />
+                  </div>
+                </div>
+                <div>
+                  <label className={lblCls}>Açıklama</label>
+                  <textarea value={description} onChange={e => setDescription(e.target.value)}
+                    placeholder="Proje hakkında kısa bilgi..." rows={3}
+                    className={inCls + ' resize-none'} />
+                </div>
+              </div>
+            </Card>
+
+            {/* İnşaat İlerlemesi */}
+            <Card title="İnşaat İlerlemesi">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-neutral-500">Genel İlerleme</span>
+                <span className="text-sm font-bold text-success-700">%{progress}</span>
+              </div>
+              <input type="range" min={0} max={100} value={progress}
+                onChange={e => setProgress(Number(e.target.value))}
+                className="w-full accent-[#0F6E56]" />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-neutral-400">%0</span>
+                <span className="text-xs text-neutral-400">%100</span>
+              </div>
+            </Card>
+
+          </div>
+
+          {/* Sağ kolon — desktop */}
+          <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
+            <Card title="Bina Özellikleri">
+              <div className="grid grid-cols-2 gap-2">
+                {FEATURE_OPTIONS.map(f => {
+                  const on = features.includes(f.key)
+                  return (
+                    <button key={f.key} onClick={() => toggleFeature(f.key)}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-left border transition-colors text-sm ${on ? 'bg-primary-800 text-white border-primary-800' : 'bg-neutral-50 text-neutral-600 border-neutral-100 hover:border-primary-300'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${on ? 'bg-white' : 'bg-neutral-300'}`}/>
+                      {f.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </Card>
+          </div>
+
+          {/* Bina Özellikleri — mobil */}
+          <div className="md:hidden mt-4">
+            <Card title={`Bina Özellikleri (${features.length} seçildi)`}>
+              <div className="grid grid-cols-2 gap-2">
+                {FEATURE_OPTIONS.map(f => {
+                  const on = features.includes(f.key)
+                  return (
+                    <button key={f.key} onClick={() => toggleFeature(f.key)}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-left border transition-colors text-sm ${on ? 'bg-primary-800 text-white border-primary-800' : 'bg-neutral-50 text-neutral-600 border-neutral-100 hover:border-primary-300'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${on ? 'bg-white' : 'bg-neutral-300'}`}/>
+                      {f.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
