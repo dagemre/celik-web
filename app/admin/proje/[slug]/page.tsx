@@ -413,7 +413,8 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
 
   const handleSave = async () => {
     setSaving(true)
-    await supabase.from('projects').update({ progress, phases }).eq('id', projectId)
+    const autoStatus = progress === 100 ? 'tamamlandi' : 'devam'
+    await supabase.from('projects').update({ progress, phases, status: autoStatus }).eq('id', projectId)
     const { data: others } = await supabase.from('projects').select('id, phases').neq('id', projectId)
     if (others && others.length > 0) {
       await Promise.all(others.map(proj => {
