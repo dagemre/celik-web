@@ -5,6 +5,7 @@ import Link from 'next/link'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminBottomNav from '@/components/admin/AdminBottomNav'
 import AddToHomeScreen from '@/components/AddToHomeScreen'
+import ManifestOverride from '@/components/ManifestOverride'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
@@ -138,6 +139,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Anasayfaya ekle uyarısı (sadece mobil) */}
         <AddToHomeScreen />
+        {/* Admin manifest: start_url /admin olarak ayarla */}
+        <ManifestOverride href="/manifest-admin.json" />
 
       </div>
     </div>
