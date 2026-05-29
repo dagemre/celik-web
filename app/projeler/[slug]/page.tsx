@@ -218,9 +218,11 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
       ? proje.phases
       : defaultPhases.map((ph, i) => ({ ...ph, done: (proje.progress ?? 0) >= (i + 1) * 12.5 }))
 
-  // Yakın yerler
+  // Yakın yerler ve harita koordinatları
   const nearbyPlaces: { label: string; desc: string }[] =
     Array.isArray(proje.nearby_places) ? proje.nearby_places : []
+  const mapLat: number | null = proje.map_lat ?? null
+  const mapLng: number | null = proje.map_lng ?? null
 
   return (
     <ProjeDetayClient
@@ -237,7 +239,8 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
         gallery,
         heroImage,
         stats,
-        mapEmbedUrl:  proje.map_embed_url ?? null,
+        mapLat,
+        mapLng,
         nearbyPlaces,
         floors:       proje.floors,
         unitsCount:   proje.units_count,

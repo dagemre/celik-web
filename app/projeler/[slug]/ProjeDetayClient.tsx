@@ -22,7 +22,8 @@ type ProjeProps = {
   gallery:      string[]
   heroImage:    string
   stats:        StatItem[]
-  mapEmbedUrl:  string | null
+  mapLat:       number | null
+  mapLng:       number | null
   nearbyPlaces: NearbyPlace[]
   floors:       number | null
   unitsCount:   number | null
@@ -302,16 +303,20 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
       )}
 
       {/* ── Konum ── */}
-      {(proje.mapEmbedUrl || proje.nearbyPlaces.length > 0) && (
+      {(proje.mapLat !== null || proje.nearbyPlaces.length > 0) && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-6">
             <h2 className="text-2xl font-bold text-[#0A1F44] mb-8">Konum</h2>
             <div className="grid lg:grid-cols-3 gap-6 items-start">
 
-              {/* Harita */}
+              {/* Harita — OpenStreetMap embed */}
               <div className="lg:col-span-2 rounded-2xl h-72 overflow-hidden bg-gray-200">
-                {proje.mapEmbedUrl ? (
-                  <iframe src={proje.mapEmbedUrl} className="w-full h-full" loading="lazy" />
+                {proje.mapLat !== null && proje.mapLng !== null ? (
+                  <iframe
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${proje.mapLng - 0.005},${proje.mapLat - 0.005},${proje.mapLng + 0.005},${proje.mapLat + 0.005}&layer=mapnik&marker=${proje.mapLat},${proje.mapLng}`}
+                    className="w-full h-full"
+                    loading="lazy"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
                     Harita eklenmemiş
