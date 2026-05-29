@@ -1461,6 +1461,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
   const [malikPanel, setMalikPanel]         = useState<DaireItem | null>(null) // daire for malik ekle
   const [detayDaire, setDetayDaire]         = useState<DaireItem | null>(null) // for detail modal
   const [editMalikDaire, setEditMalikDaire] = useState<DaireItem | null>(null) // for editing existing
+  const [editDaire, setEditDaire]           = useState<DaireItem | null>(null) // daire düzenle
 
   const [addForm,   setAddForm]   = useState<DaireForm>({ tip: '2+1', brut: '', netAlan: '', fiyat: '' })
   const [malikForm, setMalikForm] = useState<MalikForm>({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
@@ -1483,7 +1484,30 @@ const DairelerTab = ({ slug }: { slug: string }) => {
     setMalikPanel(daire)
     setEditMalikDaire(null)
     setAddPanel(null)
+    setEditDaire(null)
     setMalikForm({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
+  }
+
+  const openEditDaire = (d: DaireItem) => {
+    setEditDaire(d)
+    setAddPanel(null)
+    setMalikPanel(null)
+    setEditMalikDaire(null)
+    setAddForm({ tip: d.tip, brut: String(d.brut), netAlan: '', fiyat: '' })
+  }
+
+  const handleDaireSil = (id: number) => {
+    setDaireler(prev => prev.filter(d => d.id !== id))
+  }
+
+  const handleDaireGuncelle = () => {
+    if (!editDaire) return
+    setDaireler(prev => prev.map(d =>
+      d.id === editDaire.id
+        ? { ...d, tip: addForm.tip as DaireItem['tip'], brut: parseInt(addForm.brut) || d.brut }
+        : d
+    ))
+    setEditDaire(null)
   }
 
   const openMalikDuzenle = (daire: DaireItem) => {
@@ -1562,7 +1586,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
   }
 
   // Side panel: either daire ekle or malik ekle
-  const hasSidePanel = addPanel !== null || malikPanel !== null
+  const hasSidePanel = addPanel !== null || malikPanel !== null || editDaire !== null
 
   return (
     <div>
@@ -1680,9 +1704,31 @@ const DairelerTab = ({ slug }: { slug: string }) => {
                                 <div className="px-3 pt-3 pb-2">
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="font-bold text-sm text-primary-800">No: {d.no}</span>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${isSat ? 'bg-success-100 text-success-700' : 'bg-neutral-100 text-neutral-500'}`}>
-                                      {isSat ? 'Satıldı' : 'Müsait'}
-                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${isSat ? 'bg-success-100 text-success-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                                        {isSat ? 'Satıldı' : 'Müsait'}
+                                      </span>
+                                      {!isSat && (
+                                        <button
+                                          onClick={() => openEditDaire(d)}
+                                          className="w-6 h-6 flex items-center justify-center text-neutral-400 hover:text-primary-800 transition-colors rounded-md hover:bg-neutral-100"
+                                          title="Düzenle"
+                                        >
+                                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                            <path d="M11 2.5l2.5 2.5L5 13.5H2.5V11L11 2.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                          </svg>
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => handleDaireSil(d.id)}
+                                        className="w-6 h-6 flex items-center justify-center text-neutral-300 hover:text-danger-600 transition-colors rounded-md hover:bg-danger-50"
+                                        title="Sil"
+                                      >
+                                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                          <path d="M2 4h12M6 4V2.5h4V4M5.5 4l.5 9h4l.5-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                      </button>
+                                    </div>
                                   </div>
                                   <p className="text-xs text-neutral-400">{d.tip} · {d.brut} m²</p>
                                 </div>
@@ -1738,6 +1784,37 @@ const DairelerTab = ({ slug }: { slug: string }) => {
                 onClose={() => setAddPanel(null)}
               />
             )}
+            {editDaire !== null && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-bold text-base text-primary-800">Daireyi Düzenle</h3>
+                    <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatLabel(editDaire.katNo)}</p>
+                  </div>
+                  <button onClick={() => setEditDaire(null)} className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-200">✕</button>
+                </div>
+                <p className="text-xs font-medium text-neutral-500 mb-2">Daire Tipi</p>
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {(['1+1','2+1','3+1','Dükkan'] as const).map(t => (
+                    <button key={t} onClick={() => setAddForm(p => ({ ...p, tip: t }))}
+                      className={`py-2 rounded-xl border text-xs font-semibold transition-colors ${addForm.tip === t ? 'bg-primary-800 border-primary-800 text-white' : 'bg-white border-neutral-200 text-neutral-500 hover:border-primary-300'}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs font-medium text-neutral-500 mb-1.5">Brüt Alan (m²)</p>
+                <input
+                  type="number" value={addForm.brut}
+                  onChange={e => setAddForm(p => ({ ...p, brut: e.target.value }))}
+                  placeholder={String(editDaire.brut)}
+                  className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 mb-4 placeholder:text-neutral-400"
+                />
+                <button onClick={handleDaireGuncelle}
+                  className="w-full bg-primary-800 text-white rounded-2xl py-3 font-bold text-sm hover:bg-primary-700 transition-colors">
+                  Kaydet
+                </button>
+              </div>
+            )}
             {malikPanel !== null && (
               <MalikEkleForm
                 daire={malikPanel}
@@ -1763,6 +1840,44 @@ const DairelerTab = ({ slug }: { slug: string }) => {
               onEkle={handleEkle}
               onClose={() => setAddPanel(null)}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobil: Daire Düzenle bottom sheet ── */}
+      {editDaire !== null && (
+        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center" onClick={() => setEditDaire(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative z-10 w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}>
+            <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-base text-primary-800">Daireyi Düzenle</h3>
+                <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatLabel(editDaire.katNo)}</p>
+              </div>
+              <button onClick={() => setEditDaire(null)} className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500">✕</button>
+            </div>
+            <p className="text-xs font-medium text-neutral-500 mb-2">Daire Tipi</p>
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {(['1+1','2+1','3+1','Dükkan'] as const).map(t => (
+                <button key={t} onClick={() => setAddForm(p => ({ ...p, tip: t }))}
+                  className={`py-2.5 rounded-xl border text-xs font-semibold ${addForm.tip === t ? 'bg-primary-800 border-primary-800 text-white' : 'bg-white border-neutral-200 text-neutral-500'}`}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs font-medium text-neutral-500 mb-1.5">Brüt Alan (m²)</p>
+            <input
+              type="number" value={addForm.brut}
+              onChange={e => setAddForm(p => ({ ...p, brut: e.target.value }))}
+              placeholder={String(editDaire.brut)}
+              className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 mb-4"
+            />
+            <button onClick={handleDaireGuncelle}
+              className="w-full bg-primary-800 text-white rounded-2xl py-3.5 font-bold text-sm">
+              Kaydet
+            </button>
           </div>
         </div>
       )}
