@@ -512,8 +512,8 @@ const FinansalTab = () => {
   return (
     <div className="space-y-4">
 
-      {/* ── Sözleşme Bedeli Girişi (mobil only) ── */}
-      <div className="md:hidden bg-white rounded-2xl border border-neutral-100 p-4">
+      {/* ── Sözleşme Bedeli Girişi ── */}
+      <div className="bg-white rounded-2xl border border-neutral-100 p-4">
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="font-bold text-sm text-primary-800">Sözleşme Bedeli</p>
