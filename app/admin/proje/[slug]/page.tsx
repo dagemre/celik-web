@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import * as XLSX from 'xlsx'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Project = {
@@ -700,8 +701,85 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
 }
 
 
+// ── Excel Export ───────────────────────────────────────────────────────────────
+function exportKalemlerExcel(kalemler: KalemItem[], sozlesme: number) {
+  const wb = XLSX.utils.book_new()
+
+  // Başlık satırı
+  const header = ['#', 'Kalem Adı', 'Tutar (₺)', 'Tarih']
+  const rows = kalemler.map((k, i) => [
+    i + 1,
+    k.label,
+    k.tutar,
+    k.tarih,
+  ])
+  const toplam = kalemler.reduce((s, k) => s + k.tutar, 0)
+  const totRow = ['', 'TOPLAM MALİYET', toplam, '']
+
+  const wsData = [header, ...rows, [], totRow]
+  const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+  // Kolon genişlikleri
+  ws['!cols'] = [{ wch: 5 }, { wch: 30 }, { wch: 20 }, { wch: 14 }]
+
+  // Başlık satırı stilleri
+  const headerStyle = {
+    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+    fill: { fgColor: { rgb: '0A1F44' } },
+    alignment: { horizontal: 'center' },
+    border: { bottom: { style: 'thin', color: { rgb: 'FFFFFF' } } },
+  }
+  header.forEach((_, ci) => {
+    const cell = XLSX.utils.encode_cell({ r: 0, c: ci })
+    if (ws[cell]) ws[cell].s = headerStyle
+  })
+
+  // Veri satırları — renkli zemin
+  const rowColors = ['F0F4FF', 'FAFBFF']
+  rows.forEach((_, ri) => {
+    const bg = rowColors[ri % 2]
+    header.forEach((__, ci) => {
+      const cell = XLSX.utils.encode_cell({ r: ri + 1, c: ci })
+      if (!ws[cell]) ws[cell] = { t: 'z' }
+      ws[cell].s = {
+        fill: { fgColor: { rgb: bg } },
+        alignment: ci === 2 ? { horizontal: 'right' } : { horizontal: ci === 0 ? 'center' : 'left' },
+        font: { sz: 11 },
+        border: {
+          bottom: { style: 'hair', color: { rgb: 'D0D5DD' } },
+          right: { style: 'hair', color: { rgb: 'D0D5DD' } },
+        },
+      }
+    })
+  })
+
+  // Toplam satırı
+  const totRowIdx = rows.length + 2
+  header.forEach((_, ci) => {
+    const cell = XLSX.utils.encode_cell({ r: totRowIdx, c: ci })
+    if (!ws[cell]) ws[cell] = { t: 'z' }
+    ws[cell].s = {
+      font: { bold: true, sz: 12, color: { rgb: ci === 2 ? 'A32D2D' : '0A1F44' } },
+      fill: { fgColor: { rgb: 'FFF3F3' } },
+      alignment: ci === 2 ? { horizontal: 'right' } : { horizontal: 'left' },
+      border: { top: { style: 'medium', color: { rgb: '0A1F44' } } },
+    }
+  })
+
+  // Sayı formatı
+  rows.forEach((_, ri) => {
+    const cell = XLSX.utils.encode_cell({ r: ri + 1, c: 2 })
+    if (ws[cell]) ws[cell].z = '#,##0'
+  })
+  const totCell = XLSX.utils.encode_cell({ r: totRowIdx, c: 2 })
+  if (ws[totCell]) ws[totCell].z = '#,##0'
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Maliyet Kalemleri')
+  XLSX.writeFile(wb, `maliyet-kalemleri.xlsx`)
+}
+
 // ── Finansal Tab ───────────────────────────────────────────────────────────────
-const FinansalTab = ({ slug }: { slug: string }) => {
+const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) => {
   const lsKey = `finansal_v2_${slug}`
 
   const [sozlesme, setSozlesme]           = useState(0)
@@ -709,23 +787,46 @@ const FinansalTab = ({ slug }: { slug: string }) => {
   const [tahsilatlar, setTahsilatlar]     = useState<TahsilatItem[]>(INIT_TAHSILATLAR)
   const [kalemler, setKalemler]           = useState<KalemItem[]>(INIT_KALEMLER)
   const [lsLoaded, setLsLoaded]           = useState(false)
+  const [syncing, setSyncing]             = useState(false)
 
-  // LocalStorage'dan yükle
+  // 1. Supabase'den yükle (önce), sonra localStorage fallback
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
-      if (stored.sozlesme)    { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
-      if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
-      if (stored.kalemler)    setKalemler(stored.kalemler)
-    } catch {}
-    setLsLoaded(true)
-  }, [lsKey])
+    async function load() {
+      try {
+        const { data } = await supabase
+          .from('projects').select('financial_data').eq('id', projectId).single()
+        const fd = data?.financial_data as Record<string, unknown> | null
+        if (fd && Object.keys(fd).length > 0) {
+          if (fd.sozlesme)    { setSozlesme(fd.sozlesme as number); setSozlesmeInput(String(fd.sozlesme)) }
+          if (fd.tahsilatlar) setTahsilatlar(fd.tahsilatlar as TahsilatItem[])
+          if (fd.kalemler)    setKalemler(fd.kalemler as KalemItem[])
+          setLsLoaded(true)
+          return
+        }
+      } catch {}
+      // Supabase boşsa localStorage'a bak
+      try {
+        const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+        if (stored.sozlesme)    { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
+        if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
+        if (stored.kalemler)    setKalemler(stored.kalemler)
+      } catch {}
+      setLsLoaded(true)
+    }
+    load()
+  }, [projectId, lsKey])
 
-  // Değişince kaydet
+  // 2. Değişince hem localStorage hem Supabase'e kaydet
   useEffect(() => {
     if (!lsLoaded) return
-    localStorage.setItem(lsKey, JSON.stringify({ sozlesme, tahsilatlar, kalemler }))
-  }, [sozlesme, tahsilatlar, kalemler, lsLoaded, lsKey])
+    const payload = { sozlesme, tahsilatlar, kalemler }
+    localStorage.setItem(lsKey, JSON.stringify(payload))
+    setSyncing(true)
+    supabase.from('projects')
+      .update({ financial_data: payload })
+      .eq('id', projectId)
+      .then(() => setSyncing(false))
+  }, [sozlesme, tahsilatlar, kalemler, lsLoaded, lsKey, projectId])
 
   const [tahsilatPanel, setTahsilatPanel] = useState(false)
   const [tForm, setTForm]                 = useState({ malik: '', tutar: '', tarih: '' })
@@ -803,9 +904,20 @@ const FinansalTab = ({ slug }: { slug: string }) => {
             <p className="font-bold text-sm text-primary-800">Sözleşme Bedeli</p>
             <p className="text-xs text-neutral-500 mt-0.5">Ana sözleşme tutarını elle gir.</p>
           </div>
-          <span className="bg-info-50 text-info-700 text-xs font-bold px-3 py-1.5 rounded-xl flex-shrink-0 ml-3">
-            {tl(sozlesme)}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+            {syncing && (
+              <span className="flex items-center gap-1 text-[11px] text-neutral-400">
+                <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#D3D1C7" strokeWidth="3"/>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="#888780" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+                Kaydediliyor
+              </span>
+            )}
+            <span className="bg-info-50 text-info-700 text-xs font-bold px-3 py-1.5 rounded-xl">
+              {tl(sozlesme)}
+            </span>
+          </div>
         </div>
         <input
           type="number"
@@ -948,11 +1060,23 @@ const FinansalTab = ({ slug }: { slug: string }) => {
       <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-base text-primary-800">Maliyet Kalemleri</h2>
-          <button onClick={() => setKalemPanel(v => !v)}
-            className="flex items-center gap-1.5 bg-primary-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-primary-700 transition-colors">
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>
-            Kalem Ekle
-          </button>
+          <div className="flex items-center gap-2">
+            {kalemler.length > 0 && (
+              <button onClick={() => exportKalemlerExcel(kalemler, sozlesme)}
+                className="flex items-center gap-1.5 border border-success-200 bg-success-50 text-success-700 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-success-100 transition-colors">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <path d="M14 2v6h6M12 14v4M10 16l2 2 2-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Excel
+              </button>
+            )}
+            <button onClick={() => setKalemPanel(v => !v)}
+              className="flex items-center gap-1.5 bg-primary-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-primary-700 transition-colors">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              Kalem Ekle
+            </button>
+          </div>
         </div>
 
         {kalemPanel && (
@@ -2539,7 +2663,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         )}
 
         {/* FİNANSAL */}
-        {tab === 'finansal' && <FinansalTab slug={project.slug} />}
+        {tab === 'finansal' && <FinansalTab slug={project.slug} projectId={project.id} />}
 
         {/* DAİRELER */}
         {tab === 'daireler' && <DairelerTab slug={project.slug} />}
