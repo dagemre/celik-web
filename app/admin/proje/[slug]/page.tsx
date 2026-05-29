@@ -554,14 +554,23 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
 }
 
 // ── Görseller ──────────────────────────────────────────────────────────────────
-const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
+const GorsellerKart = ({ photos, setPhotos, slug, projectId, coverUrl, onCoverChange }: {
   photos: string[]; setPhotos: (p: string[]) => void
   slug: string; projectId: string
+  coverUrl?: string; onCoverChange?: (url: string) => void
 }) => {
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting]   = useState<string | null>(null)
+  const [settingCover, setSettingCover] = useState<string | null>(null)
   const [lightbox, setLightbox]   = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSetCover = async (url: string) => {
+    setSettingCover(url)
+    await supabase.from('projects').update({ image_url: url }).eq('id', projectId)
+    onCoverChange?.(url)
+    setSettingCover(null)
+  }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
@@ -615,6 +624,30 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
             <div key={src} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group cursor-pointer"
               onClick={() => setLightbox(i)}>
               <img src={src} alt="" className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />
+
+              {/* Kapak rozeti — seçili ise */}
+              {coverUrl === src && (
+                <div className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-warning-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg z-10 leading-tight">
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  Kapak
+                </div>
+              )}
+
+              {/* Kapak Yap butonu */}
+              {coverUrl !== src && (
+                <button
+                  onClick={e => { e.stopPropagation(); handleSetCover(src) }}
+                  disabled={settingCover === src}
+                  title="Kapak görseli yap"
+                  className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-black/60 text-white text-[9px] font-medium px-1.5 py-0.5 rounded-lg z-10 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 leading-tight">
+                  {settingCover === src
+                    ? <svg className="animate-spin" width="8" height="8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                    : <svg width="8" height="8" viewBox="0 0 24 24" fill="white"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  }
+                  Kapak
+                </button>
+              )}
+
               {/* Sil butonu */}
               <button
                 onClick={e => { e.stopPropagation(); handleDelete(src) }}
@@ -626,10 +659,6 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
                   : <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>
                 }
               </button>
-              {/* Büyüt ikonu */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-end justify-start p-1.5">
-                <span className="text-[9px] text-white/0 group-hover:text-white/80 font-medium transition-colors">{i + 1}</span>
-              </div>
             </div>
           ))}
         </div>
@@ -2874,6 +2903,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
   const [mapLng,       setMapLng]       = useState<number | null>(null)
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
   const [photos,       setPhotos]       = useState<string[]>([])
+  const [coverUrl,     setCoverUrl]     = useState<string>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting]               = useState(false)
 
@@ -2897,6 +2927,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
           if (data.map_lng) setMapLng(data.map_lng)
           if (Array.isArray(data.nearby_places)) setNearbyPlaces(data.nearby_places)
           if (Array.isArray(data.photos)) setPhotos(data.photos)
+          if (data.image_url) setCoverUrl(data.image_url)
         }
         setLoading(false)
       })
@@ -3046,7 +3077,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
                 </div>
                 <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
                 <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
-                <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} />
+                <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} coverUrl={coverUrl} onCoverChange={url => { setCoverUrl(url); setProject(prev => prev ? { ...prev, image_url: url } : prev) }} />
               </div>
               <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
                 <FinansalKartlar slug={project.slug} />

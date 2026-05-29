@@ -194,7 +194,10 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
     : staticPhotos.length > 0
       ? staticPhotos
       : proje.image_url ? [proje.image_url] : []
-  const heroImage = gallery[0] ?? proje.image_url ?? ''
+  // Kapak: admin'in seçtiği image_url önce; yoksa galeri'nin ilki
+  const heroImage = (proje.image_url && uploadedPhotos.includes(proje.image_url))
+    ? proje.image_url
+    : gallery[0] ?? proje.image_url ?? ''
 
   // Stats bar için ek bilgiler
   const stats = [
