@@ -31,9 +31,9 @@ export default function HakkimizdaPage() {
             {/* Sol: Fotoğraf */}
             <div className="rounded-2xl overflow-hidden shadow-md h-full min-h-[360px]">
               <img
-                src="/buildin-hakkimizda.png"
-                alt="Çelik İnşaat Şantiyesi"
-                className="w-full h-full object-cover object-center"
+                src="/Soner-hakkimizda.jpg"
+                alt="Soner Çelik"
+                className="w-full h-full object-cover object-top"
                 style={{ minHeight: 360 }}
               />
             </div>
