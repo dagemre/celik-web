@@ -213,26 +213,63 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
             </div>
 
             {/* İlerleme — her zaman göster */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Proje İlerlemesi</h3>
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-5xl font-bold text-[#1E54C8]">%{proje.ilerleme}</span>
-                  <span className="text-gray-400 text-sm mb-2">Tamamlandı</span>
-                </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#1E54C8] rounded-full transition-all duration-1000"
-                    style={{ width: `${proje.ilerleme}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-2">
-                  <span>Başlangıç</span>
-                  <span>Tamamlandı</span>
-                </div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-8">
+              <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Proje İlerlemesi</h3>
+              <div className="flex items-end gap-3 mb-4">
+                <span className="text-5xl font-bold text-[#1E54C8]">%{proje.ilerleme}</span>
+                <span className="text-gray-400 text-sm mb-2">Tamamlandı</span>
               </div>
-              <div className="flex justify-end mt-4">
-                <img src="/icons/proje-detail-ilerleme.svg" alt="İnşaat" className="h-24 opacity-20" />
+              <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
+                <div
+                  className="h-full bg-[#1E54C8] rounded-full transition-all duration-1000"
+                  style={{ width: `${proje.ilerleme}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mb-6">
+                <span>Başlangıç</span>
+                <span>Tamamlandı</span>
+              </div>
+
+              {/* Yapım Aşamaları */}
+              <div className="space-y-2">
+                {[
+                  'Temel Kazı',
+                  'Betonarme',
+                  'Duvar Örme',
+                  'Elektrik Tesisatı',
+                  'İç Sıva',
+                  'Dış Cephe',
+                  'İç Mekan',
+                  'Peyzaj',
+                ].map((label, i) => {
+                  const done = proje.ilerleme >= (i + 1) * 12.5
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl ${done ? 'bg-emerald-50' : 'bg-gray-50'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {done ? (
+                          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                              <path d="M5 12h14M13 6l6 6-6 6" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )}
+                        <span className={`text-sm font-medium ${done ? 'text-emerald-800' : 'text-gray-400'}`}>{label}</span>
+                      </div>
+                      <span className={`text-xs font-bold ${done ? 'text-emerald-600' : 'text-gray-400'}`}>
+                        {done ? 'Tamamlandı' : 'Beklemede'}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
