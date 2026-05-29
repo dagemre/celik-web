@@ -619,7 +619,7 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
               <button
                 onClick={e => { e.stopPropagation(); handleDelete(src) }}
                 disabled={deleting === src}
-                className="absolute top-1.5 right-1.5 w-6 h-6 bg-danger-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+                className="absolute top-1.5 right-1.5 w-7 h-7 md:w-6 md:h-6 bg-danger-600 rounded-full flex items-center justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
               >
                 {deleting === src
                   ? <svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
