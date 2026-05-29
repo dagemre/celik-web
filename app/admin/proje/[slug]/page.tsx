@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
@@ -406,12 +406,27 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
   phases: PhaseList; setPhases: (p: PhaseList) => void
   projectId: string; onClose: () => void
 }) => {
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving]       = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const dragIdx = useRef<number | null>(null)
+  const dragOverIdx = useRef<number | null>(null)
 
+  // Kaydet: bu projeyi güncelle + tüm diğer projelere aynı etiketleri yay
   const handleSave = async () => {
     setSaving(true)
+    // 1. Bu projeyi kaydet
     await supabase.from('projects').update({ progress, phases }).eq('id', projectId)
+    // 2. Diğer projelere aynı aşama isimlerini yay (done durumları korunur)
+    const { data: others } = await supabase.from('projects').select('id, phases').neq('id', projectId)
+    if (others && others.length > 0) {
+      await Promise.all(others.map(proj => {
+        const existingDone: boolean[] = Array.isArray(proj.phases)
+          ? proj.phases.map((p: { done?: boolean }) => p.done ?? false)
+          : []
+        const updated = phases.map((ph, i) => ({ label: ph.label, done: existingDone[i] ?? false }))
+        return supabase.from('projects').update({ phases: updated }).eq('id', proj.id)
+      }))
+    }
     setSaving(false)
     onClose()
   }
@@ -433,8 +448,22 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
     setEditingIdx(phases.length)
   }
 
+  // Drag-and-drop handlers
+  const onDragStart = (i: number) => { dragIdx.current = i }
+  const onDragEnter = (i: number) => { dragOverIdx.current = i }
+  const onDragEnd   = () => {
+    if (dragIdx.current === null || dragOverIdx.current === null) return
+    if (dragIdx.current === dragOverIdx.current) return
+    const n = [...phases]
+    const [moved] = n.splice(dragIdx.current, 1)
+    n.splice(dragOverIdx.current, 0, moved)
+    setPhases(n)
+    dragIdx.current = null
+    dragOverIdx.current = null
+  }
+
   return (
-  <Modal title="İlerlemeyi Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
+  <Modal title="İlerlemeyi Düzenle" onClose={onClose} onSave={handleSave} saving={saving} saveLabel="Kaydet (Tüm Projelere Uygula)">
     <div className="mb-6">
       <div className="flex justify-between mb-2">
         <label className="text-xs font-medium text-neutral-500">Genel İlerleme</label>
@@ -445,10 +474,30 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
       <div className="flex justify-between text-[10px] text-neutral-400 mt-1"><span>%0</span><span>%100</span></div>
     </div>
 
-    <p className="text-xs font-medium text-neutral-500 mb-3">Yapım Aşamaları</p>
+    <div className="flex items-center justify-between mb-3">
+      <p className="text-xs font-medium text-neutral-500">Yapım Aşamaları</p>
+      <p className="text-[10px] text-neutral-400">Sıralamak için sürükle</p>
+    </div>
     <div className="space-y-2 mb-3">
       {phases.map((ph, i) => (
-        <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}>
+        <div
+          key={i}
+          draggable
+          onDragStart={() => onDragStart(i)}
+          onDragEnter={() => onDragEnter(i)}
+          onDragEnd={onDragEnd}
+          onDragOver={e => e.preventDefault()}
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors cursor-grab active:cursor-grabbing active:opacity-50 ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}
+        >
+          {/* Sürükle tutacağı */}
+          <div className="flex-shrink-0 text-neutral-300 cursor-grab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+              <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+              <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+            </svg>
+          </div>
+
           {/* Tamamlandı toggle */}
           <button onClick={() => toggleDone(i)}
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${ph.done ? 'bg-success-600 border-success-600' : 'bg-white border-neutral-300'}`}>
@@ -471,7 +520,7 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
             </button>
           )}
 
-          {/* Kalem ikonu */}
+          {/* Kalem */}
           <button onClick={() => setEditingIdx(i)} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-neutral-200 transition-colors flex-shrink-0">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round"/>
