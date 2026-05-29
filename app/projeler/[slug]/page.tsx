@@ -144,6 +144,9 @@ const GALLERY_MAP: Record<string, string[]> = {
   ],
 }
 
+// Her zaman taze veri çek — admin değişiklikleri anında yansısın
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const { data } = await supabase
     .from('projects')
