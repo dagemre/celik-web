@@ -18,7 +18,7 @@ import {
 
 // ─── Mock Data (auth + seed data gelene kadar fallback) ───────────────────────
 // TODO: Auth kurulunca MOCK_OWNER_ID → supabase.auth.getUser().id ile değişecek
-const MOCK_OWNER_ID = '' // boş bırakıldı → gerçek veri yoksa mock'a düşer
+const MOCK_OWNER_ID = 'b1000001-0000-0000-0000-000000000001' // Emre Dağ — D-1 Değirmen Sokak
 
 const MOCK_MALIK: MalikBilgi = {
   id: 'mock',
@@ -109,14 +109,16 @@ export default function MalikDashboardPage() {
     // TODO: Auth kurulunca MOCK_OWNER_ID → session.user.id
     if (!MOCK_OWNER_ID) return
     async function yukle() {
-      const [bilgi, odeme, duyuru] = await Promise.all([
+      const [bilgi, odeme] = await Promise.all([
         getMalikBilgi(MOCK_OWNER_ID),
         getMalikOdemeleri(MOCK_OWNER_ID),
-        getProjeeDuyurulari(MOCK_OWNER_ID), // project_id auth sonrası bilgi'den gelecek
       ])
-      if (bilgi)  setMalik(bilgi)
-      if (odeme.length)  setOdemeler(odeme)
-      if (duyuru.length) setDuyurular(duyuru)
+      if (bilgi) {
+        setMalik(bilgi)
+        const duyuru = await getProjeeDuyurulari(bilgi.project_id)
+        if (duyuru.length) setDuyurular(duyuru)
+      }
+      if (odeme.length) setOdemeler(odeme)
     }
     yukle()
   }, [])

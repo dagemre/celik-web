@@ -1776,23 +1776,39 @@ const NotlarTab = () => (
 )
 
 // ── Ayarlar Tab ────────────────────────────────────────────────────────────────
-const AyarlarTab = ({ project }: { project: Project }) => (
+const AyarlarTab = ({ project, onStatusSaved }: { project: Project; onStatusSaved: (status: string) => void }) => {
+  const [selected, setSelected] = useState(project.status)
+  const [saving,   setSaving]   = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    await supabase.from('projects').update({ status: selected }).eq('id', project.id)
+    onStatusSaved(selected)
+    setSaving(false)
+  }
+
+  return (
   <div className="max-w-2xl space-y-4">
     <Card title="Proje Durumu">
       <div className="space-y-3">
         {Object.entries(STATUS_STYLE).map(([key, s]) => (
-          <label key={key} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${project.status === key ? `${s.bg} border-transparent` : 'bg-neutral-50 border-neutral-100 hover:bg-neutral-100'}`}>
+          <label key={key} onClick={() => setSelected(key)} className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-colors ${selected === key ? `${s.bg} border-transparent` : 'bg-neutral-50 border-neutral-100 hover:bg-neutral-100'}`}>
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${project.status === key ? 'border-primary-800 bg-primary-800' : 'border-neutral-300'}`}>
-                {project.status === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selected === key ? 'border-primary-800 bg-primary-800' : 'border-neutral-300'}`}>
+                {selected === key && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <span className={`text-sm font-medium ${project.status === key ? s.text : 'text-neutral-600'}`}>{s.label}</span>
+              <span className={`text-sm font-medium ${selected === key ? s.text : 'text-neutral-600'}`}>{s.label}</span>
             </div>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${s.bg} ${s.text}`}>{s.label}</span>
           </label>
         ))}
       </div>
-      <button className="mt-4 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+      <button
+        onClick={handleSave}
+        disabled={saving || selected === project.status}
+        className="mt-4 bg-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 disabled:opacity-40 transition-colors flex items-center gap-2"
+      >
+        {saving && <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>}
         Durumu Güncelle
       </button>
     </Card>
@@ -1807,7 +1823,8 @@ const AyarlarTab = ({ project }: { project: Project }) => (
       </button>
     </Card>
   </div>
-)
+  )
+}
 
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────────
 export default function AdminProjeDetay({ params }: { params: { slug: string } }) {
@@ -2007,7 +2024,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {tab === 'malikler' && <MaliklerTab />}
 
         {/* AYARLAR */}
-        {tab === 'ayarlar' && <AyarlarTab project={project} />}
+        {tab === 'ayarlar' && <AyarlarTab project={project} onStatusSaved={status => setProject(prev => prev ? { ...prev, status } : prev)} />}
       </div>
 
       {/* ── Modaller ────────────────────────────────────────────────────── */}
