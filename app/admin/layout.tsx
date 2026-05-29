@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminBottomNav from '@/components/admin/AdminBottomNav'
+import AddToHomeScreen from '@/components/AddToHomeScreen'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
@@ -134,6 +135,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Mobil bottom nav */}
         <AdminBottomNav />
+
+        {/* Anasayfaya ekle uyarısı (sadece mobil) */}
+        <AddToHomeScreen />
 
       </div>
     </div>
