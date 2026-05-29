@@ -694,11 +694,31 @@ const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
 
 
 // ── Finansal Tab ───────────────────────────────────────────────────────────────
-const FinansalTab = () => {
+const FinansalTab = ({ slug }: { slug: string }) => {
+  const lsKey = `finansal_${slug}`
+
   const [sozlesme, setSozlesme]           = useState(18_000_000)
   const [sozlesmeInput, setSozlesmeInput] = useState('18000000')
   const [tahsilatlar, setTahsilatlar]     = useState<TahsilatItem[]>(INIT_TAHSILATLAR)
   const [kalemler, setKalemler]           = useState<KalemItem[]>(INIT_KALEMLER)
+  const [lsLoaded, setLsLoaded]           = useState(false)
+
+  // LocalStorage'dan yükle
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+      if (stored.sozlesme)    { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
+      if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
+      if (stored.kalemler)    setKalemler(stored.kalemler)
+    } catch {}
+    setLsLoaded(true)
+  }, [lsKey])
+
+  // Değişince kaydet
+  useEffect(() => {
+    if (!lsLoaded) return
+    localStorage.setItem(lsKey, JSON.stringify({ sozlesme, tahsilatlar, kalemler }))
+  }, [sozlesme, tahsilatlar, kalemler, lsLoaded, lsKey])
 
   const [tahsilatPanel, setTahsilatPanel] = useState(false)
   const [tForm, setTForm]                 = useState({ ad: '', tutar: '', tarih: '' })
@@ -1068,10 +1088,27 @@ const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
 )
 
 // ── Daireler Tab ───────────────────────────────────────────────────────────────
-const DairelerTab = () => {
+const DairelerTab = ({ slug }: { slug: string }) => {
+  const lsKey = `daireler_${slug}`
+
   const [daireler, setDaireler]   = useState<DaireItem[]>(INITIAL_DAIRELER)
   const [katSayisi, setKatSayisi] = useState(6)
   const [expandedKat, setExpandedKat] = useState<number | null>(1)
+  const [lsLoaded, setLsLoaded]   = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+      if (stored.daireler)  setDaireler(stored.daireler)
+      if (stored.katSayisi) setKatSayisi(stored.katSayisi)
+    } catch {}
+    setLsLoaded(true)
+  }, [lsKey])
+
+  useEffect(() => {
+    if (!lsLoaded) return
+    localStorage.setItem(lsKey, JSON.stringify({ daireler, katSayisi }))
+  }, [daireler, katSayisi, lsLoaded, lsKey])
   const [addPanel, setAddPanel]   = useState<number | null>(null)
   const [addForm, setAddForm]     = useState<DaireForm>({ tip: '2+1', brut: '', malik: 'Müsait' })
 
@@ -1605,9 +1642,25 @@ const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNea
 }
 
 // ── Evraklar Tab ───────────────────────────────────────────────────────────────
-const EvraklarTab = () => {
+const EvraklarTab = ({ slug }: { slug: string }) => {
+  const lsKey = `evraklar_${slug}`
+
   const [evraklar, setEvraklar]         = useState<EvrakItem[]>(EVRAKLAR_MOCK)
+  const [lsLoaded, setLsLoaded]         = useState(false)
   const [aramaText, setAramaText]       = useState('')
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+      if (stored.evraklar) setEvraklar(stored.evraklar)
+    } catch {}
+    setLsLoaded(true)
+  }, [lsKey])
+
+  useEffect(() => {
+    if (!lsLoaded) return
+    localStorage.setItem(lsKey, JSON.stringify({ evraklar }))
+  }, [evraklar, lsLoaded, lsKey])
   const [aktifKat, setAktifKat]         = useState('Tümü')
   const [expandedKlasor, setExpandedKlasor] = useState<string | null>('Ruhsat')
   const [showPanel, setShowPanel]       = useState(false)
@@ -1902,9 +1955,25 @@ const MALIKLER_MOCK: MalikItem[] = [
 ]
 
 // ── Malikler Tab ───────────────────────────────────────────────────────────────
-const MaliklerTab = () => {
+const MaliklerTab = ({ slug }: { slug: string }) => {
+  const lsKey = `malikler_${slug}`
+
   const [malikler, setMalikler] = useState<MalikItem[]>(MALIKLER_MOCK)
+  const [lsLoaded, setLsLoaded] = useState(false)
   const [showModal, setShowModal] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+      if (stored.malikler) setMalikler(stored.malikler)
+    } catch {}
+    setLsLoaded(true)
+  }, [lsKey])
+
+  useEffect(() => {
+    if (!lsLoaded) return
+    localStorage.setItem(lsKey, JSON.stringify({ malikler }))
+  }, [malikler, lsLoaded, lsKey])
   const [form, setForm] = useState<MalikForm>({
     name: '', phone: '', email: '', daire: '',
     toplam: '', odenen: '', vade: '', tip: '2+1',
@@ -2411,16 +2480,16 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         )}
 
         {/* FİNANSAL */}
-        {tab === 'finansal' && <FinansalTab />}
+        {tab === 'finansal' && <FinansalTab slug={project.slug} />}
 
         {/* DAİRELER */}
-        {tab === 'daireler' && <DairelerTab />}
+        {tab === 'daireler' && <DairelerTab slug={project.slug} />}
 
         {/* EVRAKLAR */}
-        {tab === 'evraklar' && <EvraklarTab />}
+        {tab === 'evraklar' && <EvraklarTab slug={project.slug} />}
 
         {/* MALİKLER */}
-        {tab === 'malikler' && <MaliklerTab />}
+        {tab === 'malikler' && <MaliklerTab slug={project.slug} />}
 
         {/* AYARLAR */}
         {tab === 'ayarlar' && <AyarlarTab project={project} onStatusSaved={status => setProject(prev => prev ? { ...prev, status } : prev)} />}
