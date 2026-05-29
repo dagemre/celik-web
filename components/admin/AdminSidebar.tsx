@@ -88,7 +88,7 @@ export default function AdminSidebar({ open, onClose }: Props) {
       {/* Sidebar */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-44 bg-[#0A1F44]
+        w-56 bg-[#0A1F44]
         flex flex-col transition-transform duration-300
         ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
