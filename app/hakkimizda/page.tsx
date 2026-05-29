@@ -55,25 +55,7 @@ export default function HakkimizdaPage() {
 
               {/* İmza */}
               <div className="mt-8 flex items-center gap-4">
-                <svg width="110" height="52" viewBox="0 0 110 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M8 36 C12 28, 18 18, 26 20 C34 22, 28 34, 34 32 C40 30, 44 22, 50 24 C54 26, 52 32, 56 30"
-                    stroke="#0A1F44" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
-                  />
-                  <path
-                    d="M56 30 C62 26, 68 20, 74 22 C80 24, 76 32, 82 28 C86 26, 90 22, 96 24 C100 26, 102 30, 104 28"
-                    stroke="#0A1F44" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
-                  />
-                  <path
-                    d="M20 42 C30 44, 60 44, 90 40"
-                    stroke="#0A1F44" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.4"
-                  />
-                  {/* S harfi */}
-                  <path
-                    d="M10 24 C14 20, 22 20, 20 26 C18 30, 10 30, 12 36 C14 40, 24 40, 28 36"
-                    stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"
-                  />
-                </svg>
+                <img src="/snr-imza.svg" alt="Soner Çelik İmza" width={110} height={52} />
                 <div>
                   <p className="font-bold text-[#0A1F44] text-base">Soner Çelik</p>
                   <p className="text-gray-400 text-xs mt-0.5">Kurucu & Genel Müdür</p>
