@@ -2667,8 +2667,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
     { key: 'finansal', label: 'Finansal'    },
     { key: 'daireler', label: 'Daireler'    },
     { key: 'evraklar', label: 'Evraklar'    },
-    { key: 'malikler', label: 'Malikler'    },
-    { key: 'ayarlar',  label: 'Ayarlar'     },
+    // Malikler ve Ayarlar sekmeleri gizlendi
   ]
 
   if (loading) return (
@@ -2799,23 +2798,37 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
 
         {/* GENEL BAKIŞ */}
         {tab === 'genel' && (
-          <div className="md:flex md:gap-5 md:items-start">
-            <div className="md:flex-1 space-y-4 min-w-0">
-              <div className="md:hidden">
-                <FinansalKartlar slug={project.slug} />
+          <div>
+            <div className="md:flex md:gap-5 md:items-start">
+              <div className="md:flex-1 space-y-4 min-w-0">
+                <div className="md:hidden">
+                  <FinansalKartlar slug={project.slug} />
+                </div>
+                <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
+                <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
+                <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} />
               </div>
-              <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
-              <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
-              <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} />
+              <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
+                <FinansalKartlar slug={project.slug} />
+                <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+                <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
+              </div>
+              <div className="md:hidden mt-4 space-y-4">
+                <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
+                <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
+              </div>
             </div>
-            <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
-              <FinansalKartlar slug={project.slug} />
-              <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
-              <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
-            </div>
-            <div className="md:hidden mt-4 space-y-4">
-              <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
-              <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
+
+            {/* ── Tehlikeli Alan ── */}
+            <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5 mt-4">
+              <h2 className="font-bold text-base text-primary-800 mb-1">Tehlikeli Alan</h2>
+              <p className="text-sm text-neutral-500 mb-4">Bu işlemler geri alınamaz. Dikkatli olun.</p>
+              <button className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Projeyi Sil
+              </button>
             </div>
           </div>
         )}
