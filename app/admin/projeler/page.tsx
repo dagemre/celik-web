@@ -343,13 +343,13 @@ export default function AdminProjelerPage() {
             Tüm projelerinizi görüntüleyebilir, detaylarına ulaşabilir ve yönetebilirsiniz.
           </p>
         </div>
-        <button className="flex-shrink-0 flex items-center gap-2 bg-primary-800 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors">
+        <Link href="/admin/projeler/yeni" className="flex-shrink-0 flex items-center gap-2 bg-primary-800 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-700 transition-colors">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
           <span className="hidden sm:inline">Yeni Proje Ekle</span>
           <span className="sm:hidden">Ekle</span>
-        </button>
+        </Link>
       </div>
 
       {/* ── Filtreler — Desktop ─────────────────────────────────────────── */}

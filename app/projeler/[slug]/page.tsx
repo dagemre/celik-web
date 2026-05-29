@@ -14,16 +14,17 @@ const FEATURE_OPTIONS: Record<string, { icon: string; label: string }> = {
   'gorevli-guvenlik':  { icon: 'security',         label: 'Görevli Güvenlik'    },
   'jenerator':         { icon: 'generator',        label: 'Jeneratör'           },
   'dogalgaz':          { icon: 'generator',        label: 'Doğalgaz'            },
-  'kombili':           { icon: 'bina-klima',       label: 'Kombi (Her Daireye)' },
+  'kombili':           { icon: 'bina-klima',       label: 'Bireysel Kombi'      },
   'merkezi-isitma':    { icon: 'bina-klima',       label: 'Merkezi Isıtma'      },
   'interkom':          { icon: 'bell',             label: 'İnterkom / Diafon'   },
   'yangin-merdiveni':  { icon: 'building',         label: 'Yangın Merdiveni'    },
   'teras':             { icon: 'bina-balkon',      label: 'Teras / Çatı Katı'   },
   'bahce':             { icon: 'tree',             label: 'Bahçe / Yeşil Alan'  },
-  'deprem-yalitim':    { icon: 'building',         label: 'Deprem Yalıtımı'     },
+  'deprem-yalitim':    { icon: 'building',         label: 'Deprem İzolatörü'    },
   'isı-yalitim':       { icon: 'bina-yerden',      label: 'Isı Yalıtımı'        },
   'isi-yalitim':       { icon: 'bina-yerden',      label: 'Isı Yalıtımı'        },
   'ses-yalitim':       { icon: 'bina-depo',        label: 'Ses Yalıtımı'        },
+  'elektrikli-panjur': { icon: 'bina-yon',         label: 'Elektrikli Panjür'   },
 }
 
 // Galeri resimleri — slug'a göre statik eşleme (public klasöründen)

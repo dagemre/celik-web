@@ -90,15 +90,16 @@ const FEATURES = [
   { key: 'gorevli-guvenlik',  label: 'Görevli Güvenlik',      icon: '/icons/security.svg'        },
   { key: 'jenerator',         label: 'Jeneratör',             icon: '/icons/generator.svg'       },
   { key: 'dogalgaz',          label: 'Doğalgaz',              icon: '/icons/bina-klima.svg'      },
-  { key: 'kombili',           label: 'Kombi (Her Daireye)',   icon: '/icons/home-roof.svg'       },
+  { key: 'kombili',           label: 'Bireysel Kombi',         icon: '/icons/home-roof.svg'       },
   { key: 'merkezi-isitma',    label: 'Merkezi Isıtma',        icon: '/icons/home-roof.svg'       },
   { key: 'interkom',          label: 'İnterkom / Diafon',     icon: '/icons/bell.svg'            },
   { key: 'yangin-merdiveni',  label: 'Yangın Merdiveni',      icon: '/icons/building.svg'        },
   { key: 'teras',             label: 'Teras / Çatı Katı',     icon: '/icons/bina-balkon.svg'     },
   { key: 'bahce',             label: 'Bahçe / Yeşil Alan',    icon: '/icons/tree.svg'            },
-  { key: 'deprem-yalitim',    label: 'Deprem Yalıtımı',       icon: '/icons/building.svg'        },
+  { key: 'deprem-yalitim',    label: 'Deprem İzolatörü',       icon: '/icons/building.svg'        },
   { key: 'isı-yalitim',       label: 'Isı Yalıtımı',          icon: '/icons/bina-yerden.svg'     },
   { key: 'ses-yalitim',       label: 'Ses Yalıtımı',          icon: '/icons/bina-depo.svg'       },
+  { key: 'elektrikli-panjur', label: 'Elektrikli Panjür',     icon: '/icons/bina-yon.svg'        },
 ]
 
 const PHASES = [

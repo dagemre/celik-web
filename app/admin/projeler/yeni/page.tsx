@@ -19,15 +19,16 @@ const FEATURE_OPTIONS = [
   { key: 'gorevli-guvenlik',  icon: '💂',  label: 'Görevli Güvenlik'    },
   { key: 'jenerator',         icon: '⚡',  label: 'Jeneratör'           },
   { key: 'dogalgaz',          icon: '🔥',  label: 'Doğalgaz'            },
-  { key: 'kombili',           icon: '🌡️', label: 'Kombi (Her Daireye)' },
+  { key: 'kombili',           icon: '🌡️', label: 'Bireysel Kombi'      },
   { key: 'merkezi-isitma',    icon: '♨️',  label: 'Merkezi Isıtma'      },
   { key: 'interkom',          icon: '🔔',  label: 'İnterkom / Diafon'   },
   { key: 'yangin-merdiveni',  icon: '🚒',  label: 'Yangın Merdiveni'    },
   { key: 'teras',             icon: '🏡',  label: 'Teras / Çatı Katı'   },
   { key: 'bahce',             icon: '🌿',  label: 'Bahçe / Yeşil Alan'  },
-  { key: 'deprem-yalitim',    icon: '🏗️', label: 'Deprem Yalıtımı'     },
+  { key: 'deprem-yalitim',    icon: '🏗️', label: 'Deprem İzolatörü'    },
   { key: 'isı-yalitim',       icon: '🧱',  label: 'Isı Yalıtımı'        },
   { key: 'ses-yalitim',       icon: '🔇',  label: 'Ses Yalıtımı'        },
+  { key: 'elektrikli-panjur', icon: '🪟',  label: 'Elektrikli Panjür'   },
 ]
 
 function slugify(text: string) {
