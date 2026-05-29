@@ -57,6 +57,12 @@ const TECHNICAL_DOCS = [
   { id: '3', title: 'Elektrik Projesi', size: '1.8 MB' },
 ]
 
+const RECENT_PAYMENTS = [
+  { id: '1', date: '4 Mayıs 2026',   method: 'Havale', amount: 300000 },
+  { id: '2', date: '1 Mart 2026',    method: 'Havale', amount: 50000  },
+  { id: '3', date: '15 Ocak 2026',   method: 'Havale', amount: 50000  },
+]
+
 function formatTL(n: number) { return n.toLocaleString('tr-TR') + ' TL' }
 
 // ─── Donut Chart ──────────────────────────────────────────────────────────────
@@ -328,19 +334,19 @@ export default function MalikDashboardPage() {
                   {/* Proje Kartı */}
                   <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col">
                     <div className="h-52 flex-shrink-0">
-                      <img src={malik.imageUri} alt={malik.projectName} className="w-full h-full object-cover" />
+                      <img src={malik.project_image_url} alt={malik.project_name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 p-5">
-                      <h3 className="text-base font-bold text-[#0A1F44]">{malik.projectName}</h3>
+                      <h3 className="text-base font-bold text-[#0A1F44]">{malik.project_name}</h3>
                       <div className="flex items-center gap-1.5 mt-1 mb-4">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        <p className="text-xs text-gray-400">{malik.location}</p>
+                        <p className="text-xs text-gray-400">{malik.project_location}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                         <div><p className="text-xs text-gray-400 mb-1">Proje Durumu</p><span className="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-lg">Devam Ediyor</span></div>
-                        <div><p className="text-xs text-gray-400 mb-1">Blok</p><p className="text-sm font-bold text-[#0A1F44]">{malik.block} Blok</p></div>
+                        <div><p className="text-xs text-gray-400 mb-1">Daire Tipi</p><p className="text-sm font-bold text-[#0A1F44]">{malik.unit_type}</p></div>
                         <div><p className="text-xs text-gray-400 mb-1">Kat</p><p className="text-sm font-bold text-[#0A1F44]">{malik.floor}. Kat</p></div>
-                        <div><p className="text-xs text-gray-400 mb-1">Daire No</p><p className="text-sm font-bold text-[#0A1F44]">{malik.unitNumber}</p></div>
+                        <div><p className="text-xs text-gray-400 mb-1">Daire No</p><p className="text-sm font-bold text-[#0A1F44]">{malik.unit_no}</p></div>
                       </div>
                       <button className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#0A1F44] hover:text-blue-600 transition-colors">
                         Proje detayına git
