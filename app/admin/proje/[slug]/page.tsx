@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 
@@ -2861,6 +2862,7 @@ const AyarlarTab = ({ project, onStatusSaved }: { project: Project; onStatusSave
 
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────────
 export default function AdminProjeDetay({ params }: { params: { slug: string } }) {
+  const router = useRouter()
   const [project, setProject]               = useState<Project | null>(null)
   const [loading, setLoading]               = useState(true)
   const [tab, setTab]                       = useState<Tab>('genel')
@@ -2872,6 +2874,16 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
   const [mapLng,       setMapLng]       = useState<number | null>(null)
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
   const [photos,       setPhotos]       = useState<string[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting]               = useState(false)
+
+  const handleDeleteProject = async () => {
+    if (!project) return
+    setDeleting(true)
+    await supabase.from('projects').delete().eq('id', project.id)
+    setDeleting(false)
+    router.push('/admin/projeler')
+  }
 
   useEffect(() => {
     supabase.from('projects').select('*').eq('slug', params.slug).single()
@@ -3048,10 +3060,17 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
             </div>
 
             {/* ── Tehlikeli Alan ── */}
-            <div className="bg-white rounded-2xl border border-neutral-100 p-4 md:p-5 mt-4">
-              <h2 className="font-bold text-base text-primary-800 mb-1">Tehlikeli Alan</h2>
+            <div className="bg-white rounded-2xl border border-danger-100 p-4 md:p-5 mt-4">
+              <div className="flex items-center gap-2 mb-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-danger-600 flex-shrink-0">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#A32D2D" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <path d="M12 9v4M12 17h.01" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <h2 className="font-bold text-base text-danger-700">Tehlikeli Alan</h2>
+              </div>
               <p className="text-sm text-neutral-500 mb-4">Bu işlemler geri alınamaz. Dikkatli olun.</p>
-              <button className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
+              <button onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-2 bg-danger-50 text-danger-700 border border-danger-100 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger-100 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -3082,6 +3101,45 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       {editModal === 'ozellikler' && <BinaOzellikleriModal activeFeatures={activeFeatures} setActiveFeatures={setActiveFeatures} projectId={project.id} onClose={() => setEditModal(null)} />}
       {editModal === 'ilerleme'   && <ProjeIlerlemesiModal progress={progress} setProgress={setProgress} phases={phases} setPhases={setPhases} projectId={project.id} onClose={() => setEditModal(null)} />}
       {editModal === 'konum'      && <KonumModal mapLat={mapLat} mapLng={mapLng} setMapLat={setMapLat} setMapLng={setMapLng} nearbyPlaces={nearbyPlaces} setNearbyPlaces={setNearbyPlaces} projectId={project.id} onClose={() => setEditModal(null)} />}
+
+      {/* ── Proje Sil Onay Modalı ── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => !deleting && setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative z-10 bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+            {/* İkon */}
+            <div className="w-14 h-14 bg-danger-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            {/* Başlık */}
+            <h3 className="font-bold text-lg text-primary-800 text-center mb-2">Projeyi Sil</h3>
+            <p className="text-sm text-neutral-500 text-center mb-1">
+              <span className="font-semibold text-primary-800">{project.name}</span> projesini silmek istediğinizden emin misiniz?
+            </p>
+            <p className="text-xs text-danger-600 text-center mb-6">Bu işlem geri alınamaz. Proje ve tüm verileri kalıcı olarak silinir.</p>
+            {/* Butonlar */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-xl border border-neutral-200 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 disabled:opacity-50 transition-colors">
+                İptal
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-xl bg-danger-600 text-white text-sm font-semibold hover:bg-danger-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                {deleting
+                  ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg> Siliniyor...</>
+                  : 'Evet, Sil'
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
