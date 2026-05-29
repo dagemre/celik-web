@@ -45,7 +45,6 @@ export default function TahsilatEklePage() {
     supabase
       .from('projects')
       .select('id, name')
-      .eq('status', 'devam')
       .order('name')
       .then(({ data }) => setProjects(data ?? []))
   }, [])

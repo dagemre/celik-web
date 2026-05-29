@@ -39,7 +39,6 @@ export default function MaliyetEklePage() {
     supabase
       .from('projects')
       .select('id, name')
-      .eq('status', 'devam')
       .order('name')
       .then(({ data }) => setProjects(data ?? []))
   }, [])
