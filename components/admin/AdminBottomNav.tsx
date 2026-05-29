@@ -51,6 +51,19 @@ const FAB_ACTIONS = [
       </svg>
     ),
   },
+  {
+    label: 'Proje Maliyeti',
+    href: '/admin/projeler/maliyet-ekle',
+    bg: 'bg-red-50',
+    iconBg: 'bg-red-100',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="12" width="4" height="9" rx="1" fill="#DC2626"/>
+        <rect x="10" y="7" width="4" height="14" rx="1" fill="#DC2626"/>
+        <rect x="17" y="3" width="4" height="18" rx="1" fill="#DC2626"/>
+      </svg>
+    ),
+  },
 ]
 
 const BOTTOM_NAV = [
