@@ -188,24 +188,40 @@ const Modal = ({ title, onClose, onSave, saveLabel = 'Kaydet', saving = false, c
 )
 
 // ── Finansal Kartlar (Genel Bakış tab için küçük sidebar versiyonu) ─────────────
-const FinansalKartlar = () => (
-  <Card title="Finansal Özet">
-    <div className="grid grid-cols-2 gap-3">
-      {[
-        { label: 'Sözleşme Bedeli',      v: FINANSAL.sozlesme,       icon: '/icons/document.svg', color: 'text-primary-800' },
-        { label: 'Tahsil Edilecek',      v: FINANSAL.tahsilEdilecek, icon: '/icons/wallet.svg',   color: 'text-warning-700' },
-        { label: 'Tahsil Edilen',        v: FINANSAL.tahsilEdilen,   icon: '/icons/card.svg',     color: 'text-success-700' },
-        { label: 'Güncel Proje Maliyeti', v: FINANSAL.maliyet,       icon: '/icons/building.svg', color: 'text-danger-700'  },
-      ].map(c => (
-        <div key={c.label} className="bg-neutral-50 rounded-xl p-3 md:p-4">
-          <img src={c.icon} alt="" width={26} height={26} className="mb-2.5 opacity-75" />
-          <p className="text-[11px] text-neutral-500 mb-1 leading-tight">{c.label}</p>
-          <p className={`font-bold text-sm md:text-base ${c.color} leading-tight`}>{tl(c.v)}</p>
-        </div>
-      ))}
-    </div>
-  </Card>
-)
+const FinansalKartlar = ({ slug }: { slug: string }) => {
+  const [data, setData] = useState({ sozlesme: 0, tahsilEdilen: 0, toplamMaliyet: 0 })
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(`finansal_v2_${slug}`) || '{}')
+      const sozlesme      = stored.sozlesme ?? 0
+      const tahsilEdilen  = (stored.tahsilatlar ?? []).reduce((s: number, t: TahsilatItem) => s + t.tutar, 0)
+      const toplamMaliyet = (stored.kalemler ?? []).reduce((s: number, k: KalemItem) => s + k.tutar, 0)
+      setData({ sozlesme, tahsilEdilen, toplamMaliyet })
+    } catch {}
+  }, [slug])
+
+  const kartlar = [
+    { label: 'Sözleşme Bedeli',       v: data.sozlesme,                      icon: '/icons/document.svg', color: 'text-primary-800' },
+    { label: 'Tahsil Edilecek',        v: data.sozlesme,                      icon: '/icons/wallet.svg',   color: 'text-warning-700' },
+    { label: 'Tahsil Edilen',          v: data.tahsilEdilen,                  icon: '/icons/card.svg',     color: 'text-success-700' },
+    { label: 'Güncel Proje Maliyeti',  v: data.toplamMaliyet,                 icon: '/icons/building.svg', color: 'text-danger-700'  },
+  ]
+
+  return (
+    <Card title="Finansal Özet">
+      <div className="grid grid-cols-2 gap-3">
+        {kartlar.map(c => (
+          <div key={c.label} className="bg-neutral-50 rounded-xl p-3 md:p-4">
+            <img src={c.icon} alt="" width={26} height={26} className="mb-2.5 opacity-75" />
+            <p className="text-[11px] text-neutral-500 mb-1 leading-tight">{c.label}</p>
+            <p className={`font-bold text-sm md:text-base ${c.color} leading-tight`}>{tl(c.v)}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
 
 // ── Genel Bilgiler ─────────────────────────────────────────────────────────────
 const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () => void }) => {
@@ -2508,14 +2524,14 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
           <div className="md:flex md:gap-5 md:items-start">
             <div className="md:flex-1 space-y-4 min-w-0">
               <div className="md:hidden">
-                <FinansalKartlar />
+                <FinansalKartlar slug={project.slug} />
               </div>
               <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
               <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
               <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} />
             </div>
             <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
-              <FinansalKartlar />
+              <FinansalKartlar slug={project.slug} />
               <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
               <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
             </div>
