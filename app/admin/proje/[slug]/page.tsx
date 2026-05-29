@@ -1149,13 +1149,19 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
               </div>
               {/* Mobile */}
               <div className="md:hidden grid items-center gap-x-3 py-3"
-                style={{ gridTemplateColumns: '1fr auto auto' }}>
+                style={{ gridTemplateColumns: '1fr auto auto 32px' }}>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: k.color }}/>
                   <span className="text-sm text-primary-800">{k.label}</span>
                 </div>
-                <span className="text-sm font-semibold text-danger-700 text-right pr-3">{tl(k.tutar)}</span>
+                <span className="text-sm font-semibold text-danger-700 text-right pr-2">{tl(k.tutar)}</span>
                 <span className="text-sm text-neutral-500 text-right">{k.tarih}</span>
+                <button onClick={() => setKalemler(prev => prev.filter(x => x.id !== k.id))}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-danger-50 active:bg-danger-100 transition-colors ml-auto">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
           ))}
