@@ -186,11 +186,11 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
     label: FEATURE_OPTIONS[key]?.label ?? key,
   }))
 
-  // Galeri — admin'den yüklenen fotoğraflar önce, ardından statik drone fotoğrafları
+  // Galeri — admin'den yüklenen varsa sadece onlar; yoksa statik, o da yoksa image_url
   const uploadedPhotos: string[] = Array.isArray(proje.photos) ? proje.photos : []
   const staticPhotos: string[]   = GALLERY_MAP[params.slug] ?? []
   const gallery: string[] = uploadedPhotos.length > 0
-    ? [...uploadedPhotos, ...staticPhotos]   // admin fotoğrafları varsa birleştir
+    ? uploadedPhotos                         // admin fotoğrafları varsa sadece onlar
     : staticPhotos.length > 0
       ? staticPhotos
       : proje.image_url ? [proje.image_url] : []
