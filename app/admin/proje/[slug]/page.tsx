@@ -1821,23 +1821,22 @@ const TUR_STYLE: Record<string, { bg: string; text: string }> = {
 }
 
 const EVRAKLAR_MOCK: EvrakItem[] = [
-  { id: 'e1',  ad: 'İnşaat Ruhsatı',           klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '2.4 MB', tarih: '12.03.2026', durum: 'gizli' },
+  { id: 'e1',  ad: 'İnşaat Ruhsatı',           klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '2.4 MB', tarih: '12.03.2026', durum: 'paylasiliyor' },
   { id: 'e2',  ad: 'Yapı Kullanma İzni',        klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '1.8 MB', tarih: '15.03.2026', durum: 'gizli'        },
-  { id: 'e3',  ad: 'İtfaiye Uygunluk Belgesi',  klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '0.9 MB', tarih: '18.03.2026', durum: 'gizli' },
-  { id: 'e4',  ad: 'Sözleşme - Emre Dağ',       klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.2 MB', tarih: '10.01.2026', durum: 'gizli' },
-  { id: 'e5',  ad: 'Sözleşme - Ahmet Yılmaz',   klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.1 MB', tarih: '12.01.2026', durum: 'gizli' },
-  { id: 'e6',  ad: 'Mimari Proje',              klasor: 'Teknik Projeler', tur: 'Proje',       boyut: '8.5 MB', tarih: '05.02.2026', durum: 'gizli' },
-  { id: 'e7',  ad: 'Statik Hesap Raporu',        klasor: 'Teknik Projeler', tur: 'Rapor',       boyut: '5.2 MB', tarih: '08.02.2026', durum: 'gizli' },
+  { id: 'e3',  ad: 'İtfaiye Uygunluk Belgesi',  klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '0.9 MB', tarih: '18.03.2026', durum: 'paylasiliyor' },
+  { id: 'e4',  ad: 'Sözleşme - Emre Dağ',       klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.2 MB', tarih: '10.01.2026', durum: 'paylasiliyor' },
+  { id: 'e5',  ad: 'Sözleşme - Ahmet Yılmaz',   klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.1 MB', tarih: '12.01.2026', durum: 'paylasiliyor' },
+  { id: 'e6',  ad: 'Mimari Proje',              klasor: 'Teknik Projeler', tur: 'Proje',       boyut: '8.5 MB', tarih: '05.02.2026', durum: 'paylasiliyor' },
+  { id: 'e7',  ad: 'Statik Hesap Raporu',        klasor: 'Teknik Projeler', tur: 'Rapor',       boyut: '5.2 MB', tarih: '08.02.2026', durum: 'paylasiliyor' },
   { id: 'e8',  ad: 'Bütçe Raporu Q1',           klasor: 'Finansal',        tur: 'Rapor',       boyut: '1.5 MB', tarih: '01.04.2026', durum: 'gizli'        },
   { id: 'e9',  ad: 'Ödeme Dekontu - Mart',      klasor: 'Finansal',        tur: 'Dekont',      boyut: '0.8 MB', tarih: '31.03.2026', durum: 'gizli'        },
-  { id: 'e10', ad: 'Yazışma - Belediye',        klasor: 'Yazışmalar',      tur: 'Resmi Belge', boyut: '1.2 MB', tarih: '20.04.2026', durum: 'gizli' },
+  { id: 'e10', ad: 'Yazışma - Belediye',        klasor: 'Yazışmalar',      tur: 'Resmi Belge', boyut: '1.2 MB', tarih: '20.04.2026', durum: 'paylasiliyor' },
 ]
 
 // ── Evrak Ekle Form ────────────────────────────────────────────────────────────
-const EvrakEkleForm = ({ form, setForm, klasorler, onEkle, onClose }: {
+const EvrakEkleForm = ({ form, setForm, onEkle, onClose }: {
   form: EvrakForm
   setForm: React.Dispatch<React.SetStateAction<EvrakForm>>
-  klasorler: string[]
   onEkle: () => void
   onClose: () => void
 }) => (
@@ -1860,7 +1859,7 @@ const EvrakEkleForm = ({ form, setForm, klasorler, onEkle, onClose }: {
     />
 
     <p className="text-xs font-medium text-neutral-500 mb-2">Evrak Türü</p>
-    <div className="flex gap-2 flex-wrap mb-4">
+    <div className="flex gap-2 flex-wrap mb-5">
       {EVRAK_TURLERI.map(t => (
         <button key={t} onClick={() => setForm({ ...form, tur: t })}
           className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${form.tur === t
@@ -1870,24 +1869,6 @@ const EvrakEkleForm = ({ form, setForm, klasorler, onEkle, onClose }: {
         </button>
       ))}
     </div>
-
-    <p className="text-xs font-medium text-neutral-500 mb-2">Klasör</p>
-    <div className="flex gap-2 flex-wrap mb-3">
-      {klasorler.map(k => (
-        <button key={k} onClick={() => setForm({ ...form, klasor: k, yeniKlasor: '' })}
-          className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${form.klasor === k && !form.yeniKlasor
-            ? 'bg-primary-800 text-white border-primary-800'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300'}`}>
-          {k}
-        </button>
-      ))}
-    </div>
-    <input
-      value={form.yeniKlasor}
-      onChange={e => setForm({ ...form, yeniKlasor: e.target.value, klasor: '' })}
-      placeholder="+ Yeni klasör adı..."
-      className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors mb-4"
-    />
 
     <div className="border-2 border-dashed border-neutral-200 rounded-xl p-5 flex flex-col items-center justify-center mb-5 cursor-pointer hover:border-primary-300 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="mb-2 opacity-40">
@@ -2108,14 +2089,11 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
     localStorage.setItem(lsKey, JSON.stringify({ evraklar }))
   }, [evraklar, lsLoaded, lsKey])
   const [aktifKat, setAktifKat]         = useState('Tümü')
-  const [expandedKlasor, setExpandedKlasor] = useState<string | null>('Ruhsat')
   const [showPanel, setShowPanel]       = useState(false)
   const [menuAcik, setMenuAcik]         = useState<string | null>(null)
   const [form, setForm]                 = useState<EvrakForm>({
-    ad: '', tur: 'Resmi Belge', klasor: 'Ruhsat', yeniKlasor: '', durum: 'paylasiliyor',
+    ad: '', tur: 'Resmi Belge', klasor: '', yeniKlasor: '', durum: 'paylasiliyor',
   })
-
-  const tumKlasorler = Array.from(new Set(evraklar.map(e => e.klasor)))
 
   const filtrelenmis = evraklar.filter(e => {
     const aramaOk = !aramaText || e.ad.toLowerCase().includes(aramaText.toLowerCase()) || e.klasor.toLowerCase().includes(aramaText.toLowerCase())
@@ -2128,17 +2106,16 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
   const gizli     = evraklar.filter(e => e.durum === 'gizli').length
 
   const handleEkle = () => {
-    const klasorAd = form.yeniKlasor.trim() || form.klasor
-    if (!form.ad.trim() || !klasorAd) return
+    if (!form.ad.trim()) return
     const yeni: EvrakItem = {
-      id: `e${Date.now()}`, ad: form.ad.trim(), klasor: klasorAd, tur: form.tur,
+      id: `e${Date.now()}`, ad: form.ad.trim(), klasor: '', tur: form.tur,
       boyut: '—',
       tarih: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
-      durum: 'gizli',
+      durum: 'paylasiliyor',
     }
     setEvraklar(prev => [...prev, yeni])
     setShowPanel(false)
-    setForm({ ad: '', tur: 'Resmi Belge', klasor: 'Ruhsat', yeniKlasor: '', durum: 'gizli' })
+    setForm({ ad: '', tur: 'Resmi Belge', klasor: '', yeniKlasor: '', durum: 'paylasiliyor' })
   }
 
   const PdfIcon = () => (
@@ -2231,119 +2208,68 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
             ))}
           </div>
 
-          {/* Bilgi banner */}
-          <div className="bg-info-50 border border-info-100 rounded-xl px-4 py-3 flex gap-2.5 items-start">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0 mt-0.5">
-              <circle cx="12" cy="12" r="10" stroke="#1D6FB8" strokeWidth="1.6"/>
-              <path d="M12 8v4M12 16h.01" stroke="#1D6FB8" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-            <p className="text-xs text-info-700 leading-relaxed">
-              <span className="font-semibold">"Paylaşılıyor"</span> olarak işaretlenen evraklar malikler tarafından görülebilir.
-            </p>
-          </div>
-
-          {/* Klasör listesi */}
-          <div className="space-y-2">
-            {tumKlasorler.map(klasor => {
-              const klasorFiltreEvraklar = filtrelenmis.filter(e => e.klasor === klasor)
-              const klasorTumEvraklar   = evraklar.filter(e => e.klasor === klasor)
-              // Klasörü gizle: filtre aktifken bu klasörde sonuç yoksa
-              if (klasorFiltreEvraklar.length === 0 && (aramaText || aktifKat !== 'Tümü')) return null
-              const isExpanded = expandedKlasor === klasor
-
-              return (
-                <div key={klasor} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
-                  {/* Klasör başlığı */}
-                  <button
-                    onClick={() => setExpandedKlasor(isExpanded ? null : klasor)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-neutral-50 transition-colors">
-                    <div className="w-8 h-8 bg-warning-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="#92400E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+          {/* Evrak listesi */}
+          {filtrelenmis.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-neutral-100 py-12 flex flex-col items-center">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#D3D1C7" strokeWidth="1.4" strokeLinejoin="round"/>
+                <path d="M14 2v6h6" stroke="#D3D1C7" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              <p className="mt-3 font-medium text-neutral-400">Evrak bulunamadı</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-neutral-100 divide-y divide-neutral-50 overflow-hidden">
+              {filtrelenmis.map(evrak => {
+                const turStyle = TUR_STYLE[evrak.tur] ?? TUR_STYLE['Rapor']
+                return (
+                  <div key={evrak.id} className="flex items-center gap-3 px-4 py-3 relative">
+                    <PdfIcon />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-primary-800 truncate">{evrak.ad}</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">{evrak.boyut} · {evrak.tarih}</p>
                     </div>
-                    <div className="flex-1 text-left">
-                      <p className="font-semibold text-sm text-primary-800">{klasor}</p>
-                      <p className="text-xs text-neutral-400">{klasorTumEvraklar.length} evrak</p>
+                    <span className={`hidden md:inline-flex flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg ${turStyle.bg} ${turStyle.text}`}>
+                      {evrak.tur}
+                    </span>
+                    {evrak.durum === 'paylasiliyor'
+                      ? <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-success-50 text-success-700 whitespace-nowrap">Paylaşılıyor</span>
+                      : <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-500">Gizli</span>
+                    }
+                    <div className="relative">
+                      <button onClick={() => setMenuAcik(menuAcik === evrak.id ? null : evrak.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors flex-shrink-0">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="5" r="1.5" fill="#888780" />
+                          <circle cx="12" cy="12" r="1.5" fill="#888780" />
+                          <circle cx="12" cy="19" r="1.5" fill="#888780" />
+                        </svg>
+                      </button>
+                      {menuAcik === evrak.id && (
+                        <div className="absolute right-0 top-9 z-20 bg-white rounded-xl border border-neutral-100 shadow-lg min-w-[140px] py-1">
+                          <button className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
+                            İndir
+                          </button>
+                          <button onClick={() => {
+                            setEvraklar(prev => prev.map(e => e.id === evrak.id
+                              ? { ...e, durum: e.durum === 'paylasiliyor' ? 'gizli' : 'paylasiliyor' } : e))
+                            setMenuAcik(null)
+                          }} className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
+                            {evrak.durum === 'paylasiliyor' ? 'Gizle' : 'Paylaş'}
+                          </button>
+                          <button onClick={() => {
+                            setEvraklar(prev => prev.filter(e => e.id !== evrak.id))
+                            setMenuAcik(null)
+                          }} className="w-full text-left px-4 py-2.5 text-sm text-danger-700 hover:bg-danger-50 transition-colors">
+                            Sil
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      className={`flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                      <path d="M6 9l6 6 6-6" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-
-                  {/* Evrak satırları */}
-                  {isExpanded && (
-                    <div className="border-t border-neutral-50 divide-y divide-neutral-50">
-                      {(klasorFiltreEvraklar.length > 0 ? klasorFiltreEvraklar : klasorTumEvraklar).map(evrak => {
-                        const turStyle = TUR_STYLE[evrak.tur] ?? TUR_STYLE['Rapor']
-                        return (
-                          <div key={evrak.id} className="flex items-center gap-3 px-4 py-3 relative">
-                            <PdfIcon />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm text-primary-800 truncate">{evrak.ad}</p>
-                              <p className="text-xs text-neutral-400 mt-0.5">{evrak.boyut} · {evrak.tarih}</p>
-                            </div>
-                            {/* Tür badge — sadece desktop */}
-                            <span className={`hidden md:inline-flex flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg ${turStyle.bg} ${turStyle.text}`}>
-                              {evrak.tur}
-                            </span>
-                            {/* Paylaşım badge */}
-                            {evrak.durum === 'paylasiliyor'
-                              ? <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-success-50 text-success-700 whitespace-nowrap">Paylaşılıyor</span>
-                              : <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-500">Gizli</span>
-                            }
-                            {/* Üç nokta menü */}
-                            <div className="relative">
-                              <button onClick={() => setMenuAcik(menuAcik === evrak.id ? null : evrak.id)}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors flex-shrink-0">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                  <circle cx="12" cy="5" r="1.5" fill="#888780" />
-                                  <circle cx="12" cy="12" r="1.5" fill="#888780" />
-                                  <circle cx="12" cy="19" r="1.5" fill="#888780" />
-                                </svg>
-                              </button>
-                              {menuAcik === evrak.id && (
-                                <div className="absolute right-0 top-9 z-20 bg-white rounded-xl border border-neutral-100 shadow-lg min-w-[140px] py-1">
-                                  <button className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
-                                    İndir
-                                  </button>
-                                  <button onClick={() => {
-                                    setEvraklar(prev => prev.map(e => e.id === evrak.id
-                                      ? { ...e, durum: e.durum === 'paylasiliyor' ? 'gizli' : 'paylasiliyor' } : e))
-                                    setMenuAcik(null)
-                                  }} className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
-                                    {evrak.durum === 'paylasiliyor' ? 'Gizle' : 'Paylaş'}
-                                  </button>
-                                  <button onClick={() => {
-                                    setEvraklar(prev => prev.filter(e => e.id !== evrak.id))
-                                    setMenuAcik(null)
-                                  }} className="w-full text-left px-4 py-2.5 text-sm text-danger-700 hover:bg-danger-50 transition-colors">
-                                    Sil
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-
-            {/* Boş durum */}
-            {filtrelenmis.length === 0 && (
-              <div className="bg-white rounded-2xl border border-neutral-100 py-12 flex flex-col items-center">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#D3D1C7" strokeWidth="1.4" strokeLinejoin="round"/>
-                  <path d="M14 2v6h6" stroke="#D3D1C7" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
-                <p className="mt-3 font-medium text-neutral-400">Evrak bulunamadı</p>
-              </div>
-            )}
-          </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Sağ panel — Desktop ── */}
@@ -2351,7 +2277,6 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
           <div className="hidden md:block w-80 flex-shrink-0 bg-white rounded-2xl border border-neutral-100 p-5 sticky top-4">
             <EvrakEkleForm
               form={form} setForm={setForm}
-              klasorler={tumKlasorler}
               onEkle={handleEkle}
               onClose={() => setShowPanel(false)}
             />
@@ -2369,7 +2294,6 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
             <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
             <EvrakEkleForm
               form={form} setForm={setForm}
-              klasorler={tumKlasorler}
               onEkle={handleEkle}
               onClose={() => setShowPanel(false)}
             />
