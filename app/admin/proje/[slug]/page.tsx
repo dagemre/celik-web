@@ -1859,7 +1859,7 @@ const EvrakEkleForm = ({ form, setForm, onEkle, onClose }: {
     />
 
     <p className="text-xs font-medium text-neutral-500 mb-2">Evrak Türü</p>
-    <div className="flex gap-2 flex-wrap mb-5">
+    <div className="flex gap-2 flex-wrap mb-2">
       {EVRAK_TURLERI.map(t => (
         <button key={t} onClick={() => setForm({ ...form, tur: t })}
           className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${form.tur === t
@@ -1869,6 +1869,12 @@ const EvrakEkleForm = ({ form, setForm, onEkle, onClose }: {
         </button>
       ))}
     </div>
+    <input
+      value={EVRAK_TURLERI.includes(form.tur) ? '' : form.tur}
+      onChange={e => setForm({ ...form, tur: e.target.value })}
+      placeholder="Veya özel tür yaz... (Örn: Sigorta)"
+      className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-2.5 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors mb-5"
+    />
 
     <div className="border-2 border-dashed border-neutral-200 rounded-xl p-5 flex flex-col items-center justify-center mb-5 cursor-pointer hover:border-primary-300 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="mb-2 opacity-40">
@@ -2145,41 +2151,6 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
               </svg>
               Evrak Ekle
             </button>
-          </div>
-
-          {/* Özet kartlar */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-3.5 flex flex-col items-center text-center">
-              <div className="w-8 h-8 bg-neutral-100 rounded-xl flex items-center justify-center mb-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#888780" strokeWidth="1.6" strokeLinejoin="round"/>
-                  <path d="M14 2v6h6" stroke="#888780" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-xl font-bold text-primary-800 leading-none">{toplam}</p>
-              <p className="text-[11px] text-neutral-500 mt-0.5">Toplam Evrak</p>
-            </div>
-            <div className="bg-success-50 rounded-2xl border border-success-100 p-3.5 flex flex-col items-center text-center">
-              <div className="w-8 h-8 bg-success-100 rounded-xl flex items-center justify-center mb-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polyline points="16 6 12 2 8 6" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="12" y1="2" x2="12" y2="15" stroke="#0F6E56" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-xl font-bold text-success-700 leading-none">{paylasilan}</p>
-              <p className="text-[11px] text-success-600 mt-0.5">Paylaşılan</p>
-            </div>
-            <div className="bg-neutral-100 rounded-2xl p-3.5 flex flex-col items-center text-center">
-              <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center mb-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" stroke="#888780" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  <line x1="1" y1="1" x2="23" y2="23" stroke="#888780" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-xl font-bold text-neutral-600 leading-none">{gizli}</p>
-              <p className="text-[11px] text-neutral-500 mt-0.5">Gizli</p>
-            </div>
           </div>
 
           {/* Arama */}
