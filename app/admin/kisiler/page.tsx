@@ -393,8 +393,8 @@ export default function AdminKisilerPage() {
   }, [])
 
   // ── Seçili projenin maliklerini yükle ──────────────────────────────────────
+  // Tüm malikleri tek seferde yükle — her proje kartı doğru sayı göstersin
   useEffect(() => {
-    if (!selectedProjectId) return
     setLoadingOwners(true)
     supabase
       .from('owners')
@@ -403,9 +403,9 @@ export default function AdminKisilerPage() {
         units(id, unit_no, floor, type, price),
         payments(amount, status)
       `)
-      .eq('project_id', selectedProjectId)
       .order('full_name')
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error('Owners yükleme hatası:', error)
         if (!data) { setLoadingOwners(false); return }
         const mapped: Owner[] = (data as any[]).map(o => {
           const unit = o.units
@@ -429,7 +429,7 @@ export default function AdminKisilerPage() {
         setOwners(mapped)
         setLoadingOwners(false)
       })
-  }, [selectedProjectId])
+  }, []) // Sadece bir kez yükle — yeni ekleme/silme local state'i günceller
 
   const projectOwners = useMemo(
     () => owners.filter(o => o.projectId === selectedProjectId),
