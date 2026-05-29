@@ -407,12 +407,30 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
   projectId: string; onClose: () => void
 }) => {
   const [saving, setSaving] = useState(false)
+  const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
   const handleSave = async () => {
     setSaving(true)
-    await supabase.from('projects').update({ progress }).eq('id', projectId)
+    await supabase.from('projects').update({ progress, phases }).eq('id', projectId)
     setSaving(false)
     onClose()
+  }
+
+  const toggleDone = (i: number) => {
+    const n = [...phases]; n[i] = { ...n[i], done: !n[i].done }; setPhases(n)
+  }
+
+  const updateLabel = (i: number, label: string) => {
+    const n = [...phases]; n[i] = { ...n[i], label }; setPhases(n)
+  }
+
+  const deletePhase = (i: number) => {
+    setPhases(phases.filter((_, idx) => idx !== i))
+  }
+
+  const addPhase = () => {
+    setPhases([...phases, { label: 'Yeni Aşama', done: false }])
+    setEditingIdx(phases.length)
   }
 
   return (
@@ -426,18 +444,59 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
         onChange={e => setProgress(Number(e.target.value))} className="w-full accent-[#0F6E56]" />
       <div className="flex justify-between text-[10px] text-neutral-400 mt-1"><span>%0</span><span>%100</span></div>
     </div>
+
     <p className="text-xs font-medium text-neutral-500 mb-3">Yapım Aşamaları</p>
-    <div className="space-y-2">
+    <div className="space-y-2 mb-3">
       {phases.map((ph, i) => (
-        <button key={i} onClick={() => { const n = [...phases]; n[i] = { ...n[i], done: !n[i].done }; setPhases(n) }}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}>
-          <span className={`text-sm font-medium ${ph.done ? 'text-success-700' : 'text-neutral-600'}`}>{ph.label}</span>
-          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${ph.done ? 'bg-success-600 border-success-600' : 'bg-white border-neutral-300'}`}>
-            {ph.done && <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-          </div>
-        </button>
+        <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}>
+          {/* Tamamlandı toggle */}
+          <button onClick={() => toggleDone(i)}
+            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${ph.done ? 'bg-success-600 border-success-600' : 'bg-white border-neutral-300'}`}>
+            {ph.done && <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+          </button>
+
+          {/* İsim — tıklayınca input açılır */}
+          {editingIdx === i ? (
+            <input
+              autoFocus
+              value={ph.label}
+              onChange={e => updateLabel(i, e.target.value)}
+              onBlur={() => setEditingIdx(null)}
+              onKeyDown={e => e.key === 'Enter' && setEditingIdx(null)}
+              className="flex-1 text-sm font-medium bg-white border border-primary-300 rounded-lg px-2 py-1 outline-none text-primary-800"
+            />
+          ) : (
+            <button onClick={() => setEditingIdx(i)} className="flex-1 text-left text-sm font-medium text-neutral-700 hover:text-primary-800 transition-colors">
+              {ph.label}
+            </button>
+          )}
+
+          {/* Kalem ikonu */}
+          <button onClick={() => setEditingIdx(i)} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-neutral-200 transition-colors flex-shrink-0">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#888780" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </button>
+
+          {/* Sil */}
+          <button onClick={() => deletePhase(i)} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-danger-100 transition-colors flex-shrink-0">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
       ))}
     </div>
+
+    {/* Yeni aşama ekle */}
+    <button onClick={addPhase}
+      className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 rounded-xl py-2.5 text-sm text-neutral-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+      Aşama Ekle
+    </button>
   </Modal>
   )
 }
@@ -1847,6 +1906,9 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
           setProject(data)
           setProgress(data.progress ?? 0)
           setActiveFeatures(new Set(Array.isArray(data.features) ? data.features : []))
+          if (Array.isArray(data.phases) && data.phases.length > 0) {
+            setPhases(data.phases)
+          }
         }
         setLoading(false)
       })

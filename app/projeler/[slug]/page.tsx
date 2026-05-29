@@ -200,6 +200,22 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
     { icon: 'check',    label: 'Durum',        value: statusLabel },
   ].filter(s => s.value)
 
+  // Yapım aşamaları — Supabase'den geliyorsa onu kullan, yoksa varsayılan
+  const defaultPhases = [
+    { label: 'Temel Kazı',        done: false },
+    { label: 'Betonarme',         done: false },
+    { label: 'Duvar Örme',        done: false },
+    { label: 'Elektrik Tesisatı', done: false },
+    { label: 'İç Sıva',           done: false },
+    { label: 'Dış Cephe',         done: false },
+    { label: 'İç Mekan',          done: false },
+    { label: 'Peyzaj',            done: false },
+  ]
+  const phases: { label: string; done: boolean }[] =
+    Array.isArray(proje.phases) && proje.phases.length > 0
+      ? proje.phases
+      : defaultPhases.map((ph, i) => ({ ...ph, done: (proje.progress ?? 0) >= (i + 1) * 12.5 }))
+
   return (
     <ProjeDetayClient
       proje={{
@@ -211,6 +227,7 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
         statusBg,
         ilerleme:    proje.progress ?? 0,
         ozellikler,
+        phases,
         gallery,
         heroImage,
         stats,
