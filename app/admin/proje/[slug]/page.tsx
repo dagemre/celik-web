@@ -59,38 +59,7 @@ const MALIKLER_ODEMELER = [
 
 const getKatLabel = (n: number) => n === 1 ? '1. Kat (Zemin)' : `${n}. Kat`
 
-const INITIAL_DAIRELER: DaireItem[] = [
-  // Kat 1 (Zemin)
-  { id:1,  katNo:1, no:1,  tip:'Dükkan', brut:110, durum:'satildi', malik:'Market Express' },
-  { id:2,  katNo:1, no:2,  tip:'Dükkan', brut:95,  durum:'musait'                          },
-  { id:3,  katNo:1, no:3,  tip:'2+1',    brut:90,  durum:'satildi', malik:'Emre Dağ'       },
-  { id:4,  katNo:1, no:4,  tip:'3+1',    brut:120, durum:'satildi', malik:'Ahmet Yılmaz'   },
-  // Kat 2
-  { id:5,  katNo:2, no:5,  tip:'2+1',    brut:90,  durum:'satildi', malik:'Mehmet Kaya'    },
-  { id:6,  katNo:2, no:6,  tip:'2+1',    brut:90,  durum:'satildi', malik:'Ayşe Demir'     },
-  { id:7,  katNo:2, no:7,  tip:'3+1',    brut:105, durum:'satildi', malik:'Fatma Şahin'    },
-  { id:8,  katNo:2, no:8,  tip:'3+1',    brut:105, durum:'musait'                          },
-  // Kat 3
-  { id:9,  katNo:3, no:9,  tip:'1+1',    brut:65,  durum:'satildi', malik:'Emre Dağ'       },
-  { id:10, katNo:3, no:10, tip:'1+1',    brut:65,  durum:'satildi', malik:'Ahmet Yılmaz'   },
-  { id:11, katNo:3, no:11, tip:'2+1',    brut:85,  durum:'satildi', malik:'Mehmet Kaya'    },
-  { id:12, katNo:3, no:12, tip:'2+1',    brut:85,  durum:'musait'                          },
-  // Kat 4
-  { id:13, katNo:4, no:13, tip:'2+1',    brut:90,  durum:'satildi', malik:'Ayşe Demir'     },
-  { id:14, katNo:4, no:14, tip:'2+1',    brut:90,  durum:'satildi', malik:'Fatma Şahin'    },
-  { id:15, katNo:4, no:15, tip:'3+1',    brut:110, durum:'musait'                          },
-  { id:16, katNo:4, no:16, tip:'3+1',    brut:110, durum:'musait'                          },
-  // Kat 5
-  { id:17, katNo:5, no:17, tip:'2+1',    brut:90,  durum:'satildi', malik:'Emre Dağ'       },
-  { id:18, katNo:5, no:18, tip:'2+1',    brut:90,  durum:'satildi', malik:'Ahmet Yılmaz'   },
-  { id:19, katNo:5, no:19, tip:'3+1',    brut:115, durum:'satildi', malik:'Mehmet Kaya'    },
-  { id:20, katNo:5, no:20, tip:'3+1',    brut:115, durum:'musait'                          },
-  // Kat 6
-  { id:21, katNo:6, no:21, tip:'2+1',    brut:90,  durum:'rezerve'                         },
-  { id:22, katNo:6, no:22, tip:'2+1',    brut:90,  durum:'musait'                          },
-  { id:23, katNo:6, no:23, tip:'3+1',    brut:120, durum:'musait'                          },
-  { id:24, katNo:6, no:24, tip:'3+1',    brut:120, durum:'rezerve'                         },
-]
+const INITIAL_DAIRELER: DaireItem[] = []
 
 // Anahtarlar yeni/page.tsx ile aynı (kebab-case) — Supabase features sütunuyla eşleşmeli
 const FEATURES = [
@@ -1466,10 +1435,10 @@ const MalikDetayModal = ({ daire, onClose, onDuzenle }: {
 
 // ── Daireler Tab ───────────────────────────────────────────────────────────────
 const DairelerTab = ({ slug }: { slug: string }) => {
-  const lsKey = `daireler_${slug}`
+  const lsKey = `daireler_v2_${slug}`
 
   const [daireler, setDaireler]   = useState<DaireItem[]>(INITIAL_DAIRELER)
-  const [katSayisi, setKatSayisi] = useState(6)
+  const [katSayisi, setKatSayisi] = useState(0)
   const [expandedKat, setExpandedKat] = useState<number | null>(1)
   const [lsLoaded, setLsLoaded]   = useState(false)
 
@@ -1564,6 +1533,30 @@ const DairelerTab = ({ slug }: { slug: string }) => {
         ? { ...d, durum: 'satildi', malik: malikForm.ad, malikData }
         : d
     ))
+    // Malikler tab'ına da yaz
+    try {
+      const malikLsKey = `malikler_v2_${slug}`
+      const stored = JSON.parse(localStorage.getItem(malikLsKey) || '{}')
+      const existing = stored.malikler || []
+      const parts = malikForm.ad.trim().split(' ')
+      const initials = parts.map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+      const newMalik = {
+        id: `m${Date.now()}`,
+        name: malikForm.ad.trim(),
+        initials,
+        katNo: targetDaire.katNo,
+        daire: String(targetDaire.no),
+        tip: targetDaire.tip,
+        phone: malikForm.telefon.trim(),
+        toplam: parseInt(malikForm.toplamBorc) || 0,
+        odenen: parseInt(malikForm.odenen) || 0,
+      }
+      // Düzenleme modunda eskiyi güncelle, yeni eklemede başa ekle
+      const updated = editMalikDaire
+        ? existing.map((m: { daire: string }) => m.daire === String(targetDaire.no) ? newMalik : m)
+        : [newMalik, ...existing]
+      localStorage.setItem(malikLsKey, JSON.stringify({ malikler: updated }))
+    } catch {}
     setMalikPanel(null)
     setEditMalikDaire(null)
   }
@@ -2287,17 +2280,11 @@ type MaliklerForm = {
   vade: string; tip: string
 }
 
-const MALIKLER_MOCK: MalikItem[] = [
-  { id: 'm1', name: 'Emre Dağ',     initials: 'ED', katNo: 6, daire: '21', tip: '3+1', phone: '0555 123 45 67', toplam: 1_500_000, odenen: 500_000   },
-  { id: 'm2', name: 'Ahmet Yılmaz', initials: 'AY', katNo: 6, daire: '22', tip: '2+1', phone: '0544 987 65 43', toplam: 1_200_000, odenen: 1_200_000 },
-  { id: 'm3', name: 'Mehmet Kaya',  initials: 'MK', katNo: 6, daire: '23', tip: '2+1', phone: '0533 456 78 90', toplam: 1_000_000, odenen: 300_000   },
-  { id: 'm4', name: 'Ayşe Demir',   initials: 'AD', katNo: 6, daire: '24', tip: '3+1', phone: '0507 234 56 78', toplam: 1_000_000, odenen: 0         },
-  { id: 'm5', name: 'Fatma Şahin',  initials: 'FŞ', katNo: 5, daire: '17', tip: '2+1', phone: '0532 111 22 33', toplam: 800_000,   odenen: 0         },
-]
+const MALIKLER_MOCK: MalikItem[] = []
 
 // ── Malikler Tab ───────────────────────────────────────────────────────────────
 const MaliklerTab = ({ slug }: { slug: string }) => {
-  const lsKey = `malikler_${slug}`
+  const lsKey = `malikler_v2_${slug}`
 
   const [malikler, setMalikler] = useState<MalikItem[]>(MALIKLER_MOCK)
   const [lsLoaded, setLsLoaded] = useState(false)
