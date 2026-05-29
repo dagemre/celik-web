@@ -206,6 +206,7 @@ const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () =
     { l: 'Toplam İnşaat Alanı', v: project.area || '—',             badge: false },
     { l: 'Lokasyon',            v: loc,                             badge: false },
     { l: 'Daire Sayısı',        v: String(project.units_count),     badge: false },
+    { l: 'Kat Sayısı',          v: project.floors ? `${project.floors} Kat` : '—', badge: false },
     { l: 'Proje Tipi',          v: project.tip,                     badge: false },
     { l: 'Teslim Tarihi',       v: fmtDate(project.delivery_date || project.delivery_year), badge: false },
     { l: 'Arsa Alanı',          v: '1.250 m²',                      badge: false },
@@ -247,6 +248,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
   const [city,     setCity]     = useState(project.city || '')
   const [area,     setArea]     = useState(project.area || '')
   const [units,    setUnits]    = useState(String(project.units_count || ''))
+  const [floors,   setFloors]   = useState(String(project.floors || ''))
   const [delivery, setDelivery] = useState(project.delivery_year || project.delivery_date || '')
   const [tip,      setTip]      = useState(project.tip || 'Konut')
   const [saving,   setSaving]   = useState(false)
@@ -263,6 +265,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
       city:          city.trim(),
       area:          area.trim(),
       units_count:   parseInt(units) || project.units_count,
+      floors:        parseInt(floors) || project.floors,
       delivery_year: delivery.trim() || null,
       tip,
     }
@@ -279,6 +282,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
       <div className="mb-4">{lbl('Şehir')}<input value={city} onChange={e => setCity(e.target.value)} placeholder="İstanbul" className={inputCls} /></div>
       <div className="mb-4">{lbl('İnşaat Alanı (m²)')}<input value={area} onChange={e => setArea(e.target.value)} placeholder="850 m²" className={inputCls} /></div>
       <div className="mb-4">{lbl('Daire Sayısı')}<input type="number" value={units} onChange={e => setUnits(e.target.value)} placeholder="24" className={inputCls} /></div>
+      <div className="mb-4">{lbl('Kat Sayısı')}<input type="number" value={floors} onChange={e => setFloors(e.target.value)} placeholder="6" className={inputCls} /></div>
       <div className="mb-4">{lbl('Teslim Yılı')}<input value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="2026" className={inputCls} /></div>
       <div className="mb-4">
         {lbl('Proje Tipi')}
