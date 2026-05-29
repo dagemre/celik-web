@@ -406,17 +406,14 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
   phases: PhaseList; setPhases: (p: PhaseList) => void
   projectId: string; onClose: () => void
 }) => {
-  const [saving, setSaving]       = useState(false)
+  const [saving, setSaving]         = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const [dragOver, setDragOver]     = useState<number | null>(null)
   const dragIdx = useRef<number | null>(null)
-  const dragOverIdx = useRef<number | null>(null)
 
-  // Kaydet: bu projeyi güncelle + tüm diğer projelere aynı etiketleri yay
   const handleSave = async () => {
     setSaving(true)
-    // 1. Bu projeyi kaydet
     await supabase.from('projects').update({ progress, phases }).eq('id', projectId)
-    // 2. Diğer projelere aynı aşama isimlerini yay (done durumları korunur)
     const { data: others } = await supabase.from('projects').select('id, phases').neq('id', projectId)
     if (others && others.length > 0) {
       await Promise.all(others.map(proj => {
@@ -434,32 +431,33 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
   const toggleDone = (i: number) => {
     const n = [...phases]; n[i] = { ...n[i], done: !n[i].done }; setPhases(n)
   }
-
   const updateLabel = (i: number, label: string) => {
     const n = [...phases]; n[i] = { ...n[i], label }; setPhases(n)
   }
-
-  const deletePhase = (i: number) => {
-    setPhases(phases.filter((_, idx) => idx !== i))
-  }
-
+  const deletePhase = (i: number) => setPhases(phases.filter((_, idx) => idx !== i))
   const addPhase = () => {
     setPhases([...phases, { label: 'Yeni Aşama', done: false }])
     setEditingIdx(phases.length)
   }
-
-  // Drag-and-drop handlers
+  const moveUp = (i: number) => {
+    if (i === 0) return
+    const n = [...phases];[n[i - 1], n[i]] = [n[i], n[i - 1]]; setPhases(n)
+  }
+  const moveDown = (i: number) => {
+    if (i === phases.length - 1) return
+    const n = [...phases];[n[i], n[i + 1]] = [n[i + 1], n[i]]; setPhases(n)
+  }
   const onDragStart = (i: number) => { dragIdx.current = i }
-  const onDragEnter = (i: number) => { dragOverIdx.current = i }
+  const onDragEnter = (i: number) => setDragOver(i)
   const onDragEnd   = () => {
-    if (dragIdx.current === null || dragOverIdx.current === null) return
-    if (dragIdx.current === dragOverIdx.current) return
-    const n = [...phases]
-    const [moved] = n.splice(dragIdx.current, 1)
-    n.splice(dragOverIdx.current, 0, moved)
-    setPhases(n)
+    if (dragIdx.current !== null && dragOver !== null && dragIdx.current !== dragOver) {
+      const n = [...phases]
+      const [moved] = n.splice(dragIdx.current, 1)
+      n.splice(dragOver, 0, moved)
+      setPhases(n)
+    }
     dragIdx.current = null
-    dragOverIdx.current = null
+    setDragOver(null)
   }
 
   return (
@@ -474,28 +472,34 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
       <div className="flex justify-between text-[10px] text-neutral-400 mt-1"><span>%0</span><span>%100</span></div>
     </div>
 
-    <div className="flex items-center justify-between mb-3">
-      <p className="text-xs font-medium text-neutral-500">Yapım Aşamaları</p>
-      <p className="text-[10px] text-neutral-400">Sıralamak için sürükle</p>
-    </div>
+    <p className="text-xs font-medium text-neutral-500 mb-3">Yapım Aşamaları</p>
     <div className="space-y-2 mb-3">
       {phases.map((ph, i) => (
-        <div
-          key={i}
+        <div key={i}
           draggable
           onDragStart={() => onDragStart(i)}
           onDragEnter={() => onDragEnter(i)}
           onDragEnd={onDragEnd}
           onDragOver={e => e.preventDefault()}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors cursor-grab active:cursor-grabbing active:opacity-50 ${ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'}`}
-        >
-          {/* Sürükle tutacağı */}
-          <div className="flex-shrink-0 text-neutral-300 cursor-grab">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
-              <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
-              <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
-            </svg>
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all ${
+            dragOver === i ? 'border-primary-400 bg-primary-50 scale-[1.01]' :
+            ph.done ? 'bg-success-50 border-success-100' : 'bg-neutral-50 border-neutral-100'
+          }`}>
+
+          {/* ↑↓ sıralama (mobil) + sürükle tutacağı (desktop) */}
+          <div className="flex flex-col gap-0.5 flex-shrink-0 cursor-grab active:cursor-grabbing">
+            <button onClick={() => moveUp(i)} disabled={i === 0}
+              className="w-6 h-5 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 transition-colors">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                <path d="M12 19V5M5 12l7-7 7 7" stroke="#888780" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button onClick={() => moveDown(i)} disabled={i === phases.length - 1}
+              className="w-6 h-5 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 transition-colors">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12l7 7 7-7" stroke="#888780" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
 
           {/* Tamamlandı toggle */}
@@ -504,11 +508,9 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
             {ph.done && <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
           </button>
 
-          {/* İsim — tıklayınca input açılır */}
+          {/* İsim */}
           {editingIdx === i ? (
-            <input
-              autoFocus
-              value={ph.label}
+            <input autoFocus value={ph.label}
               onChange={e => updateLabel(i, e.target.value)}
               onBlur={() => setEditingIdx(null)}
               onKeyDown={e => e.key === 'Enter' && setEditingIdx(null)}
@@ -538,7 +540,6 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
       ))}
     </div>
 
-    {/* Yeni aşama ekle */}
     <button onClick={addPhase}
       className="w-full flex items-center justify-center gap-2 border border-dashed border-neutral-300 rounded-xl py-2.5 text-sm text-neutral-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
