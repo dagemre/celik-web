@@ -2191,25 +2191,18 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
       {/* ── Proje üst başlık ────────────────────────────────────────────── */}
       <div className="bg-white border-b border-neutral-100 px-4 md:px-6 pt-4 pb-0">
 
-        {/* Breadcrumb + Yeni Proje Ekle */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1.5 text-sm min-w-0">
-            <Link href="/admin/projeler" className="text-primary-500 font-medium hover:underline flex items-center gap-1 flex-shrink-0">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Projeler
-            </Link>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-              <path d="M9 18l6-6-6-6" stroke="#D3D1C7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-sm mb-4 min-w-0">
+          <Link href="/admin/projeler" className="text-primary-500 font-medium hover:underline flex items-center gap-1 flex-shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-primary-800 font-semibold truncate">{project.name}</span>
-          </div>
-          <button className="flex-shrink-0 flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors ml-3">
-            <img src="/icons/plus.svg" alt="" width={14} height={14} />
-            <span className="hidden sm:inline">Yeni Proje Ekle</span>
-            <span className="sm:hidden">Ekle</span>
-          </button>
+            Projeler
+          </Link>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+            <path d="M9 18l6-6-6-6" stroke="#D3D1C7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-primary-800 font-semibold truncate">{project.name}</span>
         </div>
 
         {/* ── Proje bilgisi — Mobil ── */}
