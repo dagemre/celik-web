@@ -555,48 +555,120 @@ const ProjeIlerlemesiModal = ({ progress, setProgress, phases, setPhases, projec
 }
 
 // ── Görseller ──────────────────────────────────────────────────────────────────
-const GorsellerKart = ({ project }: { project: Project }) => {
-  const imgs = [project.image_url, project.image_url, project.image_url, project.image_url].filter(Boolean)
-  const [offset, setOffset] = useState(0)
+const GorsellerKart = ({ photos, setPhotos, slug, projectId }: {
+  photos: string[]; setPhotos: (p: string[]) => void
+  slug: string; projectId: string
+}) => {
+  const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting]   = useState<string | null>(null)
+  const [lightbox, setLightbox]   = useState<number | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+    setUploading(true)
+    const newUrls: string[] = []
+
+    for (const file of files) {
+      const ext      = file.name.split('.').pop()
+      const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const path     = `${slug}/${safeName}`
+
+      const { error: upErr } = await supabase.storage
+        .from('project-photos')
+        .upload(path, file, { upsert: false })
+
+      if (upErr) { console.error(upErr); continue }
+
+      const { data } = supabase.storage.from('project-photos').getPublicUrl(path)
+      newUrls.push(data.publicUrl)
+    }
+
+    if (newUrls.length > 0) {
+      const updated = [...photos, ...newUrls]
+      await supabase.from('projects').update({ photos: updated }).eq('id', projectId)
+      setPhotos(updated)
+    }
+    setUploading(false)
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  const handleDelete = async (url: string) => {
+    setDeleting(url)
+    // Storage'dan sil
+    const path = url.split('/project-photos/')[1]
+    if (path) {
+      await supabase.storage.from('project-photos').remove([decodeURIComponent(path)])
+    }
+    const updated = photos.filter(p => p !== url)
+    await supabase.from('projects').update({ photos: updated }).eq('id', projectId)
+    setPhotos(updated)
+    setDeleting(null)
+  }
+
   return (
-    <Card title="Görseller">
-      <div className="flex items-center justify-between -mt-2 mb-3">
-        <span />
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1 text-xs font-semibold text-primary-500 hover:text-primary-700 transition-colors">
-            Tümünü Gör
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <div className="hidden md:flex items-center gap-1 ml-2">
-            <button onClick={() => setOffset(Math.max(0, offset - 1))}
-              className="w-7 h-7 border border-neutral-200 rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40"
-              disabled={offset === 0}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" /></svg>
-            </button>
-            <button onClick={() => setOffset(Math.min(imgs.length - 1, offset + 1))}
-              className="w-7 h-7 border border-neutral-200 rounded-lg flex items-center justify-center hover:bg-neutral-50 transition-colors disabled:opacity-40"
-              disabled={offset >= imgs.length - 1}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" /></svg>
-            </button>
-          </div>
+    <Card title={`Görseller (${photos.length})`}>
+      {/* Grid */}
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-3">
+          {photos.map((src, i) => (
+            <div key={src} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group cursor-pointer"
+              onClick={() => setLightbox(i)}>
+              <img src={src} alt="" className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />
+              {/* Sil butonu */}
+              <button
+                onClick={e => { e.stopPropagation(); handleDelete(src) }}
+                disabled={deleting === src}
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-danger-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+              >
+                {deleting === src
+                  ? <svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                  : <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                }
+              </button>
+              {/* Büyüt ikonu */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-end justify-start p-1.5">
+                <span className="text-[9px] text-white/0 group-hover:text-white/80 font-medium transition-colors">{i + 1}</span>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-      <div className="grid grid-cols-4 gap-2">
-        {imgs.slice(0, 4).map((src, i) => (
-          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-neutral-100 group">
-            {src && <img src={src} alt="" className="w-full h-full object-cover" style={{ imageOrientation: 'from-image' }} />}
-            <button className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
-              <svg width="7" height="7" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            </button>
-          </div>
-        ))}
-      </div>
-      <button className="mt-3 w-full border border-dashed border-neutral-200 rounded-xl py-3 flex items-center justify-center gap-2 text-xs text-neutral-500 hover:bg-neutral-50 hover:border-primary-300 transition-colors">
-        <img src="/icons/plus.svg" alt="" width={13} height={13} className="opacity-50" />
-        Görsel Ekle
+      )}
+
+      {/* Yükle butonu */}
+      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="w-full border border-dashed border-neutral-200 rounded-xl py-3 flex items-center justify-center gap-2 text-xs text-neutral-500 hover:bg-neutral-50 hover:border-primary-300 disabled:opacity-50 transition-colors"
+      >
+        {uploading
+          ? <><svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#D3D1C7" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="#0A1F44" strokeWidth="3" strokeLinecap="round"/></svg> Yükleniyor...</>
+          : <><img src="/icons/plus.svg" alt="" width={13} height={13} className="opacity-50" /> Görsel Ekle (çoklu seçim)</>
+        }
       </button>
+
+      {/* Lightbox */}
+      {lightbox !== null && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}>
+          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 text-white/60 hover:text-white">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+          <button onClick={e => { e.stopPropagation(); setLightbox(l => l !== null && l > 0 ? l - 1 : photos.length - 1) }}
+            className="absolute left-4 text-white/60 hover:text-white">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+          <img src={photos[lightbox]} alt="" className="max-h-[85vh] max-w-[90vw] rounded-xl object-contain"
+            style={{ imageOrientation: 'from-image' }} onClick={e => e.stopPropagation()} />
+          <button onClick={e => { e.stopPropagation(); setLightbox(l => l !== null && l < photos.length - 1 ? l + 1 : 0) }}
+            className="absolute right-4 text-white/60 hover:text-white">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+          <p className="absolute bottom-4 text-white/40 text-sm">{lightbox + 1} / {photos.length}</p>
+        </div>
+      )}
     </Card>
   )
 }
@@ -2136,6 +2208,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
   const [mapLat,       setMapLat]       = useState<number | null>(null)
   const [mapLng,       setMapLng]       = useState<number | null>(null)
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([])
+  const [photos,       setPhotos]       = useState<string[]>([])
 
   useEffect(() => {
     supabase.from('projects').select('*').eq('slug', params.slug).single()
@@ -2148,6 +2221,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
           if (data.map_lat) setMapLat(data.map_lat)
           if (data.map_lng) setMapLng(data.map_lng)
           if (Array.isArray(data.nearby_places)) setNearbyPlaces(data.nearby_places)
+          if (Array.isArray(data.photos)) setPhotos(data.photos)
         }
         setLoading(false)
       })
@@ -2297,7 +2371,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
               </div>
               <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
               <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
-              <GorsellerKart project={project} />
+              <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} />
             </div>
             <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
               <FinansalKartlar />

@@ -186,8 +186,14 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
     label: FEATURE_OPTIONS[key]?.label ?? key,
   }))
 
-  // Galeri
-  const gallery: string[] = GALLERY_MAP[params.slug] ?? (proje.image_url ? [proje.image_url] : [])
+  // Galeri — admin'den yüklenen fotoğraflar önce, ardından statik drone fotoğrafları
+  const uploadedPhotos: string[] = Array.isArray(proje.photos) ? proje.photos : []
+  const staticPhotos: string[]   = GALLERY_MAP[params.slug] ?? []
+  const gallery: string[] = uploadedPhotos.length > 0
+    ? [...uploadedPhotos, ...staticPhotos]   // admin fotoğrafları varsa birleştir
+    : staticPhotos.length > 0
+      ? staticPhotos
+      : proje.image_url ? [proje.image_url] : []
   const heroImage = gallery[0] ?? proje.image_url ?? ''
 
   // Stats bar için ek bilgiler
