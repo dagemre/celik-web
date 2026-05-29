@@ -19,8 +19,10 @@ type Tab = 'genel' | 'finansal' | 'daireler' | 'evraklar' | 'malikler' | 'notlar
 type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | 'konum' | null
 type NearbyPlace = { label: string; desc: string }
 type DaireDurum = 'satildi' | 'musait' | 'rezerve'
-type DaireItem = { id: number; katNo: number; no: number; tip: string; brut: number; durum: DaireDurum; malik?: string }
-type DaireForm  = { tip: string; brut: string; malik: string }
+type MalikData = { ad: string; telefon: string; email: string; tc: string; toplamBorc: number; odenen: number }
+type DaireItem = { id: number; katNo: number; no: number; tip: string; brut: number; durum: DaireDurum; malik?: string; malikData?: MalikData }
+type DaireForm  = { tip: string; brut: string; netAlan: string; fiyat: string }
+type MalikForm  = { ad: string; telefon: string; email: string; tc: string; toplamBorc: string; odenen: string }
 type TahsilatItem = { id: string; ad: string; tutar: number; tarih: string }
 type KalemItem    = { id: string; label: string; tutar: number; tarih: string; color: string }
 
@@ -1214,8 +1216,6 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
   )
 }
 // ── Daire Ekle Form ────────────────────────────────────────────────────────────
-const MALIK_LISTESI = ['Müsait', 'Emre Dağ', 'Ahmet Yılmaz', 'Mehmet Kaya', 'Ayşe Demir', 'Fatma Şahin']
-
 const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
   katLabel: string
   form: DaireForm
@@ -1225,9 +1225,12 @@ const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
 }) => (
   <div>
     <div className="flex items-center justify-between mb-5">
-      <h3 className="font-bold text-base text-primary-800">{katLabel} — Daire Ekle</h3>
+      <div>
+        <h3 className="font-bold text-base text-primary-800">Daire Ekle</h3>
+        <p className="text-xs text-neutral-400">{katLabel}</p>
+      </div>
       <button onClick={onClose}
-        className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors flex-shrink-0">
+        className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
         </svg>
@@ -1235,7 +1238,7 @@ const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
     </div>
 
     <p className="text-xs font-medium text-neutral-500 mb-2">Daire Tipi</p>
-    <div className="grid grid-cols-4 gap-2 mb-5">
+    <div className="grid grid-cols-4 gap-2 mb-4">
       {['1+1', '2+1', '3+1', 'Dükkan'].map(tip => (
         <button key={tip} onClick={() => setForm({ ...form, tip })}
           className={`py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.tip === tip
@@ -1247,34 +1250,219 @@ const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
     </div>
 
     <p className="text-xs font-medium text-neutral-500 mb-2">Brüt Alan (m²)</p>
-    <input
-      type="number"
-      value={form.brut}
-      onChange={e => setForm({ ...form, brut: e.target.value })}
-      placeholder="90"
-      className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors mb-5"
-    />
+    <input type="number" value={form.brut} onChange={e => setForm({ ...form, brut: e.target.value })}
+      placeholder="90" className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 mb-4" />
 
-    <p className="text-xs font-medium text-neutral-500 mb-2">Malik Seç (Opsiyonel)</p>
-    {/* Mobile: yatay scroll / Desktop: wrap */}
-    <div className="flex gap-2 flex-nowrap overflow-x-auto md:flex-wrap pb-1 mb-6">
-      {MALIK_LISTESI.map(name => (
-        <button key={name} onClick={() => setForm({ ...form, malik: name })}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${form.malik === name
-            ? 'bg-primary-800 text-white border-primary-800'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:border-primary-300'}`}>
-          {name}
-        </button>
-      ))}
+    <div className="grid grid-cols-2 gap-3 mb-5">
+      <div>
+        <p className="text-xs font-medium text-neutral-500 mb-2">Net Alan (m²)</p>
+        <input type="number" value={form.netAlan} onChange={e => setForm({ ...form, netAlan: e.target.value })}
+          placeholder="72" className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
+      </div>
+      <div>
+        <p className="text-xs font-medium text-neutral-500 mb-2">Satış Fiyatı (₺)</p>
+        <input type="number" value={form.fiyat} onChange={e => setForm({ ...form, fiyat: e.target.value })}
+          placeholder="1500000" className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
+      </div>
     </div>
 
     <button onClick={onEkle}
       className="w-full bg-primary-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary-700 transition-colors">
-      <span className="md:hidden">Ekle</span>
-      <span className="hidden md:inline">Daireyi Ekle</span>
+      Daireyi Ekle
     </button>
   </div>
 )
+
+// ── Malik Ekle Form ────────────────────────────────────────────────────────────
+const MalikEkleForm = ({ daire, form, setForm, onKaydet, onClose }: {
+  daire: DaireItem
+  form: MalikForm
+  setForm: (f: MalikForm) => void
+  onKaydet: () => void
+  onClose: () => void
+}) => (
+  <div>
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <h3 className="font-bold text-base text-primary-800">Malik Ekle</h3>
+        <p className="text-xs text-neutral-400">Daire {daire.no} · {daire.tip} · {daire.brut} m²</p>
+      </div>
+      <button onClick={onClose}
+        className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    {/* Daire bilgi banner */}
+    <div className="bg-primary-800/5 border border-primary-800/10 rounded-xl px-4 py-3 mb-4 grid grid-cols-4 gap-2 text-center">
+      {[
+        { l: 'Daire No', v: String(daire.no) },
+        { l: 'Tip', v: daire.tip },
+        { l: 'Brüt Alan', v: `${daire.brut} m²` },
+        { l: 'Kat', v: `${daire.katNo}. Kat` },
+      ].map(({ l, v }) => (
+        <div key={l}>
+          <p className="text-[10px] text-neutral-400">{l}</p>
+          <p className="font-bold text-sm text-primary-800">{v}</p>
+        </div>
+      ))}
+    </div>
+
+    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Kişisel Bilgiler</p>
+    {[
+      { label: 'Ad Soyad *', key: 'ad', placeholder: 'Ahmet Yılmaz', type: 'text' },
+      { label: 'Telefon *',  key: 'telefon', placeholder: '0555 123 45 67', type: 'text' },
+      { label: 'E-posta',    key: 'email', placeholder: 'ornek@gmail.com', type: 'email' },
+      { label: 'TC Kimlik No', key: 'tc', placeholder: '12345678901', type: 'text' },
+    ].map(field => (
+      <div key={field.key} className="mb-3">
+        <p className="text-xs font-medium text-neutral-500 mb-1.5">{field.label}</p>
+        <input
+          type={field.type}
+          value={(form as any)[field.key]}
+          onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+          placeholder={field.placeholder}
+          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors"
+        />
+      </div>
+    ))}
+
+    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-4 mb-3">Finansal Bilgiler</p>
+    <div className="grid grid-cols-2 gap-3 mb-5">
+      <div>
+        <p className="text-xs font-medium text-neutral-500 mb-1.5">Toplam Borç (₺) *</p>
+        <input type="number" value={form.toplamBorc}
+          onChange={e => setForm({ ...form, toplamBorc: e.target.value })}
+          placeholder="1500000"
+          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
+      </div>
+      <div>
+        <p className="text-xs font-medium text-neutral-500 mb-1.5">Başlangıç Ödemesi (₺)</p>
+        <input type="number" value={form.odenen}
+          onChange={e => setForm({ ...form, odenen: e.target.value })}
+          placeholder="0"
+          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
+      </div>
+    </div>
+
+    <button
+      onClick={onKaydet}
+      disabled={!form.ad || !form.telefon}
+      className="w-full bg-primary-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+      Maliki Kaydet
+    </button>
+  </div>
+)
+
+// ── Malik Detay Modal ──────────────────────────────────────────────────────────
+const MalikDetayModal = ({ daire, onClose, onDuzenle }: {
+  daire: DaireItem
+  onClose: () => void
+  onDuzenle: () => void
+}) => {
+  const m = daire.malikData
+  if (!m) return null
+  const toplamBorc = m.toplamBorc
+  const odenen = m.odenen
+  const kalan = Math.max(toplamBorc - odenen, 0)
+  const progress = toplamBorc > 0 ? Math.min(Math.round((odenen / toplamBorc) * 100), 100) : 0
+  const initials = m.ad.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const fmt = (n: number) => n.toLocaleString('tr-TR') + ' ₺'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative z-10 w-full md:max-w-md bg-white rounded-t-3xl md:rounded-2xl px-5 pt-5 pb-10 md:pb-6 max-h-[85vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-info-50 flex items-center justify-center flex-shrink-0">
+              <span className="font-bold text-sm text-info-700">{initials}</span>
+            </div>
+            <div>
+              <p className="font-bold text-base text-primary-800">{m.ad}</p>
+              <p className="text-xs text-neutral-400">{m.telefon}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => { onClose(); setTimeout(onDuzenle, 200) }}
+              className="flex items-center gap-1.5 bg-info-50 text-info-600 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-info-100 transition-colors">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Düzenle
+            </button>
+            <button onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Daire Bilgileri */}
+        <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Daire Bilgileri</p>
+        <div className="bg-neutral-50 rounded-2xl p-4 mb-4 space-y-2">
+          {[
+            { l: 'Daire No', v: String(daire.no) },
+            { l: 'Kat', v: `${daire.katNo}. Kat` },
+            { l: 'Daire Tipi', v: daire.tip },
+            { l: 'Brüt Alan', v: `${daire.brut} m²` },
+            ...(m.email ? [{ l: 'E-posta', v: m.email }] : []),
+            ...(m.tc ? [{ l: 'TC Kimlik', v: m.tc }] : []),
+          ].map(({ l, v }, i) => (
+            <div key={i} className={`flex justify-between items-center py-1 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+              <span className="text-xs text-neutral-400">{l}</span>
+              <span className="text-xs font-bold text-primary-800">{v}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Finansal Durum */}
+        <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Finansal Durum</p>
+        <div className="bg-white border border-neutral-100 rounded-2xl p-4 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="bg-danger-50 rounded-xl p-3 text-center">
+              <p className="text-[10px] text-danger-600 mb-0.5">Toplam Borç</p>
+              <p className="font-bold text-sm text-danger-700">{fmt(toplamBorc)}</p>
+            </div>
+            <div className="bg-success-50 rounded-xl p-3 text-center">
+              <p className="text-[10px] text-success-600 mb-0.5">Ödenen</p>
+              <p className="font-bold text-sm text-success-700">{fmt(odenen)}</p>
+            </div>
+            <div className="bg-warning-50 rounded-xl p-3 text-center">
+              <p className="text-[10px] text-warning-600 mb-0.5">Kalan</p>
+              <p className="font-bold text-sm text-warning-700">{fmt(kalan)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-2 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+            <span className="text-xs font-bold text-success-600">%{progress} Ödendi</span>
+          </div>
+        </div>
+
+        {/* Ödeme Geçmişi (placeholder) */}
+        <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Ödeme Geçmişi</p>
+        <div className="bg-neutral-50 rounded-2xl p-5 text-center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="mx-auto mb-2 opacity-30">
+            <rect x="2" y="5" width="20" height="14" rx="2" stroke="#0A1F44" strokeWidth="1.8"/>
+            <path d="M2 10h20" stroke="#0A1F44" strokeWidth="1.8"/>
+          </svg>
+          <p className="text-xs text-neutral-400">Ödeme kaydı henüz yok.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Daireler Tab ───────────────────────────────────────────────────────────────
 const DairelerTab = ({ slug }: { slug: string }) => {
@@ -1298,67 +1486,101 @@ const DairelerTab = ({ slug }: { slug: string }) => {
     if (!lsLoaded) return
     localStorage.setItem(lsKey, JSON.stringify({ daireler, katSayisi }))
   }, [daireler, katSayisi, lsLoaded, lsKey])
-  const [addPanel, setAddPanel]   = useState<number | null>(null)
-  const [addForm, setAddForm]     = useState<DaireForm>({ tip: '2+1', brut: '', malik: 'Müsait' })
 
-  const totalCount   = daireler.length
-  const dukkanCount  = daireler.filter(d => d.tip === 'Dükkan').length
-  const satilmis     = daireler.filter(d => d.durum === 'satildi').length
-  const musaitCount  = daireler.filter(d => d.durum === 'musait').length
+  // Panel states
+  const [addPanel, setAddPanel]             = useState<number | null>(null) // kat no for daire ekle
+  const [malikPanel, setMalikPanel]         = useState<DaireItem | null>(null) // daire for malik ekle
+  const [detayDaire, setDetayDaire]         = useState<DaireItem | null>(null) // for detail modal
+  const [editMalikDaire, setEditMalikDaire] = useState<DaireItem | null>(null) // for editing existing
+
+  const [addForm,   setAddForm]   = useState<DaireForm>({ tip: '2+1', brut: '', netAlan: '', fiyat: '' })
+  const [malikForm, setMalikForm] = useState<MalikForm>({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
+
+  const totalCount  = daireler.length
+  const dukkanCount = daireler.filter(d => d.tip === 'Dükkan').length
+  const satilmis    = daireler.filter(d => d.durum === 'satildi').length
+  const musaitCount = daireler.filter(d => d.durum !== 'satildi').length
 
   const katlar = Array.from({ length: katSayisi }, (_, i) => i + 1)
 
   const openAdd = (katNo: number) => {
     setAddPanel(katNo)
-    setAddForm({ tip: '2+1', brut: '', malik: 'Müsait' })
+    setMalikPanel(null)
+    setEditMalikDaire(null)
+    setAddForm({ tip: '2+1', brut: '', netAlan: '', fiyat: '' })
+  }
+
+  const openMalikEkle = (daire: DaireItem) => {
+    setMalikPanel(daire)
+    setEditMalikDaire(null)
+    setAddPanel(null)
+    setMalikForm({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
+  }
+
+  const openMalikDuzenle = (daire: DaireItem) => {
+    setEditMalikDaire(daire)
+    setMalikPanel(daire)
+    setAddPanel(null)
+    if (daire.malikData) {
+      setMalikForm({
+        ad: daire.malikData.ad,
+        telefon: daire.malikData.telefon,
+        email: daire.malikData.email,
+        tc: daire.malikData.tc,
+        toplamBorc: String(daire.malikData.toplamBorc),
+        odenen: String(daire.malikData.odenen),
+      })
+    }
   }
 
   const handleEkle = () => {
     if (!addPanel) return
     const katDaireler = daireler.filter(d => d.katNo === addPanel)
     const nextNo      = katDaireler.length > 0 ? Math.max(...katDaireler.map(d => d.no)) + 1 : 1
-    const newDaire: DaireItem = {
-      id:      Date.now(),
-      katNo:   addPanel,
-      no:      nextNo,
-      tip:     addForm.tip,
-      brut:    parseInt(addForm.brut) || 90,
-      durum:   addForm.malik === 'Müsait' ? 'musait' : 'satildi',
-      malik:   addForm.malik === 'Müsait' ? undefined : addForm.malik,
-    }
-    setDaireler(prev => [...prev, newDaire])
+    setDaireler(prev => [...prev, {
+      id:    Date.now(),
+      katNo: addPanel,
+      no:    nextNo,
+      tip:   addForm.tip,
+      brut:  parseInt(addForm.brut) || 90,
+      durum: 'musait',
+    }])
     setAddPanel(null)
   }
+
+  const handleMalikKaydet = () => {
+    const targetDaire = editMalikDaire || malikPanel
+    if (!targetDaire || !malikForm.ad || !malikForm.telefon) return
+    const malikData: MalikData = {
+      ad: malikForm.ad,
+      telefon: malikForm.telefon,
+      email: malikForm.email,
+      tc: malikForm.tc,
+      toplamBorc: parseInt(malikForm.toplamBorc) || 0,
+      odenen: parseInt(malikForm.odenen) || 0,
+    }
+    setDaireler(prev => prev.map(d =>
+      d.id === targetDaire.id
+        ? { ...d, durum: 'satildi', malik: malikForm.ad, malikData }
+        : d
+    ))
+    setMalikPanel(null)
+    setEditMalikDaire(null)
+  }
+
+  // Side panel: either daire ekle or malik ekle
+  const hasSidePanel = addPanel !== null || malikPanel !== null
 
   return (
     <div>
       <div className={`md:flex md:gap-4 md:items-start`}>
 
-        {/* ── Sol / Ana içerik ── */}
-        <div className={`min-w-0 ${addPanel !== null ? 'md:flex-1' : 'w-full'} space-y-3`}>
+        {/* ── Ana içerik ── */}
+        <div className={`min-w-0 ${hasSidePanel ? 'md:flex-1' : 'w-full'} space-y-3`}>
 
-          {/* Özet kartlar — mobil */}
-          <div className="md:hidden flex gap-3">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-3 flex items-center gap-2.5 flex-1">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="opacity-40 flex-shrink-0">
-                <rect x="3" y="3" width="18" height="18" rx="2" stroke="#0A1F44" strokeWidth="1.8"/>
-                <path d="M3 9h18M9 21V9" stroke="#0A1F44" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
-              <div>
-                <p className="text-xs font-bold text-primary-800">Dükkan</p>
-                <p className="text-xs text-neutral-500">{dukkanCount} Daire</p>
-              </div>
-            </div>
-            <div className="bg-primary-800 rounded-2xl p-3 flex-1 flex flex-col items-center justify-center">
-              <p className="text-[10px] text-white/70">Toplam</p>
-              <p className="text-2xl font-bold text-white leading-tight">{totalCount}</p>
-              <p className="text-[10px] text-white/70">Bağımsız</p>
-            </div>
-          </div>
-
-          {/* Özet kartlar — desktop */}
-          <div className="hidden md:grid grid-cols-4 gap-3">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-3.5 flex items-center gap-3">
+          {/* Özet kartlar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white rounded-2xl border border-neutral-100 p-3 md:p-3.5 flex items-center gap-2.5">
               <div className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke="#0A1F44" strokeWidth="1.8"/>
@@ -1367,20 +1589,20 @@ const DairelerTab = ({ slug }: { slug: string }) => {
               </div>
               <div>
                 <p className="text-sm font-bold text-primary-800">Dükkan</p>
-                <p className="text-xs text-neutral-500">{dukkanCount} Daire</p>
+                <p className="text-xs text-neutral-500">{dukkanCount} Adet</p>
               </div>
             </div>
-            <div className="bg-primary-800 rounded-2xl p-3.5 text-center">
+            <div className="bg-primary-800 rounded-2xl p-3 md:p-3.5 text-center">
               <p className="text-[11px] text-white/70 mb-0.5">Toplam</p>
               <p className="text-2xl font-bold text-white leading-none">{totalCount}</p>
               <p className="text-[11px] text-white/70 mt-0.5">Daire</p>
             </div>
-            <div className="bg-success-50 rounded-2xl border border-success-100 p-3.5 text-center">
+            <div className="bg-success-50 rounded-2xl border border-success-100 p-3 md:p-3.5 text-center">
               <p className="text-[11px] text-success-600 mb-0.5">Satılmış</p>
               <p className="text-2xl font-bold text-success-700 leading-none">{satilmis}</p>
               <p className="text-[11px] text-success-600 mt-0.5">Daire</p>
             </div>
-            <div className="bg-warning-50 rounded-2xl border border-warning-100 p-3.5 text-center">
+            <div className="bg-warning-50 rounded-2xl border border-warning-100 p-3 md:p-3.5 text-center">
               <p className="text-[11px] text-warning-600 mb-0.5">Müsait</p>
               <p className="text-2xl font-bold text-warning-700 leading-none">{musaitCount}</p>
               <p className="text-[11px] text-warning-600 mt-0.5">Daire</p>
@@ -1391,19 +1613,17 @@ const DairelerTab = ({ slug }: { slug: string }) => {
           <div className="bg-white rounded-2xl border border-neutral-100 px-4 py-3.5 flex items-center justify-between">
             <span className="font-bold text-sm text-primary-800">Kat Yönetimi</span>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setKatSayisi(k => Math.max(1, k - 1))}
+              <button onClick={() => setKatSayisi(k => Math.max(1, k - 1))}
                 className="w-9 h-9 rounded-full bg-danger-50 border border-danger-100 flex items-center justify-center hover:bg-danger-100 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12h14" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M5 12h14" stroke="#A32D2D" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
               <span className="text-sm font-semibold text-primary-800 min-w-[52px] text-center">{katSayisi} Kat</span>
-              <button
-                onClick={() => setKatSayisi(k => k + 1)}
+              <button onClick={() => setKatSayisi(k => k + 1)}
                 className="w-9 h-9 rounded-full bg-success-50 border border-success-100 flex items-center justify-center hover:bg-success-100 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5v14M5 12h14" stroke="#0F6E56" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M12 5v14M5 12h14" stroke="#0F6E56" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
             </div>
@@ -1418,7 +1638,6 @@ const DairelerTab = ({ slug }: { slug: string }) => {
 
               return (
                 <div key={katNo} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
-
                   {/* Kat header */}
                   <div className="flex items-center justify-between px-4 py-3.5">
                     <button
@@ -1429,29 +1648,27 @@ const DairelerTab = ({ slug }: { slug: string }) => {
                     </button>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {isExpanded && (
-                        <button
-                          onClick={() => openAdd(katNo)}
+                        <button onClick={() => openAdd(katNo)}
                           className="flex items-center gap-1.5 bg-primary-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-primary-700 transition-colors">
                           <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                            <path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                            <path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
                           </svg>
                           Daire Ekle
                         </button>
                       )}
-                      <button
-                        onClick={() => setExpandedKat(isExpanded ? null : katNo)}
+                      <button onClick={() => setExpandedKat(isExpanded ? null : katNo)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                           {isExpanded
-                            ? <path d="M18 15l-6-6-6 6" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
-                            : <path d="M9 18l6-6-6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
+                            ? <path d="M18 15l-6-6-6 6" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
+                            : <path d="M9 18l6-6-6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
                           }
                         </svg>
                       </button>
                     </div>
                   </div>
 
-                  {/* Daireler grid */}
+                  {/* Daire kartları */}
                   {isExpanded && (
                     <div className="px-4 pb-4">
                       {katDaireler.length === 0 ? (
@@ -1460,42 +1677,49 @@ const DairelerTab = ({ slug }: { slug: string }) => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           {katDaireler.map(d => {
                             const isSat = d.durum === 'satildi'
-                            const isMus = d.durum === 'musait'
-                            const isRez = d.durum === 'rezerve'
                             return (
                               <div key={d.id}
-                                className={`rounded-xl p-3 border ${isSat
+                                className={`rounded-2xl border overflow-hidden ${isSat
                                   ? 'bg-success-50 border-success-100'
-                                  : isMus
-                                  ? 'bg-white border-dashed border-neutral-200'
-                                  : 'bg-warning-50 border-warning-100'}`}>
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="font-bold text-sm text-primary-800">No: {d.no}</span>
-                                  <span className="text-[11px] text-neutral-400">{d.tip}</span>
-                                </div>
-                                <p className="text-xs text-neutral-500 mb-2">Brüt: {d.brut} m²</p>
-                                {isSat && (
-                                  <>
-                                    <span className="inline-block bg-success-100 text-success-700 text-[10px] font-bold px-2 py-0.5 rounded-lg mb-1">
-                                      Satıldı
+                                  : 'bg-white border-neutral-200 border-dashed'}`}>
+
+                                {/* Kart üst */}
+                                <div className="px-3 pt-3 pb-2">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-bold text-sm text-primary-800">No: {d.no}</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${isSat ? 'bg-success-100 text-success-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                                      {isSat ? 'Satıldı' : 'Müsait'}
                                     </span>
-                                    {d.malik && (
-                                      <p className="text-xs font-semibold text-primary-800 truncate">{d.malik}</p>
-                                    )}
-                                  </>
-                                )}
-                                {isMus && (
-                                  <div className="flex items-center gap-1 text-neutral-400">
-                                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                                      <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                                    </svg>
-                                    <span className="text-xs">Müsait</span>
                                   </div>
-                                )}
-                                {isRez && (
-                                  <span className="inline-block bg-warning-100 text-warning-700 text-[10px] font-bold px-2 py-0.5 rounded-lg">
-                                    Rezerve
-                                  </span>
+                                  <p className="text-xs text-neutral-400">{d.tip} · {d.brut} m²</p>
+                                </div>
+
+                                {/* Kart alt */}
+                                {isSat ? (
+                                  <button
+                                    onClick={() => setDetayDaire(d)}
+                                    className="w-full border-t border-success-100 bg-success-100/50 px-3 py-2 flex items-center justify-between hover:bg-success-100 transition-colors">
+                                    <div className="text-left min-w-0 flex-1">
+                                      <p className="font-bold text-xs text-success-800 truncate">{d.malik}</p>
+                                      <p className="text-[10px] text-success-600">Detay gör →</p>
+                                    </div>
+                                    <div className="w-7 h-7 bg-success-200 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
+                                      <span className="font-bold text-success-700 text-[10px]">
+                                        {(d.malik || 'M').split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                      </span>
+                                    </div>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => openMalikEkle(d)}
+                                    className="w-full border-t border-dashed border-neutral-200 px-3 py-2 flex items-center gap-1.5 hover:bg-neutral-50 transition-colors">
+                                    <div className="w-5 h-5 bg-primary-800 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                        <path d="M6 1v10M1 6h10" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
+                                      </svg>
+                                    </div>
+                                    <span className="text-xs font-semibold text-primary-800">Malik Ekle</span>
+                                  </button>
                                 )}
                               </div>
                             )
@@ -1510,42 +1734,75 @@ const DairelerTab = ({ slug }: { slug: string }) => {
           </div>
         </div>
 
-        {/* ── Sağ panel — Desktop Daire Ekle ── */}
-        {addPanel !== null && (
-          <div className="hidden md:block md:w-[340px] flex-shrink-0 bg-white rounded-2xl border border-neutral-100 p-5 sticky top-6">
-            <DaireEkleForm
-              katLabel={getKatLabel(addPanel)}
-              form={addForm}
-              setForm={setAddForm}
-              onEkle={handleEkle}
-              onClose={() => setAddPanel(null)}
-            />
+        {/* ── Sağ panel — Desktop ── */}
+        {hasSidePanel && (
+          <div className="hidden md:block md:w-[360px] flex-shrink-0 bg-white rounded-2xl border border-neutral-100 p-5 sticky top-6">
+            {addPanel !== null && (
+              <DaireEkleForm
+                katLabel={getKatLabel(addPanel)}
+                form={addForm} setForm={setAddForm}
+                onEkle={handleEkle}
+                onClose={() => setAddPanel(null)}
+              />
+            )}
+            {malikPanel !== null && (
+              <MalikEkleForm
+                daire={malikPanel}
+                form={malikForm} setForm={setMalikForm}
+                onKaydet={handleMalikKaydet}
+                onClose={() => { setMalikPanel(null); setEditMalikDaire(null) }}
+              />
+            )}
           </div>
         )}
       </div>
 
-      {/* ── Mobil bottom sheet modal ── */}
+      {/* ── Mobil: Daire Ekle bottom sheet ── */}
       {addPanel !== null && (
-        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center"
-          onClick={() => setAddPanel(null)}>
+        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center" onClick={() => setAddPanel(null)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative z-10 w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 max-h-[85vh] overflow-y-auto"
+          <div className="relative z-10 w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}>
             <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
             <DaireEkleForm
               katLabel={getKatLabel(addPanel)}
-              form={addForm}
-              setForm={setAddForm}
+              form={addForm} setForm={setAddForm}
               onEkle={handleEkle}
               onClose={() => setAddPanel(null)}
             />
           </div>
         </div>
       )}
+
+      {/* ── Mobil: Malik Ekle bottom sheet ── */}
+      {malikPanel !== null && (
+        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center" onClick={() => { setMalikPanel(null); setEditMalikDaire(null) }}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative z-10 w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}>
+            <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
+            <MalikEkleForm
+              daire={malikPanel}
+              form={malikForm} setForm={setMalikForm}
+              onKaydet={handleMalikKaydet}
+              onClose={() => { setMalikPanel(null); setEditMalikDaire(null) }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Malik Detay Modal ── */}
+      {detayDaire && detayDaire.malikData && (
+        <MalikDetayModal
+          daire={detayDaire}
+          onClose={() => setDetayDaire(null)}
+          onDuzenle={() => { openMalikDuzenle(detayDaire); setDetayDaire(null) }}
+        />
+      )}
     </div>
   )
 }
+
 
 // ── Evraklar Types & Data ──────────────────────────────────────────────────────
 type EvrakDurum = 'paylasiliyor' | 'gizli'
@@ -2129,7 +2386,7 @@ type MalikItem = {
   katNo: number; daire: string; tip: string
   phone: string; toplam: number; odenen: number
 }
-type MalikForm = {
+type MaliklerForm = {
   name: string; phone: string; email: string
   daire: string; toplam: string; odenen: string
   vade: string; tip: string
@@ -2163,7 +2420,7 @@ const MaliklerTab = ({ slug }: { slug: string }) => {
     if (!lsLoaded) return
     localStorage.setItem(lsKey, JSON.stringify({ malikler }))
   }, [malikler, lsLoaded, lsKey])
-  const [form, setForm] = useState<MalikForm>({
+  const [form, setForm] = useState<MaliklerForm>({
     name: '', phone: '', email: '', daire: '',
     toplam: '', odenen: '', vade: '', tip: '2+1',
   })
