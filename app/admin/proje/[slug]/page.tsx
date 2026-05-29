@@ -201,11 +201,13 @@ const FinansalKartlar = ({ slug }: { slug: string }) => {
     } catch {}
   }, [slug])
 
+  const tahsilEdilecek = Math.max(0, data.sozlesme - data.tahsilEdilen)
+
   const kartlar = [
-    { label: 'Sözleşme Bedeli',       v: data.sozlesme,                      icon: '/icons/document.svg', color: 'text-primary-800' },
-    { label: 'Tahsil Edilecek',        v: data.sozlesme,                      icon: '/icons/wallet.svg',   color: 'text-warning-700' },
-    { label: 'Tahsil Edilen',          v: data.tahsilEdilen,                  icon: '/icons/card.svg',     color: 'text-success-700' },
-    { label: 'Güncel Proje Maliyeti',  v: data.toplamMaliyet,                 icon: '/icons/building.svg', color: 'text-danger-700'  },
+    { label: 'Sözleşme Bedeli',       v: data.sozlesme,      icon: '/icons/document.svg', color: 'text-primary-800' },
+    { label: 'Tahsil Edilecek',        v: tahsilEdilecek,     icon: '/icons/wallet.svg',   color: 'text-warning-700' },
+    { label: 'Tahsil Edilen',          v: data.tahsilEdilen,  icon: '/icons/card.svg',     color: 'text-success-700' },
+    { label: 'Güncel Proje Maliyeti',  v: data.toplamMaliyet, icon: '/icons/building.svg', color: 'text-danger-700'  },
   ]
 
   return (
@@ -745,8 +747,8 @@ const FinansalTab = ({ slug }: { slug: string }) => {
   const [kalemTarihAy, setKalemTarihAy]   = useState('')
 
   const tahsilEdilen   = tahsilatlar.reduce((s, t) => s + t.tutar, 0)
-  const tahsilEdilecek = sozlesme
-  const kalanTahsilat  = tahsilEdilecek - tahsilEdilen
+  const tahsilEdilecek = Math.max(0, sozlesme - tahsilEdilen)
+  const kalanTahsilat  = tahsilEdilecek
   const toplamMaliyet  = kalemler.reduce((s, k) => s + k.tutar, 0)
 
   const pctEdilen = tahsilEdilecek > 0 ? (tahsilEdilen / tahsilEdilecek) * 100 : 0
@@ -936,15 +938,9 @@ const FinansalTab = ({ slug }: { slug: string }) => {
           )}
         </div>
 
-        <div className="border-t border-neutral-200 pt-3 mt-1 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-primary-800">Toplam Tahsilat</span>
-            <span className="text-sm font-bold text-success-700">{tl(tahsilEdilen)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-neutral-500">Kalan Tahsilat</span>
-            <span className="text-sm font-semibold text-warning-700">{tl(kalanTahsilat)}</span>
-          </div>
+        <div className="border-t border-neutral-200 pt-3 mt-1 flex items-center justify-between">
+          <span className="text-sm font-bold text-primary-800">Toplam Tahsilat</span>
+          <span className="text-sm font-bold text-success-700">{tl(tahsilEdilen)}</span>
         </div>
       </div>
 
