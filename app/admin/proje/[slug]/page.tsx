@@ -1476,7 +1476,7 @@ const MalikDetayModal = ({ daire, onClose, onDuzenle }: {
 }
 
 // ── Daireler Tab ───────────────────────────────────────────────────────────────
-const DairelerTab = ({ slug }: { slug: string }) => {
+const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) => {
   const lsKey = `daireler_v2_${slug}`
 
   const [daireler, setDaireler]   = useState<DaireItem[]>(INITIAL_DAIRELER)
@@ -1602,6 +1602,69 @@ const DairelerTab = ({ slug }: { slug: string }) => {
         ? { ...d, durum: 'satildi', malik: malikForm.ad, malikData }
         : d
     ))
+    // Supabase'e kaydet (admin/kisiler sayfasında görünsün)
+    ;(async () => {
+      try {
+        if (editMalikDaire) {
+          // Güncelle — önce unit_id bul
+          const { data: existing } = await supabase
+            .from('owners')
+            .select('id, unit_id')
+            .eq('project_id', projectId)
+            .eq('full_name', editMalikDaire.malikData?.ad || '')
+            .maybeSingle()
+          if (existing) {
+            await supabase.from('owners').update({
+              full_name: malikForm.ad.trim(),
+              phone:     malikForm.telefon.trim(),
+              email:     malikForm.email.trim(),
+            }).eq('id', existing.id)
+            if (existing.unit_id) {
+              await supabase.from('units').update({
+                unit_no: String(targetDaire.no),
+                floor:   targetDaire.katNo,
+                type:    targetDaire.tip,
+                price:   malikData.toplamBorc,
+              }).eq('id', existing.unit_id)
+            }
+          }
+        } else {
+          // Yeni ekle: önce unit, sonra owner
+          const { data: unit } = await supabase.from('units').insert({
+            project_id: projectId,
+            unit_no:    String(targetDaire.no),
+            floor:      targetDaire.katNo,
+            type:       targetDaire.tip,
+            price:      malikData.toplamBorc,
+            status:     'sold',
+          }).select().single()
+          if (unit) {
+            await supabase.from('owners').insert({
+              full_name:  malikForm.ad.trim(),
+              phone:      malikForm.telefon.trim(),
+              email:      malikForm.email.trim(),
+              project_id: projectId,
+              unit_id:    unit.id,
+            })
+            if (malikData.odenen > 0) {
+              await supabase.from('payments').insert({
+                owner_id:    unit.id,
+                unit_id:     unit.id,
+                project_id:  projectId,
+                amount:      malikData.odenen,
+                paid_date:   new Date().toISOString().split('T')[0],
+                status:      'odendi',
+                description: 'Başlangıç ödemesi',
+                source:      'Banka',
+                type:        'peşinat',
+              })
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Supabase malik kayıt hatası:', e)
+      }
+    })()
     // Malikler tab'ına da yaz
     try {
       const malikLsKey = `malikler_v2_${slug}`
@@ -3002,7 +3065,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {tab === 'finansal' && <FinansalTab slug={project.slug} projectId={project.id} />}
 
         {/* DAİRELER */}
-        {tab === 'daireler' && <DairelerTab slug={project.slug} />}
+        {tab === 'daireler' && <DairelerTab slug={project.slug} projectId={project.id} />}
 
         {/* EVRAKLAR */}
         {tab === 'evraklar' && <EvraklarTab slug={project.slug} />}
