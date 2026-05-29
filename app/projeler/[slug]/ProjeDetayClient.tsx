@@ -191,13 +191,13 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
       {/* ── Özellikler + İlerleme ── */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-10">
+          <div className={`grid gap-10 ${proje.ilerleme > 0 && proje.ilerleme < 100 ? 'lg:grid-cols-2' : ''}`}>
 
             {/* Bina Özellikleri */}
             <div className="bg-white rounded-2xl border border-gray-100 p-8">
               <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Bina Özellikleri</h3>
               {proje.ozellikler.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className={`grid gap-4 ${proje.ilerleme > 0 && proje.ilerleme < 100 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6'}`}>
                   {proje.ozellikler.map((o, i) => (
                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-3">
                       <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-100">
@@ -212,29 +212,31 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
               )}
             </div>
 
-            {/* İlerleme */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Proje İlerlemesi</h3>
-                <div className="flex items-end gap-3 mb-4">
-                  <span className="text-5xl font-bold text-[#1E54C8]">%{proje.ilerleme}</span>
-                  <span className="text-gray-400 text-sm mb-2">Tamamlandı</span>
+            {/* İlerleme — sadece %0 değilse ve %100 değilse göster */}
+            {proje.ilerleme > 0 && proje.ilerleme < 100 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-[#0A1F44] text-lg mb-6">Proje İlerlemesi</h3>
+                  <div className="flex items-end gap-3 mb-4">
+                    <span className="text-5xl font-bold text-[#1E54C8]">%{proje.ilerleme}</span>
+                    <span className="text-gray-400 text-sm mb-2">Tamamlandı</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#1E54C8] rounded-full transition-all duration-1000"
+                      style={{ width: `${proje.ilerleme}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mt-2">
+                    <span>Başlangıç</span>
+                    <span>Tamamlandı</span>
+                  </div>
                 </div>
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#1E54C8] rounded-full transition-all duration-1000"
-                    style={{ width: `${proje.ilerleme}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-2">
-                  <span>Başlangıç</span>
-                  <span>Tamamlandı</span>
+                <div className="flex justify-end mt-4">
+                  <img src="/icons/proje-detail-ilerleme.svg" alt="İnşaat" className="h-24 opacity-20" />
                 </div>
               </div>
-              <div className="flex justify-end mt-4">
-                <img src="/icons/proje-detail-ilerleme.svg" alt="İnşaat" className="h-24 opacity-20" />
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
