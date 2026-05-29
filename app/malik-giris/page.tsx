@@ -23,15 +23,27 @@ export default function MalikGirisPage() {
 
     setLoading(true)
 
-    // MOCK GİRİŞ — Supabase kurulunca bu blok kaldırılacak
+    // localStorage'daki malik_credentials ile kontrol — Supabase kurulunca değişecek
     setTimeout(() => {
-      if (email === 'dagemre@gmail.com' && password === '12345') {
-        router.push('/malik-dashboard')
-      } else {
+      try {
+        const creds: { telefon: string; email: string; sifre: string; slug: string }[] =
+          JSON.parse(localStorage.getItem('malik_credentials') || '[]')
+        const giris = email.trim()
+        const found = creds.find(c =>
+          (c.telefon === giris || c.email === giris) && c.sifre === password
+        )
+        if (found) {
+          localStorage.setItem('aktif_malik_slug', found.slug)
+          router.push('/malik-dashboard')
+        } else {
+          setLoading(false)
+          setError('Telefon/e-posta veya şifre hatalı.')
+        }
+      } catch {
         setLoading(false)
-        setError('E-posta veya şifre hatalı.')
+        setError('Bir hata oluştu, lütfen tekrar deneyin.')
       }
-    }, 800)
+    }, 600)
   }
 
   return (
@@ -80,7 +92,7 @@ export default function MalikGirisPage() {
               {/* E-posta */}
               <div>
                 <label className="block text-sm font-semibold text-[#0A1F44] mb-2">
-                  E-posta Adresi
+                  Telefon veya E-posta
                 </label>
                 <div className="relative">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
@@ -93,7 +105,7 @@ export default function MalikGirisPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ornek@email.com"
+                    placeholder="0555 123 45 67 veya ornek@email.com"
                     autoComplete="email"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A1F44]/20 focus:border-[#0A1F44] transition-all"
                   />

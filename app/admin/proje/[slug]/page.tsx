@@ -19,10 +19,10 @@ type Tab = 'genel' | 'finansal' | 'daireler' | 'evraklar' | 'malikler' | 'notlar
 type EditKey = 'bilgiler' | 'ozellikler' | 'ilerleme' | 'konum' | null
 type NearbyPlace = { label: string; desc: string }
 type DaireDurum = 'satildi' | 'musait' | 'rezerve'
-type MalikData = { ad: string; telefon: string; email: string; tc: string; toplamBorc: number; odenen: number }
+type MalikData = { ad: string; telefon: string; email: string; tc: string; toplamBorc: number; odenen: number; sifre?: string }
 type DaireItem = { id: number; katNo: number; no: number; tip: string; brut: number; durum: DaireDurum; malik?: string; malikData?: MalikData }
 type DaireForm  = { tip: string; brut: string; netAlan: string; fiyat: string }
-type MalikForm  = { ad: string; telefon: string; email: string; tc: string; toplamBorc: string; odenen: string }
+type MalikForm  = { ad: string; telefon: string; email: string; tc: string; toplamBorc: string; odenen: string; sifre: string }
 type TahsilatItem = { id: string; ad: string; tutar: number; tarih: string }
 type KalemItem    = { id: string; label: string; tutar: number; tarih: string; color: string }
 
@@ -1243,87 +1243,129 @@ const DaireEkleForm = ({ katLabel, form, setForm, onEkle, onClose }: {
 )
 
 // ── Malik Ekle Form ────────────────────────────────────────────────────────────
-const MalikEkleForm = ({ daire, form, setForm, onKaydet, onClose }: {
+function MalikEkleForm({ daire, form, setForm, onKaydet, onClose }: {
   daire: DaireItem
   form: MalikForm
   setForm: (f: MalikForm) => void
   onKaydet: () => void
   onClose: () => void
-}) => (
-  <div>
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h3 className="font-bold text-base text-primary-800">Malik Ekle</h3>
-        <p className="text-xs text-neutral-400">Daire {daire.no} · {daire.tip} · {daire.brut} m²</p>
+}) {
+  const [showSifre, setShowSifre] = React.useState(false)
+  const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors placeholder:text-neutral-400"
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-bold text-base text-primary-800">Malik Ekle</h3>
+          <p className="text-xs text-neutral-400">Daire {daire.no} · {daire.tip} · {daire.brut} m²</p>
+        </div>
+        <button onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
-      <button onClick={onClose}
-        className="w-7 h-7 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
-    </div>
 
-    {/* Daire bilgi banner */}
-    <div className="bg-primary-800/5 border border-primary-800/10 rounded-xl px-4 py-3 mb-4 grid grid-cols-4 gap-2 text-center">
+      {/* Daire bilgi banner */}
+      <div className="bg-primary-800/5 border border-primary-800/10 rounded-xl px-4 py-3 mb-4 grid grid-cols-4 gap-2 text-center">
+        {[
+          { l: 'Daire No', v: String(daire.no) },
+          { l: 'Tip', v: daire.tip },
+          { l: 'Brüt Alan', v: `${daire.brut} m²` },
+          { l: 'Kat', v: `${daire.katNo}. Kat` },
+        ].map(({ l, v }) => (
+          <div key={l}>
+            <p className="text-[10px] text-neutral-400">{l}</p>
+            <p className="font-bold text-sm text-primary-800">{v}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Kişisel Bilgiler</p>
       {[
-        { l: 'Daire No', v: String(daire.no) },
-        { l: 'Tip', v: daire.tip },
-        { l: 'Brüt Alan', v: `${daire.brut} m²` },
-        { l: 'Kat', v: `${daire.katNo}. Kat` },
-      ].map(({ l, v }) => (
-        <div key={l}>
-          <p className="text-[10px] text-neutral-400">{l}</p>
-          <p className="font-bold text-sm text-primary-800">{v}</p>
+        { label: 'Ad Soyad *',   key: 'ad',      placeholder: 'Ahmet Yılmaz',   type: 'text'  },
+        { label: 'Telefon *',    key: 'telefon',  placeholder: '0555 123 45 67', type: 'text'  },
+        { label: 'E-posta',      key: 'email',    placeholder: 'ornek@gmail.com',type: 'email' },
+        { label: 'TC Kimlik No', key: 'tc',       placeholder: '12345678901',    type: 'text'  },
+      ].map(field => (
+        <div key={field.key} className="mb-3">
+          <p className="text-xs font-medium text-neutral-500 mb-1.5">{field.label}</p>
+          <input
+            type={field.type}
+            value={(form as any)[field.key]}
+            onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+            placeholder={field.placeholder}
+            className={inputCls}
+          />
         </div>
       ))}
+
+      {/* Giriş Bilgileri */}
+      <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-4 mb-3">Giriş Bilgileri</p>
+      <div className="bg-info-50 border border-info-100 rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0 mt-0.5">
+          <circle cx="12" cy="12" r="10" stroke="#0E7490" strokeWidth="1.8"/>
+          <path d="M12 8v4M12 16h.01" stroke="#0E7490" strokeWidth="1.8" strokeLinecap="round"/>
+        </svg>
+        <p className="text-xs text-info-700">Malik, <strong>telefon numarası veya e-posta</strong> + şifre ile giriş yapabilecek.</p>
+      </div>
+      <div className="mb-5">
+        <p className="text-xs font-medium text-neutral-500 mb-1.5">Şifre *</p>
+        <div className="relative">
+          <input
+            type={showSifre ? 'text' : 'password'}
+            value={form.sifre}
+            onChange={e => setForm({ ...form, sifre: e.target.value })}
+            placeholder="En az 6 karakter"
+            className={inputCls + ' pr-10'}
+          />
+          <button
+            type="button"
+            onClick={() => setShowSifre(p => !p)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+          >
+            {showSifre ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Finansal Bilgiler</p>
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div>
+          <p className="text-xs font-medium text-neutral-500 mb-1.5">Toplam Borç (₺) *</p>
+          <input type="number" value={form.toplamBorc}
+            onChange={e => setForm({ ...form, toplamBorc: e.target.value })}
+            placeholder="1500000" className={inputCls} />
+        </div>
+        <div>
+          <p className="text-xs font-medium text-neutral-500 mb-1.5">Başlangıç Ödemesi (₺)</p>
+          <input type="number" value={form.odenen}
+            onChange={e => setForm({ ...form, odenen: e.target.value })}
+            placeholder="0" className={inputCls} />
+        </div>
+      </div>
+
+      <button
+        onClick={onKaydet}
+        disabled={!form.ad || !form.telefon || !form.sifre}
+        className="w-full bg-primary-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+        Maliki Kaydet
+      </button>
     </div>
-
-    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">Kişisel Bilgiler</p>
-    {[
-      { label: 'Ad Soyad *', key: 'ad', placeholder: 'Ahmet Yılmaz', type: 'text' },
-      { label: 'Telefon *',  key: 'telefon', placeholder: '0555 123 45 67', type: 'text' },
-      { label: 'E-posta',    key: 'email', placeholder: 'ornek@gmail.com', type: 'email' },
-      { label: 'TC Kimlik No', key: 'tc', placeholder: '12345678901', type: 'text' },
-    ].map(field => (
-      <div key={field.key} className="mb-3">
-        <p className="text-xs font-medium text-neutral-500 mb-1.5">{field.label}</p>
-        <input
-          type={field.type}
-          value={(form as any)[field.key]}
-          onChange={e => setForm({ ...form, [field.key]: e.target.value })}
-          placeholder={field.placeholder}
-          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300 transition-colors"
-        />
-      </div>
-    ))}
-
-    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-4 mb-3">Finansal Bilgiler</p>
-    <div className="grid grid-cols-2 gap-3 mb-5">
-      <div>
-        <p className="text-xs font-medium text-neutral-500 mb-1.5">Toplam Borç (₺) *</p>
-        <input type="number" value={form.toplamBorc}
-          onChange={e => setForm({ ...form, toplamBorc: e.target.value })}
-          placeholder="1500000"
-          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
-      </div>
-      <div>
-        <p className="text-xs font-medium text-neutral-500 mb-1.5">Başlangıç Ödemesi (₺)</p>
-        <input type="number" value={form.odenen}
-          onChange={e => setForm({ ...form, odenen: e.target.value })}
-          placeholder="0"
-          className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 outline-none focus:border-primary-300" />
-      </div>
-    </div>
-
-    <button
-      onClick={onKaydet}
-      disabled={!form.ad || !form.telefon}
-      className="w-full bg-primary-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-      Maliki Kaydet
-    </button>
-  </div>
-)
+  )
+}
 
 // ── Malik Detay Modal ──────────────────────────────────────────────────────────
 const MalikDetayModal = ({ daire, onClose, onDuzenle }: {
@@ -1464,7 +1506,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
   const [editDaire, setEditDaire]           = useState<DaireItem | null>(null) // daire düzenle
 
   const [addForm,   setAddForm]   = useState<DaireForm>({ tip: '2+1', brut: '', netAlan: '', fiyat: '' })
-  const [malikForm, setMalikForm] = useState<MalikForm>({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
+  const [malikForm, setMalikForm] = useState<MalikForm>({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '', sifre: '' })
 
   const totalCount  = daireler.length
   const dukkanCount = daireler.filter(d => d.tip === 'Dükkan').length
@@ -1485,7 +1527,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
     setEditMalikDaire(null)
     setAddPanel(null)
     setEditDaire(null)
-    setMalikForm({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '' })
+    setMalikForm({ ad: '', telefon: '', email: '', tc: '', toplamBorc: '', odenen: '', sifre: '' })
   }
 
   const openEditDaire = (d: DaireItem) => {
@@ -1522,6 +1564,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
         tc: daire.malikData.tc,
         toplamBorc: String(daire.malikData.toplamBorc),
         odenen: String(daire.malikData.odenen),
+        sifre: daire.malikData.sifre || '',
       })
     }
   }
@@ -1544,6 +1587,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
   const handleMalikKaydet = () => {
     const targetDaire = editMalikDaire || malikPanel
     if (!targetDaire || !malikForm.ad || !malikForm.telefon) return
+    const malikId = editMalikDaire ? `m${targetDaire.id}` : `m${Date.now()}`
     const malikData: MalikData = {
       ad: malikForm.ad,
       telefon: malikForm.telefon,
@@ -1551,6 +1595,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
       tc: malikForm.tc,
       toplamBorc: parseInt(malikForm.toplamBorc) || 0,
       odenen: parseInt(malikForm.odenen) || 0,
+      sifre: malikForm.sifre,
     }
     setDaireler(prev => prev.map(d =>
       d.id === targetDaire.id
@@ -1565,7 +1610,7 @@ const DairelerTab = ({ slug }: { slug: string }) => {
       const parts = malikForm.ad.trim().split(' ')
       const initials = parts.map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
       const newMalik = {
-        id: `m${Date.now()}`,
+        id: malikId,
         name: malikForm.ad.trim(),
         initials,
         katNo: targetDaire.katNo,
@@ -1575,11 +1620,29 @@ const DairelerTab = ({ slug }: { slug: string }) => {
         toplam: parseInt(malikForm.toplamBorc) || 0,
         odenen: parseInt(malikForm.odenen) || 0,
       }
-      // Düzenleme modunda eskiyi güncelle, yeni eklemede başa ekle
       const updated = editMalikDaire
         ? existing.map((m: { daire: string }) => m.daire === String(targetDaire.no) ? newMalik : m)
         : [newMalik, ...existing]
       localStorage.setItem(malikLsKey, JSON.stringify({ malikler: updated }))
+    } catch {}
+    // Giriş bilgilerini global credentials store'a kaydet
+    try {
+      const creds = JSON.parse(localStorage.getItem('malik_credentials') || '[]')
+      const newCred = {
+        id: malikId,
+        ad: malikForm.ad.trim(),
+        telefon: malikForm.telefon.trim(),
+        email: malikForm.email.trim(),
+        sifre: malikForm.sifre,
+        slug,
+        daireNo: String(targetDaire.no),
+      }
+      const updatedCreds = editMalikDaire
+        ? creds.map((c: { id: string }) => c.id === malikId ? newCred : c)
+        : [...creds.filter((c: { daireNo: string; slug: string }) =>
+            !(c.daireNo === String(targetDaire.no) && c.slug === slug)
+          ), newCred]
+      localStorage.setItem('malik_credentials', JSON.stringify(updatedCreds))
     } catch {}
     setMalikPanel(null)
     setEditMalikDaire(null)
