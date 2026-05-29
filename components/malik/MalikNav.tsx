@@ -7,7 +7,15 @@ type Props = {
   setActivePage: (page: string) => void
 }
 
-const NAV_ITEMS = [
+type NavItem = {
+  key: string
+  label: string
+  href?: string
+  icon: (active: boolean) => React.ReactNode
+  mobileIcon: (active: boolean) => React.ReactNode
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     key: 'anasayfa',
     label: 'Ana Sayfa',
@@ -70,6 +78,26 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    key: 'odeme-yap',
+    label: 'Ödeme Yap',
+    href: '/malik-dashboard/odeme-yap',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z" stroke={active ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8" fill={active ? 'rgba(255,255,255,0.15)' : 'none'} />
+        <path d="M12 6v2M12 16v2M8.5 8.5l1.5 1.5M14 14l1.5 1.5M6 12h2M16 12h2M8.5 15.5l1.5-1.5M14 10l1.5-1.5" stroke={active ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="12" cy="12" r="3" stroke={active ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"/>
+      </svg>
+    ),
+    mobileIcon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="1" y="6" width="22" height="13" rx="2" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" />
+        <path d="M1 10h22" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M5 14h4M15 14h4" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M12 2v4M9 3l3-1 3 1" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
 ]
 
 export default function MalikNav({ activePage, setActivePage }: Props) {
@@ -89,20 +117,29 @@ export default function MalikNav({ activePage, setActivePage }: Props) {
         <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const active = activePage === item.key
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActivePage(item.key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left ${
-                  active ? 'bg-white/15' : 'hover:bg-white/8 hover:text-white/80'
-                }`}
-              >
+            const cls = `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all text-left ${
+              active ? 'bg-white/15' : 'hover:bg-white/8 hover:text-white/80'
+            }`
+            const inner = (
+              <>
                 <span className={`flex-shrink-0 ${active ? 'opacity-100' : 'opacity-60'}`}>
                   {item.icon(active)}
                 </span>
                 <span className={`${active ? 'text-white font-semibold' : 'text-white/55 font-medium'}`}>
                   {item.label}
                 </span>
+              </>
+            )
+            if (item.href) {
+              return (
+                <Link key={item.key} href={item.href} className={cls}>
+                  {inner}
+                </Link>
+              )
+            }
+            return (
+              <button key={item.key} onClick={() => setActivePage(item.key)} className={cls}>
+                {inner}
               </button>
             )
           })}
@@ -132,16 +169,24 @@ export default function MalikNav({ activePage, setActivePage }: Props) {
         <div className="flex items-end h-16">
           {NAV_ITEMS.map((item) => {
             const active = activePage === item.key
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActivePage(item.key)}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-              >
+            const inner = (
+              <>
                 {item.mobileIcon(active)}
                 <span className={`text-[10px] font-medium ${active ? 'text-[#0A1F44]' : 'text-neutral-400'}`}>
-                  {item.label === 'Daire Bilgilerim' ? 'Daire' : item.label}
+                  {item.label === 'Daire Bilgilerim' ? 'Daire' : item.label === 'Ödeme Yap' ? 'Ödeme' : item.label}
                 </span>
+              </>
+            )
+            if (item.href) {
+              return (
+                <Link key={item.key} href={item.href} className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2">
+                  {inner}
+                </Link>
+              )
+            }
+            return (
+              <button key={item.key} onClick={() => setActivePage(item.key)} className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2">
+                {inner}
               </button>
             )
           })}
