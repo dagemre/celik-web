@@ -70,7 +70,7 @@ const BOTTOM_NAV = [
   {
     href: '/admin', label: 'Ana Sayfa', exact: true,
     icon: (active: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
         <path d="M3 21V9l9-6 9 6v12H3z" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinejoin="round"/>
         <rect x="9" y="13" width="6" height="8" rx="1" fill={active ? '#0A1F44' : '#A5A49C'}/>
       </svg>
@@ -79,7 +79,7 @@ const BOTTOM_NAV = [
   {
     href: '/admin/projeler', label: 'Projeler', exact: false,
     icon: (active: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
         <rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
         <rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
@@ -90,7 +90,7 @@ const BOTTOM_NAV = [
   {
     href: '/admin/kisiler', label: 'Malikler', exact: false,
     icon: (active: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="8" r="4" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8"/>
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinecap="round"/>
       </svg>
@@ -99,7 +99,7 @@ const BOTTOM_NAV = [
   {
     href: '/admin/evraklar', label: 'Evraklar', exact: false,
     icon: (active: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinejoin="round"/>
         <path d="M14 2v6h6" stroke={active ? '#0A1F44' : '#A5A49C'} strokeWidth="1.8" strokeLinejoin="round"/>
       </svg>
@@ -165,10 +165,10 @@ export default function AdminBottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex-1 flex flex-col items-center justify-center gap-1 py-3"
+                className="flex-1 flex flex-col items-center justify-start gap-1.5 pt-3"
               >
                 {item.icon(active)}
-                <span className={`text-[11px] font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
+                <span className={`text-xs font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -199,10 +199,10 @@ export default function AdminBottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex-1 flex flex-col items-center justify-center gap-1 py-3"
+                className="flex-1 flex flex-col items-center justify-start gap-1.5 pt-3"
               >
                 {item.icon(active)}
-                <span className={`text-[11px] font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
+                <span className={`text-xs font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
                   {item.label}
                 </span>
               </Link>
