@@ -739,6 +739,28 @@ const events = [
 function BildirimlerTab() {
   const [selectedChannel, setSelectedChannel] = useState<Channel>('email')
   const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState<{ sent?: number; error?: string } | null>(null)
+
+  const handleSend = async () => {
+    if (!message.trim()) return
+    if (selectedChannel === 'push') {
+      setSending(true); setSendResult(null)
+      try {
+        const res = await fetch('/api/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: 'Çelik İnşaat', body: message.trim(), url: '/malik-dashboard' }),
+        })
+        const data = await res.json()
+        setSendResult(data)
+        if (data.sent > 0) setMessage('')
+      } catch { setSendResult({ error: 'Bağlantı hatası' }) }
+      setSending(false)
+    } else {
+      setSendResult({ error: 'E-posta gönderimi henüz aktif değil.' })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -785,9 +807,18 @@ function BildirimlerTab() {
                 onChange={e => setMessage(e.target.value)}
               />
             </div>
-            <button className="w-full bg-primary-800 text-white text-sm font-semibold py-3 rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
+            {sendResult && (
+              sendResult.error
+                ? <p className="text-danger-700 text-sm bg-danger-50 border border-danger-100 rounded-xl px-4 py-3">{sendResult.error}</p>
+                : <p className="text-success-700 text-sm bg-success-50 border border-success-100 rounded-xl px-4 py-3 font-medium">{sendResult.sent} kişiye gönderildi ✓</p>
+            )}
+            <button
+              onClick={handleSend}
+              disabled={sending || !message.trim()}
+              className="w-full bg-primary-800 text-white text-sm font-semibold py-3 rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="22" y1="2" x2="11" y2="13" stroke="white" strokeWidth="2" strokeLinecap="round"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="white" opacity="0.3" stroke="white" strokeWidth="1.2"/></svg>
-              Gönder
+              {sending ? 'Gönderiliyor...' : 'Gönder'}
             </button>
           </div>
 
