@@ -3,7 +3,7 @@
   "short_name": "Çelik Admin",
   "description": "Çelik Taahhüt İnşaat — Yönetici Paneli",
   "start_url": "/admin",
-  "scope": "/",
+  "scope": "/admin",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0A1F44",
