@@ -156,7 +156,7 @@ export default function AdminBottomNav() {
         className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t-2 border-neutral-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex items-end h-20">
+        <div className="flex items-start pt-2 h-20">
 
           {/* Sol 2 item */}
           {BOTTOM_NAV.slice(0, 2).map((item) => {
@@ -176,7 +176,7 @@ export default function AdminBottomNav() {
           })}
 
           {/* Merkez FAB */}
-          <div className="flex-1 flex flex-col items-center justify-end pb-3">
+          <div className="flex-1 flex flex-col items-center justify-start">
             <button
               onClick={() => setFabOpen(!fabOpen)}
               className="w-16 h-16 bg-primary-800 rounded-full flex items-center justify-center -mt-6 transition-transform active:scale-95"
