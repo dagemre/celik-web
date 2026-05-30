@@ -890,30 +890,26 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
     load()
   }, [projectId, lsKey])
 
-  // 2. Değişince hem localStorage hem Supabase'e kaydet
+  // 2. Sözleşme bedeli değişince Supabase'e kaydet
   useEffect(() => {
     if (!lsLoaded) return
-    const payload = { sozlesme, tahsilatlar, kalemler }
-    localStorage.setItem(lsKey, JSON.stringify(payload))
     setSyncing(true)
     supabase.from('projects')
-      .update({ financial_data: payload })
+      .update({ financial_data: { sozlesme } })
       .eq('id', projectId)
       .then(() => setSyncing(false))
-  }, [sozlesme, tahsilatlar, kalemler, lsLoaded, lsKey, projectId])
+  }, [sozlesme, lsLoaded, projectId])
 
   const [tahsilatPanel, setTahsilatPanel] = useState(false)
   const [tForm, setTForm]                 = useState({ malik: '', tutar: '', tarih: '' })
-  const [tStep, setTStep]                 = useState<1 | 2>(1) // 1: malik seç, 2: tutar+tarih
+  const [tStep, setTStep]                 = useState<1 | 2>(1)
+  const [projeMalikler, setProjeMalikler] = useState<string[]>([])
 
-  // Proje maliklerini localStorage'dan oku
-  const projeMalikler: string[] = (() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(`malikler_${slug}`) || '{}')
-      if (stored.malikler && stored.malikler.length > 0) return stored.malikler.map((m: MalikItem) => m.name)
-    } catch {}
-    return MALIKLER_MOCK.map(m => m.name)
-  })()
+  // Proje maliklerini Supabase'den yükle
+  useEffect(() => {
+    supabase.from('owners').select('full_name').eq('project_id', projectId)
+      .then(({ data }) => { if (data) setProjeMalikler(data.map((o: any) => o.full_name)) })
+  }, [projectId])
 
   const [kalemPanel, setKalemPanel]       = useState(false)
   const [kForm, setKForm]                 = useState({ label: '', tutar: '', tarih: '' })
@@ -944,23 +940,39 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
     ? new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
     : new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.')
 
-  const handleTahsilatEkle = () => {
+  const handleTahsilatEkle = async () => {
     if (!tForm.malik || !tForm.tutar) return
-    setTahsilatlar(prev => [...prev, {
-      id: `t${Date.now()}`, ad: tForm.malik,
-      tutar: parseInt(tForm.tutar) || 0, tarih: fmtTarih(tForm.tarih),
-    }])
+    const tutar = parseInt(tForm.tutar) || 0
+    const tarih = tForm.tarih || new Date().toISOString().split('T')[0]
+    const { data: newPay } = await supabase.from('payments').insert({
+      project_id:  projectId,
+      amount:      tutar,
+      paid_date:   tarih,
+      status:      'odendi',
+      source:      'Elden',
+      description: `Tahsilat — ${tForm.malik}`,
+    }).select('id').single()
+    setTahsilatlar(prev => [{ id: newPay?.id ?? `t${Date.now()}`, ad: tForm.malik, tutar, tarih }, ...prev])
     setTForm({ malik: '', tutar: '', tarih: '' })
     setTStep(1)
     setTahsilatPanel(false)
   }
 
-  const handleKalemEkle = () => {
+  const handleKalemEkle = async () => {
     if (!kForm.label.trim() || !kForm.tutar) return
+    const tutar = parseInt(kForm.tutar) || 0
+    const tarih = kForm.tarih || new Date().toISOString().split('T')[0]
     const color = KALEM_RENKLER[kalemler.length % KALEM_RENKLER.length]
+    const { data: newCost } = await supabase.from('project_costs').insert({
+      project_id:  projectId,
+      amount:      tutar,
+      description: kForm.label.trim(),
+      category:    'diger',
+      cost_date:   tarih,
+    }).select('id').single()
     setKalemler(prev => [...prev, {
-      id: `k${Date.now()}`, label: kForm.label.trim(),
-      tutar: parseInt(kForm.tutar) || 0, tarih: fmtTarih(kForm.tarih), color,
+      id: newCost?.id ?? `k${Date.now()}`, label: kForm.label.trim(),
+      tutar, tarih, color,
     }])
     setKForm({ label: '', tutar: '', tarih: '' })
     setKalemPanel(false)
@@ -1214,7 +1226,7 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                 </div>
                 <span className="text-sm font-semibold text-danger-700 text-right">{tl(k.tutar)}</span>
                 <span className="text-sm text-neutral-500 text-right">{k.tarih}</span>
-                <button onClick={() => setKalemler(prev => prev.filter(x => x.id !== k.id))}
+                <button onClick={async () => { await supabase.from('project_costs').delete().eq('id', k.id); setKalemler(prev => prev.filter(x => x.id !== k.id)) }}
                   className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-danger-50 transition-colors ml-auto">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                     <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1230,7 +1242,7 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                 </div>
                 <span className="text-sm font-semibold text-danger-700 text-right pr-2">{tl(k.tutar)}</span>
                 <span className="text-sm text-neutral-500 text-right">{k.tarih}</span>
-                <button onClick={() => setKalemler(prev => prev.filter(x => x.id !== k.id))}
+                <button onClick={async () => { await supabase.from('project_costs').delete().eq('id', k.id); setKalemler(prev => prev.filter(x => x.id !== k.id)) }}
                   className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-danger-50 active:bg-danger-100 transition-colors ml-auto">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
