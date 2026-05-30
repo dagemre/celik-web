@@ -242,8 +242,17 @@ function KullanicilarTab() {
   const [roleFilter, setRoleFilter] = useState('Tüm Roller')
   const [showAdd, setShowAdd] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const addFormRef = useRef<HTMLDivElement>(null)
   const [roles] = useState(INIT_ROLES)
+
+  function handleDelete(id: string) {
+    const user = users.find(u => u.id === id)
+    setUsers(prev => prev.filter(u => u.id !== id))
+    setDeleteConfirmId(null)
+    setSuccessMsg(`${user?.name} silindi.`)
+    setTimeout(() => setSuccessMsg(''), 3000)
+  }
 
   const filtered = users.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
@@ -349,14 +358,35 @@ function KullanicilarTab() {
                   </td>
                   <td className="py-3.5 text-neutral-500">{u.lastLogin}</td>
                   <td className="py-3.5">
-                    <div className="flex gap-1">
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-400 hover:text-primary-800">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8"/></svg>
-                      </button>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-400 hover:text-danger-600">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M10 11v6M14 11v6M9 6V4h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                      </button>
-                    </div>
+                    {deleteConfirmId === u.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-danger-600 font-medium whitespace-nowrap">Silinsin mi?</span>
+                        <button
+                          onClick={() => handleDelete(u.id)}
+                          className="text-[11px] font-bold text-white bg-danger-600 rounded-lg px-2 py-1 hover:bg-danger-700"
+                        >
+                          Evet
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirmId(null)}
+                          className="text-[11px] font-bold text-neutral-600 bg-neutral-100 rounded-lg px-2 py-1"
+                        >
+                          Hayır
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1">
+                        <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-400 hover:text-primary-800">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8"/></svg>
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirmId(u.id)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-400 hover:text-danger-600"
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M10 11v6M14 11v6M9 6V4h6v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
