@@ -100,11 +100,11 @@ const WHITE_FILTER = 'brightness(0) invert(1)'
 
 export default function HizmetlerPage() {
   const [acik, setAcik] = useState<number | null>(null)
-  const [cols, setCols] = useState(6) // SSR için desktop varsayılan
+  const [cols, setCols] = useState(5) // SSR için desktop varsayılan
 
   useEffect(() => {
     const update = () => {
-      if (window.innerWidth >= 1024) setCols(6)
+      if (window.innerWidth >= 1024) setCols(5)
       else if (window.innerWidth >= 768) setCols(3)
       else setCols(2)
     }
@@ -174,14 +174,14 @@ export default function HizmetlerPage() {
               return (
                 <div key={satirIndex}>
                   {/* Kart satırı */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <div className="flex flex-wrap justify-center gap-4">
                     {satir.map(({ h, index }) => {
                       const aktif = acik === index
                       return (
                         <button
                           key={h.title}
                           onClick={() => toggle(index)}
-                          className={`bg-white rounded-2xl border p-5 transition-all duration-200 cursor-pointer flex flex-col items-center text-center w-full
+                          className={`w-[calc(50%-8px)] md:w-[calc(33.33%-11px)] lg:w-[calc(20%-13px)] bg-white rounded-2xl border p-5 transition-all duration-200 cursor-pointer flex flex-col items-center text-center
                             ${aktif
                               ? 'border-[#1E54C8] shadow-lg ring-2 ring-[#1E54C8]/20'
                               : 'border-gray-100 hover:shadow-lg hover:border-[#1E54C8]/30'
