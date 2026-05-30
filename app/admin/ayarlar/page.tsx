@@ -237,6 +237,23 @@ function makeInitials(name: string) {
 
 // ── Kullanıcılar Tab ───────────────────────────────────────────────────────────
 function KullanicilarTab() {
+  const USERS_KEY = 'celik_admin_users'
+
+  function loadUsers(): AdminUser[] {
+    if (typeof window === 'undefined') return ADMIN_USERS
+    try {
+      const stored = localStorage.getItem(USERS_KEY)
+      if (stored) return JSON.parse(stored) as AdminUser[]
+    } catch {}
+    return ADMIN_USERS
+  }
+
+  function saveUsers(list: AdminUser[]) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(USERS_KEY, JSON.stringify(list))
+    }
+  }
+
   const [users, setUsers] = useState<AdminUser[]>(ADMIN_USERS)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('Tüm Roller')
@@ -246,9 +263,18 @@ function KullanicilarTab() {
   const addFormRef = useRef<HTMLDivElement>(null)
   const [roles] = useState(INIT_ROLES)
 
+  // Sayfa açılınca localStorage'dan yükle
+  useEffect(() => { setUsers(loadUsers()) }, [])
+
+  function updateUsers(list: AdminUser[]) {
+    setUsers(list)
+    saveUsers(list)
+  }
+
   function handleDelete(id: string) {
     const user = users.find(u => u.id === id)
-    setUsers(prev => prev.filter(u => u.id !== id))
+    const next = users.filter(u => u.id !== id)
+    updateUsers(next)
     setDeleteConfirmId(null)
     setSuccessMsg(`${user?.name} silindi.`)
     setTimeout(() => setSuccessMsg(''), 3000)
@@ -278,7 +304,8 @@ function KullanicilarTab() {
       lastLogin: 'Henüz giriş yapılmadı',
       color: ROLE_COLOR[data.role] ?? 'bg-neutral-500',
     }
-    setUsers(prev => [...prev, newUser])
+    const next = [...users, newUser]
+    updateUsers(next)
     setShowAdd(false)
     setSuccessMsg(`${data.name} başarıyla eklendi.`)
     setTimeout(() => setSuccessMsg(''), 3000)
