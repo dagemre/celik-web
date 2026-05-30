@@ -2,12 +2,19 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminBottomNav from '@/components/admin/AdminBottomNav'
 import AddToHomeScreen from '@/components/AddToHomeScreen'
 
 export default function AdminClientLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/admin-cikis', { method: 'POST' })
+    router.push('/admin-giris')
+  }
   const [profileOpen,  setProfileOpen]  = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
@@ -84,6 +91,16 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                     </svg>
                     <span className="text-sm font-medium text-neutral-700">Ayarlar</span>
                   </Link>
+                  <div className="border-t border-neutral-100" />
+                  <button
+                    onClick={() => { setProfileOpen(false); handleLogout() }}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors w-full text-left"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-sm font-medium text-danger-700">Çıkış Yap</span>
+                  </button>
                 </div>
               )}
             </div>

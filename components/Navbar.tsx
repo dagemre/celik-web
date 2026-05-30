@@ -79,7 +79,7 @@ export default function Navbar() {
           </Link>
           {/* Malik Giriş */}
           <Link
-            href="/malik-giris"
+            href="/malik"
             className="w-9 h-9 rounded-full border border-white/50 flex items-center justify-center text-white/80 hover:border-white hover:text-white hover:bg-white/10 transition-all"
             title="Malik Girişi"
           >
@@ -93,7 +93,7 @@ export default function Navbar() {
         {/* Mobile — malik giriş + hamburger */}
         <div className="xl:hidden flex items-center gap-3">
           <Link
-            href="/malik-giris"
+            href="/malik"
             className="w-8 h-8 rounded-full border border-white/50 flex items-center justify-center text-white/80 hover:border-white hover:text-white transition-all"
             title="Malik Girişi"
           >
