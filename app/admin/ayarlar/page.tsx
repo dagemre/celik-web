@@ -773,10 +773,9 @@ function BildirimlerTab() {
             <div>
               <label className="text-xs font-medium text-neutral-500 mb-1.5 block">Alıcılar</label>
               <select className="w-full border border-neutral-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary-800 bg-white cursor-pointer">
-                <option>Tüm Malikler</option>
-                <option>Vadesi Geçen Malikler</option>
-                <option>Aktif Proje Malikleri</option>
-                <option>Belirli Proje Malikleri...</option>
+                <option value="herkes">Herkes (Bildirime izin veren tüm kullanıcılar)</option>
+                <option value="malikler">Sadece Malikler</option>
+                <option value="vadesi-gecen">Vadesi Geçen Malikler</option>
               </select>
             </div>
             <div>
