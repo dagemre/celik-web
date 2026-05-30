@@ -258,9 +258,11 @@ function KullanicilarTab() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('Tüm Roller')
   const [showAdd, setShowAdd] = useState(false)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [successMsg, setSuccessMsg] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const addFormRef = useRef<HTMLDivElement>(null)
+  const editFormRef = useRef<HTMLDivElement>(null)
   const [roles] = useState(INIT_ROLES)
 
   // Sayfa açılınca localStorage'dan yükle
@@ -291,6 +293,32 @@ function KullanicilarTab() {
     setTimeout(() => {
       addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 50)
+  }
+
+  function handleStartEdit(user: AdminUser) {
+    setEditingUser(user)
+    setShowAdd(false)
+    setTimeout(() => {
+      editFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
+
+  function handleUpdate(data: { name: string; email: string; role: string; status: 'Aktif' | 'Pasif' }) {
+    if (!editingUser) return
+    const updated: AdminUser = {
+      ...editingUser,
+      name: data.name,
+      initials: makeInitials(data.name),
+      email: data.email,
+      role: data.role,
+      status: data.status,
+      color: ROLE_COLOR[data.role] ?? editingUser.color,
+    }
+    const next = users.map(u => u.id === editingUser.id ? updated : u)
+    updateUsers(next)
+    setEditingUser(null)
+    setSuccessMsg(`${data.name} güncellendi.`)
+    setTimeout(() => setSuccessMsg(''), 3000)
   }
 
   function handleAdd(data: { name: string; email: string; username: string; role: string }) {
@@ -403,7 +431,10 @@ function KullanicilarTab() {
                       </div>
                     ) : (
                       <div className="flex gap-1">
-                        <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors text-neutral-400 hover:text-primary-800">
+                        <button
+                          onClick={() => handleStartEdit(u)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${editingUser?.id === u.id ? 'bg-primary-50 text-primary-800' : 'hover:bg-neutral-100 text-neutral-400 hover:text-primary-800'}`}
+                        >
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8"/></svg>
                         </button>
                         <button
@@ -447,7 +478,7 @@ function KullanicilarTab() {
           ))}
         </div>
 
-        {/* Mobil: Yeni Ekle formu liste altına açılır */}
+        {/* Mobil: Yeni Ekle formu */}
         {showAdd && (
           <div ref={addFormRef} className="md:hidden mt-5 border-t border-neutral-100 pt-5">
             <div className="flex items-center justify-between mb-4">
@@ -459,12 +490,42 @@ function KullanicilarTab() {
             <AddUserForm roles={roles} onCancel={() => setShowAdd(false)} onAdd={handleAdd} />
           </div>
         )}
+
+        {/* Mobil: Düzenle formu */}
+        {editingUser && (
+          <div ref={editFormRef} className="md:hidden mt-5 border-t border-neutral-100 pt-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-primary-800">Kullanıcıyı Düzenle</h3>
+              <button onClick={() => setEditingUser(null)} className="text-neutral-400 hover:text-neutral-600">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <EditUserForm user={editingUser} roles={roles} onCancel={() => setEditingUser(null)} onUpdate={handleUpdate} />
+          </div>
+        )}
       </div>
 
-      {/* Desktop: Sağ sütun — Yeni Admin Ekle */}
+      {/* Desktop: Sağ sütun */}
       <div className="hidden md:block bg-white rounded-2xl border border-neutral-100 p-6">
-        <SectionTitle title="Yeni Admin Ekle" subtitle="Sisteme yeni admin kullanıcısı ekleyin ve rol atayın." />
-        <AddUserForm roles={roles} onCancel={() => {}} onAdd={handleAdd} />
+        {editingUser ? (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-primary-800">Kullanıcıyı Düzenle</h2>
+                <p className="text-sm text-neutral-400 mt-0.5">{editingUser.name} bilgilerini güncelleyin.</p>
+              </div>
+              <button onClick={() => setEditingUser(null)} className="text-neutral-400 hover:text-neutral-600">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <EditUserForm user={editingUser} roles={roles} onCancel={() => setEditingUser(null)} onUpdate={handleUpdate} />
+          </>
+        ) : (
+          <>
+            <SectionTitle title="Yeni Admin Ekle" subtitle="Sisteme yeni admin kullanıcısı ekleyin ve rol atayın." />
+            <AddUserForm roles={roles} onCancel={() => {}} onAdd={handleAdd} />
+          </>
+        )}
       </div>
     </div>
   )
@@ -581,6 +642,90 @@ function AddUserForm({
         >
           Kaydet
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Edit User Form ────────────────────────────────────────────────────────────
+function EditUserForm({
+  user,
+  roles,
+  onCancel,
+  onUpdate,
+}: {
+  user: AdminUser
+  roles: typeof INIT_ROLES
+  onCancel: () => void
+  onUpdate: (data: { name: string; email: string; role: string; status: 'Aktif' | 'Pasif' }) => void
+}) {
+  const [form, setForm] = useState({
+    name:   user.name,
+    email:  user.email,
+    role:   user.role,
+    status: user.status,
+  })
+  const [errors, setErrors] = useState<Partial<typeof form>>({})
+
+  const set = (k: keyof typeof form, v: string) => {
+    setForm(f => ({ ...f, [k]: v }))
+    setErrors(e => ({ ...e, [k]: '' }))
+  }
+
+  function handleSave() {
+    const errs: Partial<typeof form> = {}
+    if (!form.name.trim())  errs.name  = 'Ad Soyad zorunlu'
+    if (!form.email.trim()) errs.email = 'E-posta zorunlu'
+    if (!form.role)         errs.role  = 'Rol seçiniz'
+    if (Object.keys(errs).length) { setErrors(errs); return }
+    onUpdate({ name: form.name.trim(), email: form.email.trim(), role: form.role, status: form.status as 'Aktif' | 'Pasif' })
+  }
+
+  const inp = 'w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 transition-all'
+  const ok  = 'border-neutral-200 focus:border-primary-800 focus:ring-primary-800/10'
+  const err = 'border-danger-400 focus:border-danger-500 focus:ring-danger-100'
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="text-xs font-medium text-neutral-500 mb-1 block">Ad Soyad</label>
+        <input className={`${inp} ${errors.name ? err : ok}`} value={form.name} onChange={e => set('name', e.target.value)} />
+        {errors.name && <p className="text-[11px] text-danger-600 mt-0.5">{errors.name}</p>}
+      </div>
+      <div>
+        <label className="text-xs font-medium text-neutral-500 mb-1 block">E-posta</label>
+        <input className={`${inp} ${errors.email ? err : ok}`} value={form.email} onChange={e => set('email', e.target.value)} />
+        {errors.email && <p className="text-[11px] text-danger-600 mt-0.5">{errors.email}</p>}
+      </div>
+      <div>
+        <label className="text-xs font-medium text-neutral-500 mb-1 block">Rol</label>
+        <select className={`${inp} ${errors.role ? err : ok} bg-white cursor-pointer`} value={form.role} onChange={e => set('role', e.target.value)}>
+          <option value="">Rol seçin</option>
+          {roles.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
+        </select>
+        {errors.role && <p className="text-[11px] text-danger-600 mt-0.5">{errors.role}</p>}
+      </div>
+      <div>
+        <label className="text-xs font-medium text-neutral-500 mb-1 block">Durum</label>
+        <div className="flex gap-2">
+          {(['Aktif', 'Pasif'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => set('status', s)}
+              className={`flex-1 text-sm font-semibold py-2 rounded-xl border transition-colors ${
+                form.status === s
+                  ? s === 'Aktif' ? 'border-success-500 bg-success-50 text-success-700' : 'border-neutral-400 bg-neutral-100 text-neutral-600'
+                  : 'border-neutral-200 text-neutral-400 hover:border-neutral-300'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button onClick={onCancel} className="flex-1 bg-neutral-100 text-neutral-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-neutral-200 transition-colors">İptal</button>
+        <button onClick={handleSave} className="flex-1 bg-primary-800 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-primary-700 transition-colors">Güncelle</button>
       </div>
     </div>
   )
