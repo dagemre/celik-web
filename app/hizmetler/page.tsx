@@ -84,21 +84,6 @@ const HIZMETLER = [
       ],
     },
   },
-  {
-    icon: 'layers',
-    title: 'Bakım ve Onarım',
-    desc: 'Yapılarınızın değerini koruyan profesyonel bakım ve onarım hizmetleri sunuyoruz.',
-    detay: {
-      ozet: 'Binanızın uzun ömürlü olması için periyodik bakım planlamasından acil onarıma kadar hızlı ve güvenilir hizmet sağlıyoruz.',
-      maddeler: [
-        'Periyodik yapı bakım programları',
-        'Su yalıtımı ve çatı onarımı',
-        'Dış cephe yenileme ve boya',
-        'Acil hasar müdahalesi ve onarım',
-        'Asansör, jeneratör ve altyapı bakımı',
-      ],
-    },
-  },
 ]
 
 const SUREC = [
