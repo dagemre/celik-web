@@ -128,7 +128,7 @@ export default function AdminBottomNav() {
       {fabOpen && (
         <div
           className="fixed left-0 right-0 z-50 bg-white rounded-t-3xl px-5 pt-5 pb-10 shadow-2xl"
-          style={{ bottom: 'calc(64px + env(safe-area-inset-bottom))' }}
+          style={{ bottom: 'calc(80px + env(safe-area-inset-bottom))' }}
         >
           {/* Tutma çubuğu */}
           <div className="w-10 h-1 bg-neutral-200 rounded-full mx-auto mb-5" />
@@ -153,10 +153,10 @@ export default function AdminBottomNav() {
 
       {/* Bottom Nav */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-neutral-100"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t-2 border-neutral-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex items-end h-16">
+        <div className="flex items-end h-20">
 
           {/* Sol 2 item */}
           {BOTTOM_NAV.slice(0, 2).map((item) => {
@@ -165,10 +165,10 @@ export default function AdminBottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3"
               >
                 {item.icon(active)}
-                <span className={`text-[10px] font-medium ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
+                <span className={`text-[11px] font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
                   {item.label}
                 </span>
               </Link>
@@ -176,14 +176,14 @@ export default function AdminBottomNav() {
           })}
 
           {/* Merkez FAB */}
-          <div className="flex-1 flex flex-col items-center justify-end pb-2">
+          <div className="flex-1 flex flex-col items-center justify-end pb-3">
             <button
               onClick={() => setFabOpen(!fabOpen)}
-              className="w-14 h-14 bg-primary-800 rounded-full flex items-center justify-center -mt-5 transition-transform active:scale-95"
-              style={{ boxShadow: '0 4px 16px rgba(10,31,68,0.35)' }}
+              className="w-16 h-16 bg-primary-800 rounded-full flex items-center justify-center -mt-6 transition-transform active:scale-95"
+              style={{ boxShadow: '0 4px 20px rgba(10,31,68,0.4)' }}
             >
               <svg
-                width="26" height="26" viewBox="0 0 24 24" fill="none"
+                width="28" height="28" viewBox="0 0 24 24" fill="none"
                 className="transition-transform duration-200"
                 style={{ transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}
               >
@@ -199,10 +199,10 @@ export default function AdminBottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3"
               >
                 {item.icon(active)}
-                <span className={`text-[10px] font-medium ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
+                <span className={`text-[11px] font-semibold ${active ? 'text-primary-800' : 'text-neutral-400'}`}>
                   {item.label}
                 </span>
               </Link>
