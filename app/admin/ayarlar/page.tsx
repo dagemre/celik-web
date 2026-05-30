@@ -237,24 +237,8 @@ function makeInitials(name: string) {
 
 // ── Kullanıcılar Tab ───────────────────────────────────────────────────────────
 function KullanicilarTab() {
-  const USERS_KEY = 'celik_admin_users'
-
-  function loadUsers(): AdminUser[] {
-    if (typeof window === 'undefined') return ADMIN_USERS
-    try {
-      const stored = localStorage.getItem(USERS_KEY)
-      if (stored) return JSON.parse(stored) as AdminUser[]
-    } catch {}
-    return ADMIN_USERS
-  }
-
-  function saveUsers(list: AdminUser[]) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(USERS_KEY, JSON.stringify(list))
-    }
-  }
-
-  const [users, setUsers] = useState<AdminUser[]>(ADMIN_USERS)
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('Tüm Roller')
   const [showAdd, setShowAdd] = useState(false)
@@ -265,18 +249,33 @@ function KullanicilarTab() {
   const editFormRef = useRef<HTMLDivElement>(null)
   const [roles] = useState(INIT_ROLES)
 
-  // Sayfa açılınca localStorage'dan yükle
-  useEffect(() => { setUsers(loadUsers()) }, [])
-
-  function updateUsers(list: AdminUser[]) {
-    setUsers(list)
-    saveUsers(list)
+  // Supabase'den yükle
+  async function loadUsers() {
+    setLoading(true)
+    const { supabase } = await import('@/lib/supabase')
+    const { data } = await supabase.from('admin_users').select('*').order('created_at')
+    if (data) {
+      setUsers(data.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        initials: u.initials,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        lastLogin: u.last_login || 'Henüz giriş yapılmadı',
+        color: u.color,
+      })))
+    }
+    setLoading(false)
   }
 
-  function handleDelete(id: string) {
+  useEffect(() => { loadUsers() }, [])
+
+  async function handleDelete(id: string) {
     const user = users.find(u => u.id === id)
-    const next = users.filter(u => u.id !== id)
-    updateUsers(next)
+    const { supabase } = await import('@/lib/supabase')
+    await supabase.from('admin_users').delete().eq('id', id)
+    setUsers(prev => prev.filter(u => u.id !== id))
     setDeleteConfirmId(null)
     setSuccessMsg(`${user?.name} silindi.`)
     setTimeout(() => setSuccessMsg(''), 3000)
@@ -303,10 +302,10 @@ function KullanicilarTab() {
     }, 50)
   }
 
-  function handleUpdate(data: { name: string; email: string; role: string; status: 'Aktif' | 'Pasif' }) {
+  async function handleUpdate(data: { name: string; email: string; role: string; status: 'Aktif' | 'Pasif' }) {
     if (!editingUser) return
-    const updated: AdminUser = {
-      ...editingUser,
+    const { supabase } = await import('@/lib/supabase')
+    const updates = {
       name: data.name,
       initials: makeInitials(data.name),
       email: data.email,
@@ -314,26 +313,28 @@ function KullanicilarTab() {
       status: data.status,
       color: ROLE_COLOR[data.role] ?? editingUser.color,
     }
-    const next = users.map(u => u.id === editingUser.id ? updated : u)
-    updateUsers(next)
+    await supabase.from('admin_users').update(updates).eq('id', editingUser.id)
+    setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updates, lastLogin: u.lastLogin } : u))
     setEditingUser(null)
     setSuccessMsg(`${data.name} güncellendi.`)
     setTimeout(() => setSuccessMsg(''), 3000)
   }
 
-  function handleAdd(data: { name: string; email: string; username: string; role: string }) {
-    const newUser: AdminUser = {
-      id: String(Date.now()),
+  async function handleAdd(data: { name: string; email: string; username: string; role: string }) {
+    const { supabase } = await import('@/lib/supabase')
+    const newUser = {
       name: data.name,
       initials: makeInitials(data.name),
       email: data.email,
       role: data.role,
-      status: 'Aktif',
-      lastLogin: 'Henüz giriş yapılmadı',
+      status: 'Aktif' as const,
+      last_login: '',
       color: ROLE_COLOR[data.role] ?? 'bg-neutral-500',
     }
-    const next = [...users, newUser]
-    updateUsers(next)
+    const { data: inserted } = await supabase.from('admin_users').insert(newUser).select().single()
+    if (inserted) {
+      setUsers(prev => [...prev, { ...newUser, id: inserted.id, lastLogin: '' }])
+    }
     setShowAdd(false)
     setSuccessMsg(`${data.name} başarıyla eklendi.`)
     setTimeout(() => setSuccessMsg(''), 3000)
@@ -392,7 +393,13 @@ function KullanicilarTab() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(u => (
+              {loading && (
+                <tr><td colSpan={5} className="py-8 text-center text-sm text-neutral-400">Yükleniyor...</td></tr>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={5} className="py-8 text-center text-sm text-neutral-400">Kullanıcı bulunamadı.</td></tr>
+              )}
+              {!loading && filtered.map(u => (
                 <tr key={u.id} className="border-b border-neutral-50 hover:bg-neutral-50 transition-colors">
                   <td className="py-3.5">
                     <div className="flex items-center gap-3">
@@ -461,7 +468,8 @@ function KullanicilarTab() {
 
         {/* Mobil kartlar */}
         <div className="md:hidden space-y-3">
-          {filtered.map(u => (
+          {loading && <p className="text-sm text-neutral-400 text-center py-4">Yükleniyor...</p>}
+          {!loading && filtered.map(u => (
             <div key={u.id} className="flex items-center gap-3 p-3 border border-neutral-100 rounded-xl">
               <div className={`w-10 h-10 ${u.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
                 <span className="text-white text-xs font-bold">{u.initials}</span>
