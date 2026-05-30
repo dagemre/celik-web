@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
 function AdminGirisForm() {
+  const [username,    setUsername]    = useState('')
   const [password,    setPassword]    = useState('')
   const [showPass,    setShowPass]    = useState(false)
   const [loading,     setLoading]     = useState(false)
@@ -14,13 +15,11 @@ function AdminGirisForm() {
   const searchParams = useSearchParams()
   const redirect    = searchParams.get('redirect') || '/admin'
 
-  // Zaten giriş yapılmışsa yönlendir
-  useEffect(() => {
-    // middleware zaten koruyacak; burada ek kontrol yok
-  }, [])
+  useEffect(() => {}, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!username) { setError('Kullanıcı adı gerekli.'); return }
     if (!password) { setError('Şifre gerekli.'); return }
     setError('')
     setLoading(true)
@@ -29,7 +28,7 @@ function AdminGirisForm() {
       const res = await fetch('/api/admin-giris', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ password, redirect }),
+        body:    JSON.stringify({ username, password, redirect }),
       })
       const data = await res.json()
 
@@ -89,6 +88,31 @@ function AdminGirisForm() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
+              {/* Kullanıcı Adı */}
+              <div>
+                <label className="block text-sm font-semibold text-[#0A1F44] mb-2">
+                  Kullanıcı Adı
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="8" r="4" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); setError('') }}
+                    placeholder="admin"
+                    autoComplete="username"
+                    autoFocus
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A1F44]/20 focus:border-[#0A1F44] transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Şifre */}
               <div>
                 <label className="block text-sm font-semibold text-[#0A1F44] mb-2">
                   Şifre
@@ -103,10 +127,9 @@ function AdminGirisForm() {
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); setError('') }}
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    autoFocus
                     className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0A1F44]/20 focus:border-[#0A1F44] transition-all"
                   />
                   <button

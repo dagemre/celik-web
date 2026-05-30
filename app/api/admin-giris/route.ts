@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const ADMIN_PASSWORD    = process.env.ADMIN_PASSWORD
+const ADMIN_USERNAME      = process.env.ADMIN_USERNAME
+const ADMIN_PASSWORD      = process.env.ADMIN_PASSWORD
 const ADMIN_SESSION_TOKEN = process.env.ADMIN_SESSION_TOKEN
-const COOKIE_NAME       = 'celik_admin_session'
+const COOKIE_NAME         = 'celik_admin_session'
 
 // Brute-force önlemi — IP başına deneme sayacı (sunucu memory, restart'ta sıfırlanır)
 const attempts = new Map<string, { count: number; blockedUntil: number }>()
 
 export async function POST(req: NextRequest) {
   // Env var kontrolü
-  if (!ADMIN_PASSWORD || !ADMIN_SESSION_TOKEN) {
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !ADMIN_SESSION_TOKEN) {
     return NextResponse.json(
       { error: 'Sunucu yapılandırması eksik.' },
       { status: 503 }
@@ -34,10 +35,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { password, redirect } = await req.json()
+  const { username, password, redirect } = await req.json()
 
-  // Timing-safe karşılaştırma (basit string eşitliği kasıtlı timing attack değil)
-  if (!password || password !== ADMIN_PASSWORD) {
+  if (!username || !password || username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
     rec.count++
     if (rec.count >= 5) {
       rec.blockedUntil = now + 15 * 60 * 1_000 // 15 dk
