@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminBottomNav from '@/components/admin/AdminBottomNav'
 import AddToHomeScreen from '@/components/AddToHomeScreen'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import PushNotificationPrompt from '@/components/PushNotificationPrompt'
 
 export default function AdminClientLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen,  setSidebarOpen]  = useState(false)
@@ -144,6 +146,8 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
 
         <AdminBottomNav />
         <AddToHomeScreen />
+        <ServiceWorkerRegister />
+        <PushNotificationPrompt />
 
       </div>
     </div>
