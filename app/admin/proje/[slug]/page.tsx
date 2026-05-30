@@ -161,18 +161,39 @@ const Modal = ({ title, onClose, onSave, saveLabel = 'Kaydet', saving = false, c
 )
 
 // ── Finansal Kartlar (Genel Bakış tab için küçük sidebar versiyonu) ─────────────
-const FinansalKartlar = ({ slug }: { slug: string }) => {
+const FinansalKartlar = ({ slug, projectId }: { slug: string; projectId: string }) => {
   const [data, setData] = useState({ sozlesme: 0, tahsilEdilen: 0, toplamMaliyet: 0 })
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(`finansal_v2_${slug}`) || '{}')
-      const sozlesme      = stored.sozlesme ?? 0
-      const tahsilEdilen  = (stored.tahsilatlar ?? []).reduce((s: number, t: TahsilatItem) => s + t.tutar, 0)
-      const toplamMaliyet = (stored.kalemler ?? []).reduce((s: number, k: KalemItem) => s + k.tutar, 0)
-      setData({ sozlesme, tahsilEdilen, toplamMaliyet })
-    } catch {}
-  }, [slug])
+    async function loadFinansal() {
+      try {
+        const [{ data: projData }, { data: paymentsData }, { data: costsData }] = await Promise.all([
+          supabase.from('projects').select('financial_data').eq('id', projectId).single(),
+          supabase.from('payments').select('amount').eq('project_id', projectId).eq('status', 'odendi'),
+          supabase.from('project_costs').select('amount').eq('project_id', projectId),
+        ])
+        const fd = projData?.financial_data as Record<string, unknown> | null
+        const sozlesme      = (fd?.sozlesme as number) ?? 0
+        const toplamMaliyet = costsData && costsData.length > 0
+          ? costsData.reduce((s: number, c: any) => s + Number(c.amount ?? 0), 0)
+          : ((fd?.kalemler as KalemItem[]) ?? []).reduce((s, k) => s + k.tutar, 0)
+        const tahsilEdilen  = paymentsData && paymentsData.length > 0
+          ? paymentsData.reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0)
+          : ((fd?.tahsilatlar as TahsilatItem[]) ?? []).reduce((s, t) => s + t.tutar, 0)
+        setData({ sozlesme, tahsilEdilen, toplamMaliyet })
+      } catch {
+        // localStorage fallback
+        try {
+          const stored = JSON.parse(localStorage.getItem(`finansal_v2_${slug}`) || '{}')
+          const sozlesme      = stored.sozlesme ?? 0
+          const tahsilEdilen  = (stored.tahsilatlar ?? []).reduce((s: number, t: TahsilatItem) => s + t.tutar, 0)
+          const toplamMaliyet = (stored.kalemler ?? []).reduce((s: number, k: KalemItem) => s + k.tutar, 0)
+          setData({ sozlesme, tahsilEdilen, toplamMaliyet })
+        } catch {}
+      }
+    }
+    loadFinansal()
+  }, [slug, projectId])
 
   const tahsilEdilecek = Math.max(0, data.sozlesme - data.tahsilEdilen)
 
@@ -790,28 +811,80 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
   const [lsLoaded, setLsLoaded]           = useState(false)
   const [syncing, setSyncing]             = useState(false)
 
-  // 1. Supabase'den yükle (önce), sonra localStorage fallback
+  // 1. Supabase'den yükle — payments tablosu + financial_data
   useEffect(() => {
     async function load() {
       try {
-        const { data } = await supabase
-          .from('projects').select('financial_data').eq('id', projectId).single()
-        const fd = data?.financial_data as Record<string, unknown> | null
-        if (fd && Object.keys(fd).length > 0) {
-          if (fd.sozlesme)    { setSozlesme(fd.sozlesme as number); setSozlesmeInput(String(fd.sozlesme)) }
-          if (fd.tahsilatlar) setTahsilatlar(fd.tahsilatlar as TahsilatItem[])
-          if (fd.kalemler)    setKalemler(fd.kalemler as KalemItem[])
-          setLsLoaded(true)
-          return
+        const COST_COLORS: Record<string, string> = {
+          malzeme:       'bg-blue-100',   iscilik:    'bg-green-100',
+          alt_yuklenici: 'bg-purple-100', ekipman:    'bg-amber-100',
+          diger:         'bg-neutral-100',
         }
-      } catch {}
-      // Supabase boşsa localStorage'a bak
-      try {
-        const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
-        if (stored.sozlesme)    { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
-        if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
-        if (stored.kalemler)    setKalemler(stored.kalemler)
-      } catch {}
+
+        const [{ data: projData }, { data: paymentsData }, { data: costsData }] = await Promise.all([
+          supabase.from('projects').select('financial_data').eq('id', projectId).single(),
+          supabase.from('payments')
+            .select('id, amount, paid_date, status, type, owners(full_name)')
+            .eq('project_id', projectId)
+            .order('paid_date', { ascending: false }),
+          supabase.from('project_costs')
+            .select('id, amount, category, description, cost_date')
+            .eq('project_id', projectId)
+            .order('cost_date', { ascending: false }),
+        ])
+
+        const fd = projData?.financial_data as Record<string, unknown> | null
+        if (fd?.sozlesme) { setSozlesme(fd.sozlesme as number); setSozlesmeInput(String(fd.sozlesme)) } else {
+          try {
+            const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+            if (stored.sozlesme) { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
+          } catch {}
+        }
+
+        // payments tablosundan tahsilatları oku (öncelikli kaynak)
+        if (paymentsData && paymentsData.length > 0) {
+          const dbTahsilatlar: TahsilatItem[] = paymentsData.map((p: any) => ({
+            id:    p.id,
+            ad:    (Array.isArray(p.owners) ? p.owners[0]?.full_name : p.owners?.full_name) ?? 'Bilinmiyor',
+            tutar: Number(p.amount ?? 0),
+            tarih: p.paid_date ?? new Date().toISOString().split('T')[0],
+          }))
+          setTahsilatlar(dbTahsilatlar)
+        } else if (fd?.tahsilatlar) {
+          setTahsilatlar(fd.tahsilatlar as TahsilatItem[])
+        } else {
+          try {
+            const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+            if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
+          } catch {}
+        }
+
+        // project_costs tablosundan kalemleri oku (öncelikli kaynak)
+        if (costsData && costsData.length > 0) {
+          const dbKalemler: KalemItem[] = costsData.map((c: any) => ({
+            id:    c.id,
+            label: c.description || c.category,
+            tutar: Number(c.amount ?? 0),
+            tarih: c.cost_date ?? '',
+            color: COST_COLORS[c.category] ?? 'bg-neutral-100',
+          }))
+          setKalemler(dbKalemler)
+        } else if (fd?.kalemler) {
+          setKalemler(fd.kalemler as KalemItem[])
+        } else {
+          try {
+            const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+            if (stored.kalemler) setKalemler(stored.kalemler)
+          } catch {}
+        }
+      } catch {
+        try {
+          const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+          if (stored.sozlesme)    { setSozlesme(stored.sozlesme); setSozlesmeInput(String(stored.sozlesme)) }
+          if (stored.tahsilatlar) setTahsilatlar(stored.tahsilatlar)
+          if (stored.kalemler)    setKalemler(stored.kalemler)
+        } catch {}
+      }
       setLsLoaded(true)
     }
     load()
@@ -3073,14 +3146,14 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
             <div className="md:flex md:gap-5 md:items-start">
               <div className="md:flex-1 space-y-4 min-w-0">
                 <div className="md:hidden">
-                  <FinansalKartlar slug={project.slug} />
+                  <FinansalKartlar slug={project.slug} projectId={project.id} />
                 </div>
                 <ProjeIlerlemesiKart progress={progress} phases={phases} onEdit={() => setEditModal('ilerleme')} />
                 <GenelBilgilerKart project={project} onEdit={() => setEditModal('bilgiler')} />
                 <GorsellerKart photos={photos} setPhotos={setPhotos} slug={project.slug} projectId={project.id} coverUrl={coverUrl} onCoverChange={url => { setCoverUrl(url); setProject(prev => prev ? { ...prev, image_url: url } : prev) }} />
               </div>
               <div className="hidden md:block md:w-[380px] space-y-4 flex-shrink-0">
-                <FinansalKartlar slug={project.slug} />
+                <FinansalKartlar slug={project.slug} projectId={project.id} />
                 <BinaOzellikleriKart activeFeatures={activeFeatures} onEdit={() => setEditModal('ozellikler')} />
                 <KonumKart mapLat={mapLat} mapLng={mapLng} nearbyPlaces={nearbyPlaces} onEdit={() => setEditModal('konum')} />
               </div>
