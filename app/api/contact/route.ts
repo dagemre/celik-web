@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   try {
     await resend.emails.send({
       from: 'Çelik İnşaat <onboarding@resend.dev>',
-      to: 'dagemre@gmail.com',
+      to: ['dagemre@gmail.com', 'snrclk@hotmail.com.tr'],
       subject: `Yeni mesaj — ${safe.adSoyad}`,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px;">

@@ -33,7 +33,25 @@ export default function TeklifAlPage() {
     projeTuru: '', projeYeri: '', alan: '', asamasi: '',
     detay: '', kvkk: false,
   })
+  const [loading,  setLoading]  = useState(false)
+  const [success,  setSuccess]  = useState(false)
+  const [error,    setError]    = useState('')
   const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }))
+
+  const handleSubmit = async () => {
+    if (!form.ad || !form.eposta || !form.telefon) { setError('Ad, e-posta ve telefon zorunludur.'); return }
+    if (!form.kvkk) { setError('KVKK onayı gereklidir.'); return }
+    setError(''); setLoading(true)
+    try {
+      const res = await fetch('/api/teklif', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) { setSuccess(true) } else { const d = await res.json(); setError(d.error || 'Bir hata oluştu.') }
+    } catch { setError('Bağlantı hatası. Lütfen tekrar deneyin.') }
+    setLoading(false)
+  }
 
   return (
     <>
@@ -143,17 +161,34 @@ export default function TeklifAlPage() {
               </label>
 
               {/* KVKK + Buton */}
-              <label className="flex items-start gap-3 mb-6 cursor-pointer">
+              <label className="flex items-start gap-3 mb-4 cursor-pointer">
                 <input type="checkbox" checked={form.kvkk} onChange={e => set('kvkk', e.target.checked)}
                   className="mt-0.5 w-4 h-4 accent-[#0A1F44] shrink-0" />
                 <span className="text-gray-400 text-xs leading-relaxed">
                   KVKK kapsamında aydınlatma metnini okudum ve kabul ediyorum.
                 </span>
               </label>
-              <button className="inline-flex items-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-7 py-3.5 rounded-xl hover:bg-[#071628] transition-colors">
-                <Icon name="Envelope-open" size={15} style={{ filter: WHITE_FILTER }} />
-                Teklif Talebinizi Gönderin
-              </button>
+
+              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+              {success ? (
+                <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-5 py-4">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#16a34a"/><path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <div>
+                    <p className="font-semibold text-green-800 text-sm">Talebiniz alındı!</p>
+                    <p className="text-green-600 text-xs mt-0.5">En kısa sürede size dönüş yapacağız.</p>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={handleSubmit} disabled={loading}
+                  className="inline-flex items-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-7 py-3.5 rounded-xl hover:bg-[#071628] disabled:opacity-60 transition-colors">
+                  {loading
+                    ? <svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                    : <Icon name="Envelope-open" size={15} style={{ filter: WHITE_FILTER }} />
+                  }
+                  {loading ? 'Gönderiliyor...' : 'Teklif Talebinizi Gönderin'}
+                </button>
+              )}
             </div>
 
             {/* Sağ — Sidebar */}

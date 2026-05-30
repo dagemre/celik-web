@@ -15,7 +15,25 @@ const KONULAR = ['Genel Bilgi', 'Proje Talebi', 'Teklif Al', 'İş Ortaklığı'
 
 export default function IletisimPage() {
   const firma = useFirmaConfig()
-  const [form, setForm] = useState({ ad: '', eposta: '', telefon: '', konu: '', mesaj: '', kvkk: false })
+  const [form, setForm]   = useState({ ad: '', eposta: '', telefon: '', konu: '', mesaj: '', kvkk: false })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error,   setError]   = useState('')
+
+  const handleSubmit = async () => {
+    if (!form.ad || !form.eposta || !form.mesaj) { setError('Ad, e-posta ve mesaj zorunludur.'); return }
+    if (!form.kvkk) { setError('KVKK onayı gereklidir.'); return }
+    setError(''); setLoading(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adSoyad: form.ad, email: form.eposta, telefon: form.telefon, mesaj: `Konu: ${form.konu}\n\n${form.mesaj}` }),
+      })
+      if (res.ok) { setSuccess(true) } else { const d = await res.json(); setError(d.error || 'Bir hata oluştu.') }
+    } catch { setError('Bağlantı hatası. Lütfen tekrar deneyin.') }
+    setLoading(false)
+  }
 
   const INFO = [
     { icon: 'map-pin',       label: 'Adres',            lines: firma.adres.split(',').map(s => s.trim()) },
@@ -142,13 +160,30 @@ export default function IletisimPage() {
                 </span>
               </label>
 
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-7 py-3.5 rounded-xl hover:bg-[#071628] transition-colors"
-              >
-                <Icon name="Envelope-open" size={15} style={{ filter: WHITE_FILTER }} />
-                Gönder
-              </button>
+              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+              {success ? (
+                <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-xl px-5 py-4">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#16a34a"/><path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <div>
+                    <p className="font-semibold text-green-800 text-sm">Mesajınız iletildi!</p>
+                    <p className="text-green-600 text-xs mt-0.5">En kısa sürede size dönüş yapacağız.</p>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 bg-[#0A1F44] text-white text-sm font-semibold px-7 py-3.5 rounded-xl hover:bg-[#071628] disabled:opacity-60 transition-colors"
+                >
+                  {loading
+                    ? <svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+                    : <Icon name="Envelope-open" size={15} style={{ filter: WHITE_FILTER }} />
+                  }
+                  {loading ? 'Gönderiliyor...' : 'Gönder'}
+                </button>
+              )}
             </div>
 
             {/* Sağ — Harita */}
