@@ -18,10 +18,30 @@ export default function PushNotificationPrompt() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
-    if (Notification.permission === 'granted') return
-    if (Notification.permission === 'denied')  return
-    // localStorage'da "reddedildi" işareti varsa gösterme
+    if (Notification.permission === 'denied') return
     if (localStorage.getItem('push_declined')) return
+
+    // İzin verilmiş ama subscription yoksa otomatik tekrar dene (standalone'da çalışır)
+    if (Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(async (reg) => {
+        const existing = await reg.pushManager.getSubscription()
+        if (!existing) {
+          // Subscription yok — sessizce kaydet
+          try {
+            const sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            })
+            await fetch('/api/push/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subscription: sub }),
+            })
+          } catch (_) {}
+        }
+      }).catch(() => {})
+      return
+    }
 
     const timer = setTimeout(() => setShow(true), 3000)
     return () => clearTimeout(timer)
