@@ -9,7 +9,7 @@ self.addEventListener('push', function(event) {
   if (!event.data) return
   const data = event.data.json()
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Çelik İnşaat', {
+    self.registration.showNotification(data.title || 'Çelik Taahhüt İnşaat', {
       body:    data.body   || '',
       icon:    data.icon   || '/pwa-icon-192.png',
       badge:   '/pwa-icon-192.png',

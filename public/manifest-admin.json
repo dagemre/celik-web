@@ -1,6 +1,6 @@
 {
-  "name": "Çelik Taahhüt — Admin",
-  "short_name": "Çelik Admin",
+  "name": "Çelik Taahhüt İnşaat",
+  "short_name": "Çelik Taahhüt İnşaat",
   "description": "Çelik Taahhüt İnşaat — Yönetici Paneli",
   "start_url": "/admin",
   "scope": "/admin",

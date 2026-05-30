@@ -439,13 +439,6 @@ export default function AdminDashboard() {
 
         </div>
 
-        {/* GEÇİCİ: Push test linki */}
-        <div className="px-5 pb-6">
-          <a href="/admin/push-test" className="block text-center text-xs text-neutral-400 underline py-2">
-            Push Bildirim Testi
-          </a>
-        </div>
-
       </div>
     </div>
   )
