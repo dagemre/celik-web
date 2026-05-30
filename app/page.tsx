@@ -297,7 +297,7 @@ function NedenBiz() {
             </Link>
           </div>
           <div className="rounded-2xl overflow-hidden shadow-xl">
-            <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=85" alt="Çelik İnşaat şantiye" className="w-full h-[500px] object-cover" />
+            <img src="/Neden-imaj-home.png" alt="Çelik İnşaat şantiye" className="w-full h-[500px] object-cover" />
           </div>
         </div>
       </div>

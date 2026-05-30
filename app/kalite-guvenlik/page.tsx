@@ -37,7 +37,7 @@ export default function KaliteGuvenlikPage() {
       {/* ── Hero — hakkımızda ile aynı ───────────────────────────── */}
       <section className="relative h-[420px] flex items-end overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&auto=format&fit=crop&q=80"
+          src="/Neden-imaj-home.png"
           alt="Kalite ve Güvenlik"
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
