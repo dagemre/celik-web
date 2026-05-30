@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import LayoutWrapper from '@/components/LayoutWrapper'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import PushNotificationPrompt from '@/components/PushNotificationPrompt'
 
 export const metadata: Metadata = {
   title: 'Çelik Taahhüt İnşaat | Geleceğe Değer Katan Yapılar',
@@ -37,7 +39,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icon-192.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/pwa-icon-512.png" />
       </head>
-      <body><LayoutWrapper>{children}</LayoutWrapper></body>
+      <body>
+        <LayoutWrapper>{children}</LayoutWrapper>
+        <ServiceWorkerRegister />
+        <PushNotificationPrompt />
+      </body>
     </html>
   )
 }

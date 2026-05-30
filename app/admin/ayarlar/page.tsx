@@ -223,15 +223,29 @@ function HesapTab() {
   )
 }
 
+// ── Renk → rol eşlemesi ───────────────────────────────────────────────────────
+const ROLE_COLOR: Record<string, string> = {
+  'Süper Admin':       'bg-primary-800',
+  'Proje Yöneticisi':  'bg-info-600',
+  'Finans Sorumlusu':  'bg-warning-600',
+  'Raporlama Uzmanı':  'bg-purple-600',
+}
+
+function makeInitials(name: string) {
+  return name.trim().split(' ').map(w => w[0]?.toUpperCase() ?? '').slice(0, 2).join('')
+}
+
 // ── Kullanıcılar Tab ───────────────────────────────────────────────────────────
 function KullanicilarTab() {
+  const [users, setUsers] = useState<AdminUser[]>(ADMIN_USERS)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('Tüm Roller')
   const [showAdd, setShowAdd] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
   const addFormRef = useRef<HTMLDivElement>(null)
   const [roles] = useState(INIT_ROLES)
 
-  const filtered = ADMIN_USERS.filter(u => {
+  const filtered = users.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
     const matchRole = roleFilter === 'Tüm Roller' || u.role === roleFilter
     return matchSearch && matchRole
@@ -242,6 +256,23 @@ function KullanicilarTab() {
     setTimeout(() => {
       addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 50)
+  }
+
+  function handleAdd(data: { name: string; email: string; username: string; role: string }) {
+    const newUser: AdminUser = {
+      id: String(Date.now()),
+      name: data.name,
+      initials: makeInitials(data.name),
+      email: data.email,
+      role: data.role,
+      status: 'Aktif',
+      lastLogin: 'Henüz giriş yapılmadı',
+      color: ROLE_COLOR[data.role] ?? 'bg-neutral-500',
+    }
+    setUsers(prev => [...prev, newUser])
+    setShowAdd(false)
+    setSuccessMsg(`${data.name} başarıyla eklendi.`)
+    setTimeout(() => setSuccessMsg(''), 3000)
   }
 
   return (
@@ -331,7 +362,13 @@ function KullanicilarTab() {
               ))}
             </tbody>
           </table>
-          <p className="text-xs text-neutral-400 mt-4">Toplam {filtered.length} kayıt</p>
+          {successMsg && (
+          <div className="flex items-center gap-2 mt-4 px-3 py-2.5 bg-success-50 border border-success-100 rounded-xl text-sm text-success-700 font-medium">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="#0F6E56" strokeWidth="2" strokeLinecap="round"/><polyline points="22 4 12 14.01 9 11.01" stroke="#0F6E56" strokeWidth="2" strokeLinecap="round"/></svg>
+            {successMsg}
+          </div>
+        )}
+        <p className="text-xs text-neutral-400 mt-4">Toplam {filtered.length} kayıt</p>
         </div>
 
         {/* Mobil kartlar */}
@@ -362,7 +399,7 @@ function KullanicilarTab() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
               </button>
             </div>
-            <AddUserForm roles={roles} onCancel={() => setShowAdd(false)} />
+            <AddUserForm roles={roles} onCancel={() => setShowAdd(false)} onAdd={handleAdd} />
           </div>
         )}
       </div>
@@ -370,45 +407,123 @@ function KullanicilarTab() {
       {/* Desktop: Sağ sütun — Yeni Admin Ekle */}
       <div className="hidden md:block bg-white rounded-2xl border border-neutral-100 p-6">
         <SectionTitle title="Yeni Admin Ekle" subtitle="Sisteme yeni admin kullanıcısı ekleyin ve rol atayın." />
-        <AddUserForm roles={roles} onCancel={() => {}} />
+        <AddUserForm roles={roles} onCancel={() => {}} onAdd={handleAdd} />
       </div>
     </div>
   )
 }
 
-function AddUserForm({ roles, onCancel }: { roles: typeof INIT_ROLES; onCancel: () => void }) {
+function AddUserForm({
+  roles,
+  onCancel,
+  onAdd,
+}: {
+  roles: typeof INIT_ROLES
+  onCancel: () => void
+  onAdd: (data: { name: string; email: string; username: string; role: string }) => void
+}) {
+  const [form, setForm] = useState({ name: '', email: '', username: '', password: '', role: '' })
+  const [errors, setErrors] = useState<Partial<typeof form>>({})
+
+  const set = (k: keyof typeof form, v: string) => {
+    setForm(f => ({ ...f, [k]: v }))
+    setErrors(e => ({ ...e, [k]: '' }))
+  }
+
+  function validate() {
+    const errs: Partial<typeof form> = {}
+    if (!form.name.trim())     errs.name     = 'Ad Soyad zorunlu'
+    if (!form.email.trim())    errs.email    = 'E-posta zorunlu'
+    if (!form.username.trim()) errs.username = 'Kullanıcı adı zorunlu'
+    if (!form.password.trim()) errs.password = 'Şifre zorunlu'
+    if (!form.role)            errs.role     = 'Rol seçiniz'
+    return errs
+  }
+
+  function handleSave() {
+    const errs = validate()
+    if (Object.keys(errs).length) { setErrors(errs); return }
+    onAdd({ name: form.name.trim(), email: form.email.trim(), username: form.username.trim(), role: form.role })
+    setForm({ name: '', email: '', username: '', password: '', role: '' })
+    setErrors({})
+  }
+
+  const inp = 'w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 transition-all'
+  const ok  = 'border-neutral-200 focus:border-primary-800 focus:ring-primary-800/10'
+  const err = 'border-danger-400 focus:border-danger-500 focus:ring-danger-100'
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-neutral-500 mb-1 block">Ad Soyad</label>
-          <input className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary-800 focus:ring-2 focus:ring-primary-800/10 transition-all" placeholder="Örn: Ahmet Yılmaz" />
+          <input
+            className={`${inp} ${errors.name ? err : ok}`}
+            placeholder="Örn: Ahmet Yılmaz"
+            value={form.name}
+            onChange={e => set('name', e.target.value)}
+          />
+          {errors.name && <p className="text-[11px] text-danger-600 mt-0.5">{errors.name}</p>}
         </div>
         <div>
           <label className="text-xs font-medium text-neutral-500 mb-1 block">E-posta</label>
-          <input className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary-800 focus:ring-2 focus:ring-primary-800/10 transition-all" placeholder="örn@celikinsaat.com" />
+          <input
+            className={`${inp} ${errors.email ? err : ok}`}
+            placeholder="örn@celikinsaat.com"
+            value={form.email}
+            onChange={e => set('email', e.target.value)}
+          />
+          {errors.email && <p className="text-[11px] text-danger-600 mt-0.5">{errors.email}</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-neutral-500 mb-1 block">Kullanıcı Adı</label>
-          <input className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary-800 focus:ring-2 focus:ring-primary-800/10 transition-all" placeholder="örnahmetyilmaz" />
+          <input
+            className={`${inp} ${errors.username ? err : ok}`}
+            placeholder="örnahmetyilmaz"
+            value={form.username}
+            onChange={e => set('username', e.target.value)}
+          />
+          {errors.username && <p className="text-[11px] text-danger-600 mt-0.5">{errors.username}</p>}
         </div>
         <div>
           <label className="text-xs font-medium text-neutral-500 mb-1 block">Şifre</label>
-          <input type="password" className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary-800 focus:ring-2 focus:ring-primary-800/10 transition-all" placeholder="••••••••" />
+          <input
+            type="password"
+            className={`${inp} ${errors.password ? err : ok}`}
+            placeholder="••••••••"
+            value={form.password}
+            onChange={e => set('password', e.target.value)}
+          />
+          {errors.password && <p className="text-[11px] text-danger-600 mt-0.5">{errors.password}</p>}
         </div>
       </div>
       <div>
         <label className="text-xs font-medium text-neutral-500 mb-1 block">Rol</label>
-        <select className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary-800 bg-white cursor-pointer">
+        <select
+          className={`${inp} ${errors.role ? err : ok} bg-white cursor-pointer`}
+          value={form.role}
+          onChange={e => set('role', e.target.value)}
+        >
           <option value="">Rol seçin</option>
-          {roles.map(r => <option key={r.name}>{r.name}</option>)}
+          {roles.map(r => <option key={r.name} value={r.name}>{r.name}</option>)}
         </select>
+        {errors.role && <p className="text-[11px] text-danger-600 mt-0.5">{errors.role}</p>}
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={onCancel} className="flex-1 bg-neutral-100 text-neutral-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-neutral-200 transition-colors">İptal</button>
-        <button className="flex-1 bg-primary-800 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-primary-700 transition-colors">Kaydet</button>
+        <button
+          onClick={() => { onCancel(); setForm({ name: '', email: '', username: '', password: '', role: '' }); setErrors({}) }}
+          className="flex-1 bg-neutral-100 text-neutral-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-neutral-200 transition-colors"
+        >
+          İptal
+        </button>
+        <button
+          onClick={handleSave}
+          className="flex-1 bg-primary-800 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-primary-700 transition-colors"
+        >
+          Kaydet
+        </button>
       </div>
     </div>
   )
