@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const ADMIN_USERNAME      = process.env.ADMIN_USERNAME
-const ADMIN_PASSWORD      = process.env.ADMIN_PASSWORD
 const ADMIN_SESSION_TOKEN = process.env.ADMIN_SESSION_TOKEN
 const COOKIE_NAME         = 'celik_admin_session'
+
+// Birden fazla admin desteklenir:
+// ADMIN_USERNAME / ADMIN_PASSWORD  → 1. admin
+// ADMIN_USERNAME_2 / ADMIN_PASSWORD_2 → 2. admin
+const ADMINS = [
+  { u: process.env.ADMIN_USERNAME,   p: process.env.ADMIN_PASSWORD },
+  { u: process.env.ADMIN_USERNAME_2, p: process.env.ADMIN_PASSWORD_2 },
+].filter((a) => a.u && a.p)
 
 // Brute-force önlemi — IP başına deneme sayacı (sunucu memory, restart'ta sıfırlanır)
 const attempts = new Map<string, { count: number; blockedUntil: number }>()
 
 export async function POST(req: NextRequest) {
   // Env var kontrolü
-  if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !ADMIN_SESSION_TOKEN) {
+  if (ADMINS.length === 0 || !ADMIN_SESSION_TOKEN) {
     return NextResponse.json(
       { error: 'Sunucu yapılandırması eksik.' },
       { status: 503 }
@@ -37,7 +43,8 @@ export async function POST(req: NextRequest) {
 
   const { username, password, redirect } = await req.json()
 
-  if (!username || !password || username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+  const matched = ADMINS.some((a) => a.u === username && a.p === password)
+  if (!username || !password || !matched) {
     rec.count++
     if (rec.count >= 5) {
       rec.blockedUntil = now + 15 * 60 * 1_000 // 15 dk
