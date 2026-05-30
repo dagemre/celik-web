@@ -2169,18 +2169,7 @@ const TUR_STYLE: Record<string, { bg: string; text: string }> = {
   'Dekont':      { bg: 'bg-success-50',  text: 'text-success-700'  },
 }
 
-const EVRAKLAR_MOCK: EvrakItem[] = [
-  { id: 'e1',  ad: 'İnşaat Ruhsatı',           klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '2.4 MB', tarih: '12.03.2026', durum: 'paylasiliyor' },
-  { id: 'e2',  ad: 'Yapı Kullanma İzni',        klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '1.8 MB', tarih: '15.03.2026', durum: 'gizli'        },
-  { id: 'e3',  ad: 'İtfaiye Uygunluk Belgesi',  klasor: 'Ruhsat',          tur: 'Resmi Belge', boyut: '0.9 MB', tarih: '18.03.2026', durum: 'paylasiliyor' },
-  { id: 'e4',  ad: 'Sözleşme - Emre Dağ',       klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.2 MB', tarih: '10.01.2026', durum: 'paylasiliyor' },
-  { id: 'e5',  ad: 'Sözleşme - Ahmet Yılmaz',   klasor: 'Sözleşmeler',     tur: 'Sözleşme',   boyut: '3.1 MB', tarih: '12.01.2026', durum: 'paylasiliyor' },
-  { id: 'e6',  ad: 'Mimari Proje',              klasor: 'Teknik Projeler', tur: 'Proje',       boyut: '8.5 MB', tarih: '05.02.2026', durum: 'paylasiliyor' },
-  { id: 'e7',  ad: 'Statik Hesap Raporu',        klasor: 'Teknik Projeler', tur: 'Rapor',       boyut: '5.2 MB', tarih: '08.02.2026', durum: 'paylasiliyor' },
-  { id: 'e8',  ad: 'Bütçe Raporu Q1',           klasor: 'Finansal',        tur: 'Rapor',       boyut: '1.5 MB', tarih: '01.04.2026', durum: 'gizli'        },
-  { id: 'e9',  ad: 'Ödeme Dekontu - Mart',      klasor: 'Finansal',        tur: 'Dekont',      boyut: '0.8 MB', tarih: '31.03.2026', durum: 'gizli'        },
-  { id: 'e10', ad: 'Yazışma - Belediye',        klasor: 'Yazışmalar',      tur: 'Resmi Belge', boyut: '1.2 MB', tarih: '20.04.2026', durum: 'paylasiliyor' },
-]
+const EVRAKLAR_MOCK: EvrakItem[] = [] // Artık kullanılmıyor — EvraklarTab Supabase'den çekiyor
 
 // ── Evrak Ekle Form ────────────────────────────────────────────────────────────
 const EvrakEkleForm = ({ form, setForm, onEkle, onClose }: {
