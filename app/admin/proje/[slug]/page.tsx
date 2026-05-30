@@ -2155,7 +2155,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
 
 // ── Evraklar Types & Data ──────────────────────────────────────────────────────
 type EvrakDurum = 'paylasiliyor' | 'gizli'
-type EvrakItem  = { id: string; ad: string; klasor: string; tur: string; boyut: string; tarih: string; durum: EvrakDurum }
+type EvrakItem  = { id: string; ad: string; klasor: string; tur: string; boyut: string; tarih: string; durum: EvrakDurum; file_url: string | null; storage_path: string | null }
 type EvrakForm  = { ad: string; tur: string; klasor: string; yeniKlasor: string; durum: EvrakDurum }
 
 const EVRAK_TURLERI    = ['Resmi Belge', 'Proje', 'Sözleşme', 'Rapor', 'Dekont']
@@ -2424,31 +2424,58 @@ const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNea
 }
 
 // ── Evraklar Tab ───────────────────────────────────────────────────────────────
-const EvraklarTab = ({ slug }: { slug: string }) => {
-  const lsKey = `evraklar_${slug}`
-
-  const [evraklar, setEvraklar]         = useState<EvrakItem[]>(EVRAKLAR_MOCK)
-  const [lsLoaded, setLsLoaded]         = useState(false)
-  const [aramaText, setAramaText]       = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
-      if (stored.evraklar) setEvraklar(stored.evraklar)
-    } catch {}
-    setLsLoaded(true)
-  }, [lsKey])
+const EvraklarTab = ({ projectId }: { projectId: string }) => {
+  const router = useRouter()
+  const [evraklar, setEvraklar]           = useState<EvrakItem[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [aramaText, setAramaText]         = useState('')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!lsLoaded) return
-    localStorage.setItem(lsKey, JSON.stringify({ evraklar }))
-  }, [evraklar, lsLoaded, lsKey])
+    supabase
+      .from('documents')
+      .select('id, name, type, file_url, storage_path, file_size, folder, is_shared, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setEvraklar(data.map((d: any) => ({
+          id:           d.id,
+          ad:           d.name,
+          klasor:       d.folder ?? 'Diğer',
+          tur:          d.type ?? 'Rapor',
+          boyut:        d.file_size ?? '—',
+          tarih:        d.created_at ? new Date(d.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.') : '—',
+          durum:        d.is_shared ? 'paylasiliyor' : 'gizli',
+          file_url:     d.file_url ?? null,
+          storage_path: d.storage_path ?? null,
+        })))
+        setLoading(false)
+      })
+  }, [projectId])
+
+  const handleDownload = (evrak: EvrakItem) => {
+    if (evrak.file_url) window.open(evrak.file_url, '_blank')
+    setMenuAcik(null)
+  }
+
+  const handleToggleShare = async (evrak: EvrakItem) => {
+    setActionLoading(evrak.id); setMenuAcik(null)
+    const yeni = evrak.durum !== 'paylasiliyor'
+    await supabase.from('documents').update({ is_shared: yeni }).eq('id', evrak.id)
+    setEvraklar(prev => prev.map(e => e.id === evrak.id ? { ...e, durum: yeni ? 'paylasiliyor' : 'gizli' } : e))
+    setActionLoading(null)
+  }
+
+  const handleDelete = async (evrak: EvrakItem) => {
+    if (!confirm(`"${evrak.ad}" silinsin mi?`)) return
+    setActionLoading(evrak.id); setMenuAcik(null)
+    if (evrak.storage_path) await supabase.storage.from('documents').remove([evrak.storage_path])
+    await supabase.from('documents').delete().eq('id', evrak.id)
+    setEvraklar(prev => prev.filter(e => e.id !== evrak.id))
+    setActionLoading(null)
+  }
   const [aktifKat, setAktifKat]         = useState('Tümü')
-  const [showPanel, setShowPanel]       = useState(false)
   const [menuAcik, setMenuAcik]         = useState<string | null>(null)
-  const [form, setForm]                 = useState<EvrakForm>({
-    ad: '', tur: 'Resmi Belge', klasor: '', yeniKlasor: '', durum: 'paylasiliyor',
-  })
 
   const filtrelenmis = evraklar.filter(e => {
     const aramaOk = !aramaText || e.ad.toLowerCase().includes(aramaText.toLowerCase()) || e.klasor.toLowerCase().includes(aramaText.toLowerCase())
@@ -2456,22 +2483,9 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
     return aramaOk && katOk
   })
 
-  const toplam    = evraklar.length
+  const toplam     = evraklar.length
   const paylasilan = evraklar.filter(e => e.durum === 'paylasiliyor').length
-  const gizli     = evraklar.filter(e => e.durum === 'gizli').length
-
-  const handleEkle = () => {
-    if (!form.ad.trim()) return
-    const yeni: EvrakItem = {
-      id: `e${Date.now()}`, ad: form.ad.trim(), klasor: '', tur: form.tur,
-      boyut: '—',
-      tarih: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
-      durum: 'paylasiliyor',
-    }
-    setEvraklar(prev => [...prev, yeni])
-    setShowPanel(false)
-    setForm({ ad: '', tur: 'Resmi Belge', klasor: '', yeniKlasor: '', durum: 'paylasiliyor' })
-  }
+  const gizli      = evraklar.filter(e => e.durum === 'gizli').length
 
   const PdfIcon = () => (
     <div className="w-9 h-9 bg-danger-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -2484,23 +2498,26 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
   )
 
   return (
-    <div>
-      <div className={`md:flex md:gap-4 md:items-start`}>
+    <div className="space-y-3">
 
-        {/* ── Sol / Ana içerik ── */}
-        <div className={`min-w-0 ${showPanel ? 'md:flex-1' : 'w-full'} space-y-3`}>
-
-          {/* Başlık + Ekle butonu */}
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-base text-primary-800">Evraklar ({toplam})</h2>
-            <button onClick={() => setShowPanel(true)}
-              className="flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-              Evrak Ekle
-            </button>
+      {/* Başlık + Ekle butonu */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-bold text-base text-primary-800">Evraklar ({toplam})</h2>
+          <div className="flex gap-2 mt-1">
+            <span className="text-xs bg-success-50 text-success-700 px-2 py-0.5 rounded-lg font-medium">{paylasilan} Paylaşılan</span>
+            <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-lg font-medium">{gizli} Gizli</span>
           </div>
+        </div>
+        <button onClick={() => router.push('/admin/evraklar/yeni')}
+          className="flex items-center gap-1.5 bg-primary-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          Evrak Ekle
+        </button>
+      </div>
+      <div>
 
           {/* Arama */}
           <div className="relative">
@@ -2528,98 +2545,74 @@ const EvraklarTab = ({ slug }: { slug: string }) => {
             ))}
           </div>
 
-          {/* Evrak listesi */}
-          {filtrelenmis.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-neutral-100 py-12 flex flex-col items-center">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#D3D1C7" strokeWidth="1.4" strokeLinejoin="round"/>
-                <path d="M14 2v6h6" stroke="#D3D1C7" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-              <p className="mt-3 font-medium text-neutral-400">Evrak bulunamadı</p>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-neutral-100 divide-y divide-neutral-50 overflow-hidden">
-              {filtrelenmis.map(evrak => {
-                const turStyle = TUR_STYLE[evrak.tur] ?? TUR_STYLE['Rapor']
-                return (
-                  <div key={evrak.id} className="flex items-center gap-3 px-4 py-3 relative">
-                    <PdfIcon />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-primary-800 truncate">{evrak.ad}</p>
-                      <p className="text-xs text-neutral-400 mt-0.5">{evrak.boyut} · {evrak.tarih}</p>
-                    </div>
-                    <span className={`hidden md:inline-flex flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg ${turStyle.bg} ${turStyle.text}`}>
-                      {evrak.tur}
-                    </span>
-                    {evrak.durum === 'paylasiliyor'
-                      ? <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-success-50 text-success-700 whitespace-nowrap">Paylaşılıyor</span>
-                      : <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-500">Gizli</span>
-                    }
-                    <div className="relative">
-                      <button onClick={() => setMenuAcik(menuAcik === evrak.id ? null : evrak.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors flex-shrink-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="5" r="1.5" fill="#888780" />
-                          <circle cx="12" cy="12" r="1.5" fill="#888780" />
-                          <circle cx="12" cy="19" r="1.5" fill="#888780" />
-                        </svg>
-                      </button>
-                      {menuAcik === evrak.id && (
-                        <div className="absolute right-0 top-9 z-20 bg-white rounded-xl border border-neutral-100 shadow-lg min-w-[140px] py-1">
-                          <button className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
-                            İndir
-                          </button>
-                          <button onClick={() => {
-                            setEvraklar(prev => prev.map(e => e.id === evrak.id
-                              ? { ...e, durum: e.durum === 'paylasiliyor' ? 'gizli' : 'paylasiliyor' } : e))
-                            setMenuAcik(null)
-                          }} className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
-                            {evrak.durum === 'paylasiliyor' ? 'Gizle' : 'Paylaş'}
-                          </button>
-                          <button onClick={() => {
-                            setEvraklar(prev => prev.filter(e => e.id !== evrak.id))
-                            setMenuAcik(null)
-                          }} className="w-full text-left px-4 py-2.5 text-sm text-danger-700 hover:bg-danger-50 transition-colors">
-                            Sil
-                          </button>
-                        </div>
-                      )}
-                    </div>
+        {/* Evrak listesi */}
+        {loading ? (
+          <div className="space-y-2">
+            {[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-neutral-100 rounded-xl animate-pulse" />)}
+          </div>
+        ) : filtrelenmis.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-neutral-100 py-12 flex flex-col items-center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#D3D1C7" strokeWidth="1.4" strokeLinejoin="round"/>
+              <path d="M14 2v6h6" stroke="#D3D1C7" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            <p className="mt-3 font-medium text-neutral-400">Henüz evrak yüklenmedi</p>
+            <button onClick={() => router.push('/admin/evraklar/yeni')}
+              className="mt-3 text-sm text-info-600 font-medium hover:underline">
+              Evrak Yükle →
+            </button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-neutral-100 divide-y divide-neutral-50 overflow-hidden">
+            {filtrelenmis.map(evrak => {
+              const turStyle = TUR_STYLE[evrak.tur] ?? TUR_STYLE['Rapor']
+              const busy = actionLoading === evrak.id
+              return (
+                <div key={evrak.id} className={`flex items-center gap-3 px-4 py-3 relative ${busy ? 'opacity-60' : ''}`}>
+                  <PdfIcon />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-primary-800 truncate">{evrak.ad}</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">{evrak.boyut} · {evrak.tarih}</p>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ── Sağ panel — Desktop ── */}
-        {showPanel && (
-          <div className="hidden md:block w-80 flex-shrink-0 bg-white rounded-2xl border border-neutral-100 p-5 sticky top-4">
-            <EvrakEkleForm
-              form={form} setForm={setForm}
-              onEkle={handleEkle}
-              onClose={() => setShowPanel(false)}
-            />
+                  <span className={`hidden md:inline-flex flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg ${turStyle.bg} ${turStyle.text}`}>
+                    {evrak.tur}
+                  </span>
+                  {evrak.durum === 'paylasiliyor'
+                    ? <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-success-50 text-success-700 whitespace-nowrap">Paylaşılıyor</span>
+                    : <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-lg bg-neutral-100 text-neutral-500">Gizli</span>
+                  }
+                  <div className="relative">
+                    <button onClick={() => setMenuAcik(menuAcik === evrak.id ? null : evrak.id)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors flex-shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="5" r="1.5" fill="#888780" />
+                        <circle cx="12" cy="12" r="1.5" fill="#888780" />
+                        <circle cx="12" cy="19" r="1.5" fill="#888780" />
+                      </svg>
+                    </button>
+                    {menuAcik === evrak.id && (
+                      <div className="absolute right-0 top-9 z-20 bg-white rounded-xl border border-neutral-100 shadow-lg min-w-[140px] py-1">
+                        <button onClick={() => handleDownload(evrak)} disabled={!evrak.file_url}
+                          className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 disabled:opacity-40 transition-colors">
+                          İndir
+                        </button>
+                        <button onClick={() => handleToggleShare(evrak)}
+                          className="w-full text-left px-4 py-2.5 text-sm text-primary-800 hover:bg-neutral-50 transition-colors">
+                          {evrak.durum === 'paylasiliyor' ? 'Gizle' : 'Paylaş'}
+                        </button>
+                        <button onClick={() => handleDelete(evrak)}
+                          className="w-full text-left px-4 py-2.5 text-sm text-danger-700 hover:bg-danger-50 transition-colors">
+                          Sil
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
-
-      {/* ── Mobil bottom sheet ── */}
-      {showPanel && (
-        <div className="md:hidden fixed inset-0 z-50 flex items-end justify-center"
-          onClick={() => setShowPanel(false)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative z-10 w-full bg-white rounded-t-3xl px-5 pt-4 pb-10 max-h-[90vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}>
-            <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
-            <EvrakEkleForm
-              form={form} setForm={setForm}
-              onEkle={handleEkle}
-              onClose={() => setShowPanel(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -3203,7 +3196,7 @@ export default function AdminProjeDetay({ params }: { params: { slug: string } }
         {tab === 'daireler' && <DairelerTab slug={project.slug} projectId={project.id} />}
 
         {/* EVRAKLAR */}
-        {tab === 'evraklar' && <EvraklarTab slug={project.slug} />}
+        {tab === 'evraklar' && <EvraklarTab projectId={project.id} />}
 
         {/* MALİKLER */}
         {tab === 'malikler' && <MaliklerTab slug={project.slug} />}
