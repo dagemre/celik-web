@@ -1915,7 +1915,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
               const isEditingIsim = editingKatIsim === katNo
 
               return (
-                <div key={katNo} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+                <div key={katNo} className="bg-white rounded-2xl border border-neutral-100">
                   {/* Kat header */}
                   <div className="flex items-center justify-between px-4 py-3.5">
                     <div className="flex items-center gap-2 flex-1 min-w-0 relative">
@@ -1935,14 +1935,14 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                         {katDaireler.length} Daire
                       </span>
 
-                      {/* Dropdown */}
+                      {/* Dropdown — yukarı açılır */}
                       {isEditingIsim && (
-                        <div className="absolute left-0 top-8 z-30 bg-white rounded-2xl border border-neutral-100 shadow-lg py-1.5 min-w-[180px]"
+                        <div className="absolute left-0 bottom-full mb-1 z-50 bg-white rounded-2xl border border-neutral-100 shadow-xl py-1.5 min-w-[190px]"
                           onClick={e => e.stopPropagation()}>
                           <p className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider px-3 pt-1 pb-1.5">Kat Türü</p>
                           {KAT_ISIM_SECENEKLERI.map(secenek => (
                             <button key={secenek} onClick={() => setKatIsim(katNo, secenek)}
-                              className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 ${label === secenek ? 'font-semibold text-primary-800 bg-primary-50' : 'text-neutral-700'}`}>
+                              className={`w-full text-left px-3 py-2.5 text-sm transition-colors hover:bg-neutral-50 ${label === secenek ? 'font-semibold text-primary-800 bg-primary-50' : 'text-neutral-700'}`}>
                               {secenek}
                             </button>
                           ))}
