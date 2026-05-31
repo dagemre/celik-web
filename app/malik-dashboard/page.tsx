@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import KVKKModal from '@/components/malik/KVKKModal'
 import MalikNav from '@/components/malik/MalikNav'
 import {
@@ -16,54 +16,23 @@ import {
   type MalikDuyuru,
 } from '@/lib/malik-data'
 
-// ─── Mock Data (auth + seed data gelene kadar fallback) ───────────────────────
-// TODO: Auth kurulunca MOCK_OWNER_ID → supabase.auth.getUser().id ile değişecek
-const MOCK_OWNER_ID = 'b1000001-0000-0000-0000-000000000001' // Emre Dağ — D-1 Değirmen Sokak
-
-const MOCK_MALIK: MalikBilgi = {
-  id: 'mock',
-  full_name: 'Emre Dağ',
-  email: 'dagemre@gmail.com',
-  phone: '',
-  unit_id: 'mock',
-  unit_no: '5',
-  floor: 3,
-  unit_type: '3+1',
-  price: 500000,
-  gross_area: 135.5,
-  net_area: 108.25,
-  project_id: 'mock',
-  project_name: 'Mutlu Apartman',
-  project_slug: 'mutlu-apartman',
-  project_location: 'İstanbul / Avcılar / Merkez Mah.',
-  project_status: 'devam',
-  project_image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop',
+// ─── Boş varsayılan (veriler yüklenene kadar) ─────────────────────────────────
+const BOSH_MALIK: MalikBilgi = {
+  id: '', full_name: '...', email: '', phone: '',
+  unit_id: '', unit_no: '—', floor: 0, unit_type: '—', price: 0,
+  gross_area: 0, net_area: 0,
+  project_id: '', project_name: '—', project_slug: '', project_location: '—',
+  project_status: 'devam', project_image_url: '', project_delivery_date: '', project_progress: 0,
 }
 
-const MOCK_ODEMELER: MalikOdeme[] = [
-  { id: '1', paid_date: '2026-05-04', source: 'Havale', amount: 300000, description: '', status: 'odendi' },
-  { id: '2', paid_date: '2026-03-01', source: 'Havale', amount: 50000,  description: '', status: 'odendi' },
-  { id: '3', paid_date: '2026-01-15', source: 'Havale', amount: 50000,  description: '', status: 'odendi' },
-]
+function formatTL(n: number) { return n.toLocaleString('tr-TR') + ' TL' }
 
-const MOCK_DUYURULAR: MalikDuyuru[] = [
-  { id: '1', title: 'Aidat Ödemeleri Hakkında',  content: 'Mayıs ayı aidat ödemelerinizin 10.05.2026 tarihine kadar yapılması rica olunur.', created_at: '2026-05-02' },
-  { id: '2', title: 'Genel Bakım Çalışması',       content: '15.05.2026 tarihinde bina genelinde bakım çalışması yapılacaktır.',              created_at: '2026-04-28' },
-]
-
+// Teknik çizimler — ileride Supabase technical_drawings tablosundan gelecek
 const TECHNICAL_DOCS = [
   { id: '1', title: 'Kat Planları',     size: '2.4 MB' },
   { id: '2', title: 'Cephe Görselleri', size: '3.1 MB' },
   { id: '3', title: 'Elektrik Projesi', size: '1.8 MB' },
 ]
-
-const RECENT_PAYMENTS = [
-  { id: '1', date: '4 Mayıs 2026',   method: 'Havale', amount: 300000 },
-  { id: '2', date: '1 Mart 2026',    method: 'Havale', amount: 50000  },
-  { id: '3', date: '15 Ocak 2026',   method: 'Havale', amount: 50000  },
-]
-
-function formatTL(n: number) { return n.toLocaleString('tr-TR') + ' TL' }
 
 // ─── Donut Chart ──────────────────────────────────────────────────────────────
 function DonutChart({ percent }: { percent: number }) {
@@ -94,34 +63,39 @@ export default function MalikDashboardPage() {
   const router = useRouter()
   const [activePage, setActivePage] = useState<string>('anasayfa')
   const [kvkkGoster, setKvkkGoster] = useState(false)
+  const [veriYuklendi, setVeriYuklendi] = useState(false)
 
-  // ── Supabase veri state'leri (auth + seed data gelince dolacak) ──
-  const [malik, setMalik]         = useState<MalikBilgi>(MOCK_MALIK)
-  const [odemeler, setOdemeler]   = useState<MalikOdeme[]>(MOCK_ODEMELER)
-  const [duyurular, setDuyurular] = useState<MalikDuyuru[]>(MOCK_DUYURULAR)
+  const [malik,    setMalik]    = useState<MalikBilgi>(BOSH_MALIK)
+  const [odemeler, setOdemeler] = useState<MalikOdeme[]>([])
+  const [duyurular,setDuyurular]= useState<MalikDuyuru[]>([])
 
   useEffect(() => {
     // KVKK kontrolü
     const onay = localStorage.getItem('kvkk_onay')
     if (!onay) setKvkkGoster(true)
 
-    // Supabase'den veri çek — MOCK_OWNER_ID dolu olduğunda aktif olur
-    // TODO: Auth kurulunca MOCK_OWNER_ID → session.user.id
-    if (!MOCK_OWNER_ID) return
-    async function yukle() {
-      const [bilgi, odeme] = await Promise.all([
-        getMalikBilgi(MOCK_OWNER_ID),
-        getMalikOdemeleri(MOCK_OWNER_ID),
-      ])
+    // Auth session'dan kullanıcıyı al → veri çek
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { router.replace('/malik-giris'); return }
+
+      const authUserId = session.user.id
+
+      // Önce malik bilgisini çek (owners.id lazım ödemeler için)
+      const bilgi = await getMalikBilgi(authUserId)
+
       if (bilgi) {
         setMalik(bilgi)
-        const duyuru = await getProjeeDuyurulari(bilgi.project_id)
-        if (duyuru.length) setDuyurular(duyuru)
+        // Ödemeler owners.id (bilgi.id) ile sorgulanır, auth_user_id değil
+        const [odeme, duyuru] = await Promise.all([
+          getMalikOdemeleri(bilgi.id),
+          getProjeeDuyurulari(bilgi.project_id),
+        ])
+        setOdemeler(odeme)
+        setDuyurular(duyuru)
       }
-      if (odeme.length) setOdemeler(odeme)
-    }
-    yukle()
-  }, [])
+      setVeriYuklendi(true)
+    })
+  }, [router])
 
   const odemeDurumu = hesaplaOdemeDurumu(malik.price, odemeler)
   const { toplamBorc, odenen, kalan, yuzdesi: paidPercent } = odemeDurumu
@@ -169,7 +143,14 @@ export default function MalikDashboardPage() {
               <p className="text-sm font-semibold text-[#0A1F44] leading-tight">{malik.full_name}</p>
               <p className="text-xs text-gray-400">Malik</p>
             </div>
-            <button onClick={() => router.push('/malik-giris')} className="text-gray-300 hover:text-gray-500 transition-colors ml-1">
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut()
+                router.replace('/malik-giris')
+              }}
+              className="text-gray-300 hover:text-gray-500 transition-colors ml-1"
+              title="Çıkış Yap"
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" strokeLinejoin="round"/><polyline points="16 17 21 12 16 7" strokeLinecap="round" strokeLinejoin="round"/><line x1="21" y1="12" x2="9" y2="12" strokeLinecap="round"/></svg>
             </button>
           </div>
@@ -361,21 +342,18 @@ export default function MalikDashboardPage() {
                   <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
                     <div className="flex items-center justify-between mb-5">
                       <p className="text-sm font-bold text-[#0A1F44]">Proje İlerleme</p>
-                      <button className="text-xs text-gray-400 hover:text-[#0A1F44] flex items-center gap-1">Detaylı Rapor <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                     </div>
                     <div className="flex items-center gap-5 flex-1">
-                      <DonutChart percent={63} />
+                      <DonutChart percent={malik.project_progress} />
                       <div className="flex-1 flex flex-col gap-3">
-                        {[
-                          { label: 'Tamamlanan İşler', value: 63, color: 'bg-[#0A1F44]' },
-                          { label: 'Devam Eden İşler',  value: 27, color: 'bg-[#22C55E]' },
-                          { label: 'Planlanan İşler',   value: 10, color: 'bg-gray-200'  },
-                        ].map((item) => (
-                          <div key={item.label}>
-                            <div className="flex justify-between mb-1.5"><p className="text-xs text-gray-500">{item.label}</p><p className="text-xs font-bold text-[#0A1F44]">%{item.value}</p></div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.value}%` }} /></div>
-                          </div>
-                        ))}
+                        <div>
+                          <div className="flex justify-between mb-1.5"><p className="text-xs text-gray-500">Tamamlanan</p><p className="text-xs font-bold text-[#0A1F44]">%{malik.project_progress}</p></div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-[#0A1F44] rounded-full" style={{ width: `${malik.project_progress}%` }} /></div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between mb-1.5"><p className="text-xs text-gray-500">Kalan</p><p className="text-xs font-bold text-[#0A1F44]">%{100 - malik.project_progress}</p></div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-gray-200 rounded-full" style={{ width: `${100 - malik.project_progress}%` }} /></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -395,12 +373,12 @@ export default function MalikDashboardPage() {
                       </button>
                     </div>
                     {[
-                      { label: 'Daire Tipi',    value: '3+1',          icon: <><rect x="3" y="3" width="7" height="7" strokeLinecap="round"/><rect x="14" y="3" width="7" height="7" strokeLinecap="round"/><rect x="3" y="14" width="7" height="7" strokeLinecap="round"/><rect x="14" y="14" width="7" height="7" strokeLinecap="round"/></> },
-                      { label: 'Brüt Alan',     value: '135,50 m²',    icon: <><path d="M21 6H3" strokeLinecap="round"/><path d="M21 12H3" strokeLinecap="round"/><path d="M21 18H3" strokeLinecap="round"/></> },
-                      { label: 'Net Alan',      value: '108,25 m²',    icon: <><path d="M21 6H3" strokeLinecap="round"/><path d="M21 12H3" strokeLinecap="round"/><path d="M21 18H3" strokeLinecap="round"/></> },
-                      { label: 'Satış Bedeli',  value: '3.750.000 TL', icon: <><line x1="12" y1="1" x2="12" y2="23" strokeLinecap="round"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" strokeLinecap="round"/></> },
-                      { label: 'Tapu Durumu',   value: 'Kat İrtifakı', icon: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round"/></> },
-                      { label: 'Teslim Tarihi', value: 'Aralık 2026',  icon: <><rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round"/><line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round"/><line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round"/><line x1="3" y1="10" x2="21" y2="10" strokeLinecap="round"/></> },
+                      { label: 'Daire Tipi',    value: malik.unit_type || '—', icon: <><rect x="3" y="3" width="7" height="7" strokeLinecap="round"/><rect x="14" y="3" width="7" height="7" strokeLinecap="round"/><rect x="3" y="14" width="7" height="7" strokeLinecap="round"/><rect x="14" y="14" width="7" height="7" strokeLinecap="round"/></> },
+                      { label: 'Brüt Alan',     value: malik.gross_area ? `${malik.gross_area.toLocaleString('tr-TR')} m²` : '—', icon: <><path d="M21 6H3" strokeLinecap="round"/><path d="M21 12H3" strokeLinecap="round"/><path d="M21 18H3" strokeLinecap="round"/></> },
+                      { label: 'Net Alan',      value: malik.net_area ? `${malik.net_area.toLocaleString('tr-TR')} m²` : '—', icon: <><path d="M21 6H3" strokeLinecap="round"/><path d="M21 12H3" strokeLinecap="round"/><path d="M21 18H3" strokeLinecap="round"/></> },
+                      { label: 'Satış Bedeli',  value: malik.price ? formatTL(malik.price) : '—', icon: <><line x1="12" y1="1" x2="12" y2="23" strokeLinecap="round"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" strokeLinecap="round"/></> },
+                      { label: 'Daire No',      value: malik.unit_no || '—', icon: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round"/></> },
+                      { label: 'Teslim Tarihi', value: malik.project_delivery_date || '—', icon: <><rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round"/><line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round"/><line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round"/><line x1="3" y1="10" x2="21" y2="10" strokeLinecap="round"/></> },
                     ].map((row, i, arr) => (
                       <div key={row.label} className={`flex items-center gap-3 py-3 ${i < arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
                         <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -421,9 +399,9 @@ export default function MalikDashboardPage() {
                       <p className="text-sm font-bold text-[#0A1F44]">Finansal Bilgiler</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div><p className="text-xs text-gray-400 mb-1">Toplam Bedel</p><p className="text-base font-bold text-[#0A1F44]">3.750.000 TL</p></div>
-                      <div><p className="text-xs text-gray-400 mb-1">Ödenen Tutar</p><p className="text-base font-bold text-[#22C55E]">1.500.000 TL</p></div>
-                      <div><p className="text-xs text-gray-400 mb-1">Kalan Tutar</p><p className="text-base font-bold text-[#0A1F44]">2.250.000 TL</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Toplam Bedel</p><p className="text-base font-bold text-[#0A1F44]">{formatTL(toplamBorc)}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Ödenen Tutar</p><p className="text-base font-bold text-[#22C55E]">{formatTL(odenen)}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-1">Kalan Tutar</p><p className="text-base font-bold text-[#0A1F44]">{formatTL(kalan)}</p></div>
                       <div>
                         <p className="text-xs text-gray-400 mb-1">Ödeme Durumu</p>
                         <div className="flex items-center gap-2">
@@ -431,9 +409,9 @@ export default function MalikDashboardPage() {
                             <svg width="36" height="36" viewBox="0 0 36 36">
                               <circle cx="18" cy="18" r="14" fill="none" stroke="#F3F4F6" strokeWidth="4"/>
                               <circle cx="18" cy="18" r="14" fill="none" stroke="#22C55E" strokeWidth="4"
-                                strokeDasharray={`${40 * 0.879} ${87.9}`} strokeLinecap="round" transform="rotate(-90 18 18)"/>
+                                strokeDasharray={`${paidPercent * 0.879} ${87.9}`} strokeLinecap="round" transform="rotate(-90 18 18)"/>
                             </svg>
-                            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-[#0A1F44]">%40</span>
+                            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-[#0A1F44]">%{paidPercent}</span>
                           </div>
                           <p className="text-xs text-gray-400">tamamlandı</p>
                         </div>
@@ -601,14 +579,16 @@ export default function MalikDashboardPage() {
                 <div className="bg-white rounded-2xl border border-gray-100 p-5">
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-sm font-bold text-[#0A1F44]">Son Ödemelerim</p>
-                    <button className="text-xs text-gray-400 hover:text-[#0A1F44] flex items-center gap-1">Tümü <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                    <button onClick={() => setActivePage('odemeler')} className="text-xs text-gray-400 hover:text-[#0A1F44] flex items-center gap-1">Tümü <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                   </div>
-                  {RECENT_PAYMENTS.map((p, i) => (
-                    <div key={p.id} className={`flex items-center gap-3 py-3 ${i < RECENT_PAYMENTS.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                  {odemeler.length === 0 ? (
+                    <p className="text-xs text-gray-400 py-3 text-center">Henüz ödeme kaydı yok.</p>
+                  ) : odemeler.slice(0, 3).map((p, i) => (
+                    <div key={p.id} className={`flex items-center gap-3 py-3 ${i < Math.min(odemeler.length, 3) - 1 ? 'border-b border-gray-50' : ''}`}>
                       <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
-                      <div className="flex-1"><p className="text-xs font-semibold text-[#0A1F44]">{p.date}</p><p className="text-xs text-gray-400">{p.method}</p></div>
+                      <div className="flex-1"><p className="text-xs font-semibold text-[#0A1F44]">{formatOdemeTarihi(p.paid_date)}</p><p className="text-xs text-gray-400">{p.source}</p></div>
                       <p className="text-xs font-bold text-[#22C55E]">{formatTL(p.amount)}</p>
                     </div>
                   ))}
@@ -634,18 +614,20 @@ export default function MalikDashboardPage() {
 
                 <div className="bg-white rounded-2xl border border-gray-100 p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-bold text-[#0A1F44]">Proje İlerleme Durumu</p>
-                    <button className="text-xs text-gray-400 hover:text-[#0A1F44] flex items-center gap-1">Detaylı <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                    <p className="text-sm font-bold text-[#0A1F44]">Proje İlerleme</p>
+                    <button onClick={() => setActivePage('daire')} className="text-xs text-gray-400 hover:text-[#0A1F44] flex items-center gap-1">Detaylı <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
                   </div>
                   <div className="flex items-center gap-4">
-                    <DonutChart percent={63} />
+                    <DonutChart percent={malik.project_progress} />
                     <div className="flex-1 flex flex-col gap-2.5">
-                      {[{ label: 'Tamamlanan İşler', value: 63, color: 'bg-[#0A1F44]' }, { label: 'Devam Eden İşler', value: 27, color: 'bg-[#22C55E]' }, { label: 'Planlanan İşler', value: 10, color: 'bg-gray-200' }].map((item) => (
-                        <div key={item.label}>
-                          <div className="flex justify-between mb-1"><p className="text-xs text-gray-500">{item.label}</p><p className="text-xs font-bold text-[#0A1F44]">%{item.value}</p></div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.value}%` }} /></div>
-                        </div>
-                      ))}
+                      <div>
+                        <div className="flex justify-between mb-1"><p className="text-xs text-gray-500">Tamamlanan</p><p className="text-xs font-bold text-[#0A1F44]">%{malik.project_progress}</p></div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-[#0A1F44] rounded-full" style={{ width: `${malik.project_progress}%` }} /></div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1"><p className="text-xs text-gray-500">Kalan</p><p className="text-xs font-bold text-[#0A1F44]">%{100 - malik.project_progress}</p></div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-gray-200 rounded-full" style={{ width: `${100 - malik.project_progress}%` }} /></div>
+                      </div>
                     </div>
                   </div>
                 </div>

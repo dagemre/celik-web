@@ -35,6 +35,8 @@ export type MalikBilgi = {
   project_location: string
   project_status: string  // 'devam' | 'tamamlandi'
   project_image_url: string
+  project_delivery_date: string  // teslim tarihi
+  project_progress: number       // ilerleme yüzdesi (0-100)
 }
 
 export type MalikOdeme = {
@@ -64,17 +66,17 @@ export type OdemeDurumu = {
 
 /**
  * Malik'in kendi bilgilerini + daire + proje bilgilerini çeker.
- * owners tablosunda unit_id ve project_id dolu olmalı.
+ * authUserId: supabase.auth.getUser().id — owners.auth_user_id ile eşleşir.
  */
-export async function getMalikBilgi(ownerId: string): Promise<MalikBilgi | null> {
+export async function getMalikBilgi(authUserId: string): Promise<MalikBilgi | null> {
   const { data, error } = await supabase
     .from('owners')
     .select(`
       id, full_name, email, phone, unit_id, project_id,
       unit:units ( unit_no, floor, type, price, gross_area, net_area ),
-      project:projects ( name, slug, location, status, image_url )
+      project:projects ( name, slug, location, status, image_url, delivery_date, progress )
     `)
-    .eq('id', ownerId)
+    .eq('auth_user_id', authUserId)
     .single()
 
   if (error || !data) return null
@@ -102,7 +104,24 @@ export async function getMalikBilgi(ownerId: string): Promise<MalikBilgi | null>
     project_location: project.location ?? '',
     project_status: project.status ?? 'devam',
     project_image_url: project.image_url ?? '',
+    project_delivery_date: project.delivery_date ?? '',
+    project_progress: project.progress ?? 0,
   }
+}
+
+/**
+ * getMalikOwnerId: auth_user_id ile owners.id'yi döner.
+ * KVKK ve diğer işlemler için gerekli.
+ */
+export async function getMalikOwnerId(authUserId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('owners')
+    .select('id')
+    .eq('auth_user_id', authUserId)
+    .single()
+
+  if (error || !data) return null
+  return data.id
 }
 
 /**

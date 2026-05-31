@@ -1650,8 +1650,6 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
 
   const totalCount  = daireler.length
   const dukkanCount = daireler.filter(d => d.tip === 'Dükkan').length
-  const satilmis    = daireler.filter(d => d.durum === 'satildi').length
-  const musaitCount = daireler.filter(d => d.durum !== 'satildi').length
 
   const katlar = Array.from({ length: katSayisi }, (_, i) => i + 1)
 
@@ -1862,8 +1860,8 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
         <div className={`min-w-0 ${hasSidePanel ? 'md:flex-1' : 'w-full'} space-y-3`}>
 
           {/* Özet kartlar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-white rounded-2xl border border-neutral-100 p-3 md:p-3.5 flex items-center gap-2.5">
+          <div className="flex gap-3">
+            <div className="bg-white rounded-2xl border border-neutral-100 p-3 md:p-3.5 flex items-center gap-2.5 flex-1">
               <div className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="3" width="18" height="18" rx="2" stroke="#0A1F44" strokeWidth="1.8"/>
@@ -1875,20 +1873,10 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                 <p className="text-xs text-neutral-500">{dukkanCount} Adet</p>
               </div>
             </div>
-            <div className="bg-primary-800 rounded-2xl p-3 md:p-3.5 text-center">
+            <div className="bg-primary-800 rounded-2xl p-3 md:p-3.5 text-center flex-1">
               <p className="text-[11px] text-white/70 mb-0.5">Toplam</p>
               <p className="text-2xl font-bold text-white leading-none">{totalCount}</p>
               <p className="text-[11px] text-white/70 mt-0.5">Daire</p>
-            </div>
-            <div className="bg-success-50 rounded-2xl border border-success-100 p-3 md:p-3.5 text-center">
-              <p className="text-[11px] text-success-600 mb-0.5">Satılmış</p>
-              <p className="text-2xl font-bold text-success-700 leading-none">{satilmis}</p>
-              <p className="text-[11px] text-success-600 mt-0.5">Daire</p>
-            </div>
-            <div className="bg-warning-50 rounded-2xl border border-warning-100 p-3 md:p-3.5 text-center">
-              <p className="text-[11px] text-warning-600 mb-0.5">Müsait</p>
-              <p className="text-2xl font-bold text-warning-700 leading-none">{musaitCount}</p>
-              <p className="text-[11px] text-warning-600 mt-0.5">Daire</p>
             </div>
           </div>
 
@@ -2003,9 +1991,6 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                                   <div className="flex items-center justify-between mb-1">
                                     <span className="font-bold text-sm text-primary-800">No: {d.no}</span>
                                     <div className="flex items-center gap-1">
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${isSat ? 'bg-success-100 text-success-700' : 'bg-neutral-100 text-neutral-500'}`}>
-                                        {isSat ? 'Satıldı' : 'Müsait'}
-                                      </span>
                                       {!isSat && (
                                         <button
                                           onClick={() => openEditDaire(d)}
