@@ -2293,7 +2293,7 @@ const KonumKart = ({ mapLat, mapLng, nearbyPlaces, onEdit }: {
 }) => {
   const hasPin = mapLat !== null && mapLng !== null
   const osmUrl = hasPin
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${mapLng! - 0.005},${mapLat! - 0.005},${mapLng! + 0.005},${mapLat! + 0.005}&layer=mapnik&marker=${mapLat},${mapLng}`
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${mapLng! - 0.002},${mapLat! - 0.0015},${mapLng! + 0.002},${mapLat! + 0.0015}&layer=mapnik&marker=${mapLat},${mapLng}`
     : null
   return (
     <Card title="Konum & Harita" onEdit={onEdit}>

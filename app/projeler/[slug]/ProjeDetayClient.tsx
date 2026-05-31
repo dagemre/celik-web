@@ -313,7 +313,7 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
               <div className="lg:col-span-2 rounded-2xl h-72 overflow-hidden bg-gray-200">
                 {proje.mapLat !== null && proje.mapLng !== null ? (
                   <iframe
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${proje.mapLng - 0.005},${proje.mapLat - 0.005},${proje.mapLng + 0.005},${proje.mapLat + 0.005}&layer=mapnik&marker=${proje.mapLat},${proje.mapLng}`}
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${proje.mapLng - 0.002},${proje.mapLat - 0.0015},${proje.mapLng + 0.002},${proje.mapLat + 0.0015}&layer=mapnik&marker=${proje.mapLat},${proje.mapLng}`}
                     className="w-full h-full"
                     loading="lazy"
                   />
