@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import AddToHomeScreen from '@/components/AddToHomeScreen'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import PushNotificationPrompt from '@/components/PushNotificationPrompt'
 
 export default function MalikAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -39,5 +42,12 @@ export default function MalikAuthGuard({ children }: { children: React.ReactNode
     )
   }
 
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <AddToHomeScreen />
+      <ServiceWorkerRegister />
+      <PushNotificationPrompt />
+    </>
+  )
 }
