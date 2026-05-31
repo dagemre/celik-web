@@ -341,7 +341,9 @@ export default function ProjeDetayClient({ proje }: { proje: ProjeProps }) {
                   <p className="font-bold">{proje.name}</p>
                   <p className="text-white/60 text-sm mt-1">{proje.location}</p>
                   <a
-                    href={`https://maps.google.com/?q=${encodeURIComponent(proje.location)}`}
+                    href={proje.mapLat && proje.mapLng
+                      ? `https://maps.google.com/?q=${proje.mapLat},${proje.mapLng}`
+                      : `https://maps.google.com/?q=${encodeURIComponent(proje.location)}`}
                     target="_blank" rel="noreferrer"
                     className="mt-4 flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-semibold transition-colors"
                   >
