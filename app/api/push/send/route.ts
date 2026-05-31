@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 
@@ -13,7 +14,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Admin oturumu kontrolü
+  const cookieStore = await cookies()
+  const session = cookieStore.get('celik_admin_session')
+  if (!session || session.value !== process.env.ADMIN_SESSION_TOKEN) {
+    return NextResponse.json({ error: 'Yetkisiz erişim.' }, { status: 401 })
+  }
+
   const { title, body, url } = await req.json()
   if (!title || !body) return NextResponse.json({ error: 'Başlık ve mesaj zorunlu' }, { status: 400 })
 
