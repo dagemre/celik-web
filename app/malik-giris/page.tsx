@@ -19,34 +19,47 @@ export default function MalikGirisPage() {
     setLoading(true)
     setError('')
 
-    // 1) Telefon → e-posta çözümle (sunucu tarafında)
-    const res = await fetch('/api/malik-giris-hazirla', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: phone.trim() }),
-    })
-    const json = await res.json()
+    try {
+      // 1) Telefon → e-posta çözümle
+      const res = await fetch('/api/malik-giris-hazirla', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      })
 
-    if (!res.ok) {
+      let json: { email?: string; error?: string } = {}
+      try { json = await res.json() } catch { /* boş yanıt */ }
+
+      if (!res.ok) {
+        setError(json.error || 'Bu telefon numarasına kayıtlı hesap bulunamadı.')
+        setLoading(false)
+        return
+      }
+
+      if (!json.email) {
+        setError('Sunucu hatası. Lütfen tekrar deneyin.')
+        setLoading(false)
+        return
+      }
+
+      // 2) Supabase ile giriş
+      const { error: authErr } = await supabase.auth.signInWithPassword({
+        email:    json.email,
+        password: password.trim(),
+      })
+
+      if (authErr) {
+        setError('Şifre hatalı. Lütfen kontrol edin.')
+        setLoading(false)
+        return
+      }
+
+      router.push('/malik-dashboard')
+
+    } catch {
+      setError('Bağlantı hatası. İnternet bağlantınızı kontrol edin.')
       setLoading(false)
-      setError(json.error || 'Bu telefon numarasına kayıtlı hesap bulunamadı.')
-      return
     }
-
-    // 2) Bulunan e-posta ile Supabase girişi yap
-    const { error: authErr } = await supabase.auth.signInWithPassword({
-      email:    json.email,
-      password: password.trim(),
-    })
-
-    setLoading(false)
-
-    if (authErr) {
-      setError('Şifre hatalı. Lütfen kontrol edin.')
-      return
-    }
-
-    router.push('/malik-dashboard')
   }
 
   return (
