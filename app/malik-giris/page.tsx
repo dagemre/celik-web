@@ -20,31 +20,26 @@ export default function MalikGirisPage() {
     setError('')
 
     try {
-      // 1) Telefon → e-posta çözümle
-      const res = await fetch('/api/malik-giris-hazirla', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim() }),
-      })
+      // 1) Telefon numarasını normalize et (sadece rakam)
+      const normalized = phone.trim().replace(/\D/g, '')
 
-      let json: { email?: string; error?: string } = {}
-      try { json = await res.json() } catch { /* boş yanıt */ }
+      // 2) Doğrudan Supabase'den email bul (API route yok, client'tan sorgu)
+      const { data: owner, error: ownerErr } = await supabase
+        .from('owners')
+        .select('email')
+        .eq('phone', normalized)
+        .not('auth_user_id', 'is', null)
+        .single()
 
-      if (!res.ok) {
-        setError(json.error || 'Bu telefon numarasına kayıtlı hesap bulunamadı.')
+      if (ownerErr || !owner?.email) {
+        setError('Bu telefon numarasına kayıtlı malik bulunamadı.')
         setLoading(false)
         return
       }
 
-      if (!json.email) {
-        setError('Sunucu hatası. Lütfen tekrar deneyin.')
-        setLoading(false)
-        return
-      }
-
-      // 2) Supabase ile giriş
+      // 3) Supabase ile giriş
       const { error: authErr } = await supabase.auth.signInWithPassword({
-        email:    json.email,
+        email:    owner.email,
         password: password.trim(),
       })
 
