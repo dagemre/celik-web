@@ -1053,66 +1053,77 @@ const FinansalTab = ({ slug, projectId }: { slug: string; projectId: string }) =
         </div>
 
         {tahsilatPanel && (
-          <div className="bg-neutral-50 rounded-xl p-4 mb-4">
-            {/* Adım göstergesi */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${tStep === 1 ? 'bg-primary-800 text-white' : 'bg-success-500 text-white'}`}>
-                {tStep === 1 ? '1' : '✓'}
-              </div>
-              <span className={`text-xs font-medium ${tStep === 1 ? 'text-primary-800' : 'text-success-600'}`}>Malik Seç</span>
-              <div className="flex-1 h-px bg-neutral-200 mx-1" />
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${tStep === 2 ? 'bg-primary-800 text-white' : 'bg-neutral-200 text-neutral-400'}`}>2</div>
-              <span className={`text-xs font-medium ${tStep === 2 ? 'text-primary-800' : 'text-neutral-400'}`}>Tutar & Tarih</span>
-            </div>
-
-            {/* Adım 1: Malik seç */}
-            {tStep === 1 && (
-              <div>
-                <p className="text-xs font-medium text-neutral-500 mb-3">
-                  Bu projedeki maliklerden birini seç
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {projeMalikler.map(name => (
-                    <button key={name} onClick={() => { setTForm({...tForm, malik: name}); setTStep(2) }}
-                      className="px-3 py-2 rounded-xl text-sm font-medium border bg-white text-neutral-700 border-neutral-200 hover:border-primary-800 hover:bg-primary-50 hover:text-primary-800 transition-colors">
-                      {name}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2 pt-1 border-t border-neutral-200">
-                  <button onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}
-                    className="w-full bg-neutral-100 text-neutral-600 py-2.5 rounded-xl text-sm hover:bg-neutral-200 transition-colors mt-3">İptal</button>
-                </div>
-              </div>
-            )}
-
-            {/* Adım 2: Tutar & Tarih */}
-            {tStep === 2 && (
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2.5 mb-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="8" r="4" stroke="#0A1F44" strokeWidth="1.6"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#0A1F44" strokeWidth="1.6" strokeLinecap="round"/>
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative z-10 w-full md:max-w-lg bg-white rounded-t-3xl md:rounded-2xl px-5 pt-4 pb-10 md:pb-6 max-h-[85vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}>
+              <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4 md:hidden" />
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-bold text-lg text-primary-800">Tahsilat Ekle</h3>
+                <button onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="#888780" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
-                  <span className="text-sm font-semibold text-primary-800 flex-1">{tForm.malik}</span>
-                  <button onClick={() => setTStep(1)} className="text-xs text-primary-500 hover:text-primary-700">değiştir</button>
-                </div>
-                <input value={tForm.tutar} onChange={e => setTForm({...tForm, tutar: e.target.value})}
-                  placeholder="Tutar (₺)" type="number" className={inCls} autoFocus />
-                <input value={tForm.tarih} onChange={e => setTForm({...tForm, tarih: e.target.value})}
-                  type="date" className={inCls} />
-                <div className="flex gap-2 pt-1">
-                  <button onClick={handleTahsilatEkle}
-                    className="flex-1 bg-primary-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
-                    Kaydet
-                  </button>
-                  <button onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}
-                    className="px-4 bg-neutral-100 text-neutral-600 py-2.5 rounded-xl text-sm hover:bg-neutral-200 transition-colors">
-                    İptal
-                  </button>
-                </div>
+                </button>
               </div>
-            )}
+
+              {/* Adım göstergesi */}
+              <div className="flex items-center gap-2 mb-5">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${tStep === 1 ? 'bg-primary-800 text-white' : 'bg-success-500 text-white'}`}>
+                  {tStep === 1 ? '1' : '✓'}
+                </div>
+                <span className={`text-xs font-medium ${tStep === 1 ? 'text-primary-800' : 'text-success-600'}`}>Malik Seç</span>
+                <div className="flex-1 h-px bg-neutral-200 mx-1" />
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${tStep === 2 ? 'bg-primary-800 text-white' : 'bg-neutral-200 text-neutral-400'}`}>2</div>
+                <span className={`text-xs font-medium ${tStep === 2 ? 'text-primary-800' : 'text-neutral-400'}`}>Tutar & Tarih</span>
+              </div>
+
+              {/* Adım 1: Malik seç */}
+              {tStep === 1 && (
+                <div>
+                  <p className="text-xs font-medium text-neutral-500 mb-3">Bu projedeki maliklerden birini seç</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {projeMalikler.map(name => (
+                      <button key={name} onClick={() => { setTForm({...tForm, malik: name}); setTStep(2) }}
+                        className="px-3 py-2 rounded-xl text-sm font-medium border bg-white text-neutral-700 border-neutral-200 hover:border-primary-800 hover:bg-primary-50 hover:text-primary-800 transition-colors">
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}
+                    className="w-full bg-neutral-100 text-neutral-600 py-2.5 rounded-xl text-sm hover:bg-neutral-200 transition-colors">İptal</button>
+                </div>
+              )}
+
+              {/* Adım 2: Tutar & Tarih */}
+              {tStep === 2 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="8" r="4" stroke="#0A1F44" strokeWidth="1.6"/>
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#0A1F44" strokeWidth="1.6" strokeLinecap="round"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-primary-800 flex-1">{tForm.malik}</span>
+                    <button onClick={() => setTStep(1)} className="text-xs text-primary-500 hover:text-primary-700">değiştir</button>
+                  </div>
+                  <input value={tForm.tutar} onChange={e => setTForm({...tForm, tutar: e.target.value})}
+                    placeholder="Tutar (₺)" type="number" className={inCls} autoFocus />
+                  <input value={tForm.tarih} onChange={e => setTForm({...tForm, tarih: e.target.value})}
+                    type="date" className={inCls} />
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={handleTahsilatEkle}
+                      className="flex-1 bg-primary-800 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">
+                      Kaydet
+                    </button>
+                    <button onClick={() => { setTahsilatPanel(false); setTStep(1); setTForm({malik:'',tutar:'',tarih:''}) }}
+                      className="px-4 bg-neutral-100 text-neutral-600 py-3 rounded-xl text-sm hover:bg-neutral-200 transition-colors">
+                      İptal
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
