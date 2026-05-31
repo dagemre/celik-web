@@ -13,6 +13,7 @@ type Project = {
   status: string
   floors: number
   units_count: number
+  ticari_sayisi: number | null
   delivery_year: string
   image_url: string
 }
@@ -235,7 +236,7 @@ export default function ProjelerPage() {
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0A1F44" strokeWidth="2.5">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                           </svg>
-                          {project.units_count} Daire
+                          {project.units_count} Daire{project.ticari_sayisi ? ` + ${project.ticari_sayisi} Dükkan` : ''}
                         </span>
                       )}
                       {project.delivery_year && (

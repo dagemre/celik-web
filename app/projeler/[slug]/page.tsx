@@ -203,7 +203,7 @@ export default async function ProjeDetayPage({ params }: { params: { slug: strin
   const stats = [
     { icon: 'map-pin',  label: 'Konum',        value: `${proje.district ?? ''}, ${proje.city ?? 'İstanbul'}` },
     { icon: 'building', label: 'Kat Sayısı',   value: proje.floors ? `${proje.floors} Kat` : null },
-    { icon: 'building', label: 'Daire Sayısı', value: proje.units_count ? `${proje.units_count} Daire` : null },
+    { icon: 'building', label: 'Daire Sayısı', value: proje.units_count ? `${proje.units_count} Daire${(proje as Record<string,unknown>).ticari_sayisi ? ` + ${(proje as Record<string,unknown>).ticari_sayisi} Dükkan` : ''}` : null },
     { icon: 'check',    label: 'Alan',         value: proje.area ? `${proje.area} m²` : null },
     { icon: 'calendar', label: 'Teslim Yılı',  value: proje.delivery_year ?? null },
     { icon: 'check',    label: 'Durum',        value: statusLabel },

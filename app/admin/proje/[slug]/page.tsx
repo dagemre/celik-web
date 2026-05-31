@@ -11,7 +11,7 @@ type Project = {
   id: string; name: string; slug: string
   location: string; district: string; city: string
   tip: string; status: string; floors: number
-  units_count: number; area: string; arsa_alani: string | null
+  units_count: number; ticari_sayisi: number | null; area: string; arsa_alani: string | null
   delivery_date: string | null; delivery_year: string | null
   progress: number; image_url: string; description: string
   features: string[] | null
@@ -229,7 +229,7 @@ const GenelBilgilerKart = ({ project, onEdit }: { project: Project; onEdit: () =
     { l: 'Proje Adı',           v: project.name,                    badge: false },
     { l: 'Toplam İnşaat Alanı', v: project.area || '—',             badge: false },
     { l: 'Lokasyon',            v: loc,                             badge: false },
-    { l: 'Daire Sayısı',        v: String(project.units_count),     badge: false },
+    { l: 'Daire Sayısı',        v: project.units_count ? `${project.units_count} Daire${project.ticari_sayisi ? ` + ${project.ticari_sayisi} Dükkan` : ''}` : '—', badge: false },
     { l: 'Kat Sayısı',          v: project.floors ? `${project.floors} Kat` : '—', badge: false },
     { l: 'Proje Tipi',          v: project.tip,                     badge: false },
     { l: 'Teslim Tarihi',       v: fmtDate(project.delivery_date || project.delivery_year), badge: false },
@@ -273,6 +273,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
   const [area,      setArea]      = useState(project.area || '')
   const [arsaAlani, setArsaAlani] = useState(project.arsa_alani || '')
   const [units,     setUnits]     = useState(String(project.units_count || ''))
+  const [ticari,    setTicari]    = useState(String(project.ticari_sayisi || ''))
   const [floors,   setFloors]   = useState(String(project.floors || ''))
   const [delivery, setDelivery] = useState(project.delivery_year || project.delivery_date || '')
   const [tip,      setTip]      = useState(project.tip || 'Konut')
@@ -291,6 +292,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
       area:          area.trim(),
       arsa_alani:    arsaAlani.trim() || null,
       units_count:   parseInt(units) || project.units_count,
+      ticari_sayisi: ticari.trim() ? parseInt(ticari) : null,
       floors:        parseInt(floors) || project.floors,
       delivery_year: delivery.trim() || null,
       tip,
@@ -309,6 +311,7 @@ const GenelBilgilerModal = ({ project, onClose, onSaved }: {
       <div className="mb-4">{lbl('İnşaat Alanı (m²)')}<input value={area} onChange={e => setArea(e.target.value)} placeholder="850 m²" className={inputCls} /></div>
       <div className="mb-4">{lbl('Arsa Alanı (m²)')}<input value={arsaAlani} onChange={e => setArsaAlani(e.target.value)} placeholder="1.250 m²" className={inputCls} /></div>
       <div className="mb-4">{lbl('Daire Sayısı')}<input type="number" value={units} onChange={e => setUnits(e.target.value)} placeholder="24" className={inputCls} /></div>
+      <div className="mb-4">{lbl('Ticari Sayısı (Dükkan)')}<input type="number" value={ticari} onChange={e => setTicari(e.target.value)} placeholder="2" className={inputCls} /></div>
       <div className="mb-4">{lbl('Kat Sayısı')}<input type="number" value={floors} onChange={e => setFloors(e.target.value)} placeholder="6" className={inputCls} /></div>
       <div className="mb-4">{lbl('Teslim Yılı')}<input value={delivery} onChange={e => setDelivery(e.target.value)} placeholder="2026" className={inputCls} /></div>
       <div className="mb-4">
