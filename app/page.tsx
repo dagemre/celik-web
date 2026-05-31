@@ -255,10 +255,13 @@ function Projeler() {
             style={{ width: `${Math.max(8, scrollPct * 100)}%` }}
           />
         </div>
-        <span className="text-gray-400 text-xs whitespace-nowrap flex items-center gap-1.5">
+        <button
+          onClick={() => scroll('right')}
+          className="text-gray-400 hover:text-[#0A1F44] text-xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer transition-colors"
+        >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
           kaydır
-        </span>
+        </button>
       </div>
     </section>
   )
