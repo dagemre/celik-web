@@ -6,32 +6,43 @@ import { supabase } from '@/lib/supabase'
 
 export default function MalikGirisPage() {
   const router = useRouter()
-  const [email,    setEmail]    = useState('')
+  const [phone,    setPhone]    = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
 
   async function handleLogin() {
-    if (!email.trim())    { setError('E-posta adresi zorunlu.'); return }
+    if (!phone.trim())    { setError('Telefon numarası zorunlu.'); return }
     if (!password.trim()) { setError('Şifre zorunlu.'); return }
 
     setLoading(true)
     setError('')
 
+    // 1) Telefon → e-posta çözümle (sunucu tarafında)
+    const res = await fetch('/api/malik-giris-hazirla', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone.trim() }),
+    })
+    const json = await res.json()
+
+    if (!res.ok) {
+      setLoading(false)
+      setError(json.error || 'Bu telefon numarasına kayıtlı hesap bulunamadı.')
+      return
+    }
+
+    // 2) Bulunan e-posta ile Supabase girişi yap
     const { error: authErr } = await supabase.auth.signInWithPassword({
-      email:    email.trim().toLowerCase(),
+      email:    json.email,
       password: password.trim(),
     })
 
     setLoading(false)
 
     if (authErr) {
-      if (authErr.message.includes('Invalid login')) {
-        setError('E-posta veya şifre hatalı. Lütfen kontrol edin.')
-      } else {
-        setError(authErr.message)
-      }
+      setError('Şifre hatalı. Lütfen kontrol edin.')
       return
     }
 
@@ -41,7 +52,7 @@ export default function MalikGirisPage() {
   return (
     <div className="min-h-screen bg-[#F4F6FA] flex flex-col items-center justify-center px-5 py-10">
 
-      {/* Logo / Başlık */}
+      {/* Logo */}
       <div className="flex flex-col items-center mb-10">
         <div className="w-14 h-14 bg-[#0A1F44] rounded-2xl flex items-center justify-center mb-4 shadow-lg">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -53,31 +64,34 @@ export default function MalikGirisPage() {
         <p className="text-sm text-gray-400 mt-1 text-center">Çelik İnşaat · Daire Takip Sistemi</p>
       </div>
 
-      {/* Form Kartı */}
+      {/* Form */}
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-7 space-y-4">
 
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">E-posta</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Telefon Numarası</p>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError('') }}
+            type="tel"
+            value={phone}
+            onChange={(e) => { setPhone(e.target.value); setError('') }}
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            placeholder="ornek@gmail.com"
-            autoComplete="email"
+            placeholder="05XX XXX XX XX"
+            autoComplete="tel"
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#0A1F44] outline-none focus:border-[#0A1F44] placeholder:text-gray-300 transition-colors"
           />
         </div>
 
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Şifre</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Şifre</p>
+            <p className="text-xs text-gray-400">Telefon numaranızın son 4 hanesi</p>
+          </div>
           <div className="relative">
             <input
               type={showPass ? 'text' : 'password'}
               value={password}
               onChange={(e) => { setPassword(e.target.value); setError('') }}
               onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              placeholder="••••••••••"
+              placeholder="••••"
               autoComplete="current-password"
               className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-[#0A1F44] outline-none focus:border-[#0A1F44] pr-11 placeholder:text-gray-300 transition-colors"
             />
@@ -88,7 +102,8 @@ export default function MalikGirisPage() {
             >
               {showPass ? (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" strokeLinecap="round"/>
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" strokeLinecap="round"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" strokeLinecap="round"/>
                   <line x1="1" y1="1" x2="23" y2="23" strokeLinecap="round"/>
                 </svg>
               ) : (
@@ -126,7 +141,7 @@ export default function MalikGirisPage() {
       </div>
 
       <p className="text-xs text-gray-400 mt-8 text-center">
-        Giriş bilgilerinizi yöneticinizden alabilirsiniz.
+        Şifrenizi unuttuysanız yöneticinizle iletişime geçin.
       </p>
 
     </div>

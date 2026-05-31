@@ -8,9 +8,14 @@ type Project = { id: string; name: string }
 
 const UNIT_TYPES = ['1+1', '2+1', '3+1', '4+1', 'Dükkan', 'Ofis']
 
-function generatePassword(): string {
-  const digits = Math.floor(1000 + Math.random() * 9000)
-  return `Celik${digits}!`
+// Telefon numarasından son 4 hane şifre üret
+function getLast4(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length >= 4 ? digits.slice(-4) : digits
+}
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/\D/g, '')
 }
 
 export default function MalikEklePage() {
@@ -29,9 +34,17 @@ export default function MalikEklePage() {
   const [fullName, setFullName] = useState('')
   const [phone,    setPhone]    = useState('')
   const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState(generatePassword)
+  const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [copied,   setCopied]   = useState(false)
+
+  // Telefon girilince şifreyi otomatik son 4 hane yap
+  function handlePhoneChange(val: string) {
+    setPhone(val)
+    setError('')
+    const last4 = getLast4(val)
+    if (last4) setPassword(last4)
+  }
 
   const [saving,  setSaving]  = useState(false)
   const [success, setSuccess] = useState(false)
@@ -48,7 +61,7 @@ export default function MalikEklePage() {
   }, [])
 
   function copyCredentials() {
-    const text = `Çelik İnşaat Panel Girişi\nE-posta: ${createdEmail}\nŞifre: ${createdPass}\nAdres: ${window.location.origin}/malik-giris`
+    const text = `Çelik İnşaat — Malik Panel Girişi\n\nGiriş adresi: ${window.location.origin}/malik-giris\nTelefon: ${phone}\nŞifre: ${createdPass}\n\nBu bilgileri güvenli saklayınız.`
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
@@ -60,17 +73,17 @@ export default function MalikEklePage() {
     if (!floor.trim())    { setError('Kat numarası zorunlu.'); return }
     if (!fullName.trim()) { setError('Ad soyad zorunlu.'); return }
     if (!phone.trim())    { setError('Telefon numarası zorunlu.'); return }
-    if (!email.trim())    { setError('E-posta zorunlu — maliki panele girmek için kullanacak.'); return }
-    if (password.length < 6) { setError('Şifre en az 6 karakter olmalı.'); return }
+    if (password.length < 4) { setError('Şifre en az 4 karakter olmalı.'); return }
 
     setSaving(true)
     setError('')
 
     // 1) Supabase Auth kullanıcısı oluştur (sunucu tarafında, service_role ile)
+    const normalizedPhone = normalizePhone(phone.trim())
     const authRes = await fetch('/api/admin/create-malik', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.trim(), password }),
+      body: JSON.stringify({ email: email.trim(), password, phone: normalizedPhone }),
     })
     const authJson = await authRes.json()
 
@@ -98,15 +111,15 @@ export default function MalikEklePage() {
 
     if (unitErr) { setSaving(false); setError('Daire eklenemedi: ' + unitErr.message); return }
 
-    // 3) Maliki oluştur — auth_user_id ile
+    // 3) Maliki oluştur — auth_user_id + normalize edilmiş telefon ile
     const { error: ownerErr } = await supabase
       .from('owners')
       .insert({
         project_id:   selectedProject.id,
         unit_id:      unitData.id,
         full_name:    fullName.trim(),
-        phone:        phone.trim(),
-        email:        email.trim().toLowerCase(),
+        phone:        normalizedPhone,           // normalize edilmiş (sadece rakam)
+        email:        authJson.email,            // gerçek veya otomatik üretilen
         auth_user_id: authUserId,
       })
 
@@ -140,8 +153,8 @@ export default function MalikEklePage() {
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Panel Giriş Bilgileri</p>
             <div className="space-y-2">
               <div className="bg-neutral-50 rounded-xl px-4 py-3">
-                <p className="text-[10px] text-neutral-400 mb-1">E-posta</p>
-                <p className="text-sm font-bold text-primary-800 break-all">{createdEmail}</p>
+                <p className="text-[10px] text-neutral-400 mb-1">Telefon (Giriş için)</p>
+                <p className="text-sm font-bold text-primary-800">{phone}</p>
               </div>
               <div className="bg-neutral-50 rounded-xl px-4 py-3">
                 <p className="text-[10px] text-neutral-400 mb-1">Şifre</p>
@@ -183,7 +196,7 @@ export default function MalikEklePage() {
                 setSuccess(false)
                 setFullName(''); setPhone(''); setEmail('')
                 setUnitNo(''); setFloor(''); setPrice('')
-                setPassword(generatePassword())
+                setPassword('')
                 setSelectedProject(null)
               }}
               className="flex-1 py-3.5 rounded-2xl bg-primary-800 text-white text-sm font-bold"
@@ -338,7 +351,7 @@ export default function MalikEklePage() {
             <input
               type="tel"
               value={phone}
-              onChange={(e) => { setPhone(e.target.value); setError('') }}
+              onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="Telefon — 05XX XXX XX XX"
               className="w-full bg-white border border-neutral-200 rounded-2xl px-4 py-3.5 text-sm text-neutral-700 outline-none focus:border-primary-400 placeholder:text-neutral-300"
             />
@@ -357,14 +370,14 @@ export default function MalikEklePage() {
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Panel Şifresi</p>
             <button
-              onClick={() => setPassword(generatePassword())}
+              onClick={() => setPassword(getLast4(phone))}
               className="flex items-center gap-1.5 text-xs font-semibold text-primary-700 hover:text-primary-900 transition-colors"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="23 4 23 10 17 10" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Yeni Şifre Üret
+              Sıfırla (Son 4 Hane)
             </button>
           </div>
           <div className="relative">
