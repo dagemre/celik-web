@@ -45,7 +45,8 @@ export default function ProjelerPage() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('delivery_year', { ascending: false, nullsFirst: false })
+        .order('created_at',    { ascending: false })
 
       if (error) {
         console.error('Projeler yüklenemedi:', error)

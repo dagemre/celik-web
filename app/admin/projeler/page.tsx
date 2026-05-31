@@ -282,7 +282,8 @@ export default function AdminProjelerPage() {
     supabase
       .from('projects')
       .select('id,name,slug,location,district,city,tip,status,units_count,progress,image_url,delivery_date,delivery_year,created_at')
-      .order('created_at', { ascending: false })
+      .order('delivery_year', { ascending: false, nullsFirst: false })
+      .order('created_at',    { ascending: false })
       .then(({ data, error }) => {
         if (error) setError(error.message)
         else setProjects(data || [])
