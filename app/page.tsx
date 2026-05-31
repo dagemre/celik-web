@@ -126,7 +126,8 @@ function Projeler() {
     supabase
       .from('projects')
       .select('slug, name, district, city, status, floors, units_count, delivery_year, image_url')
-      .order('status', { ascending: true }) // devam önce gelsin
+      .order('delivery_year', { ascending: false, nullsFirst: false })
+      .order('created_at',    { ascending: false })
       .then(({ data }) => {
         if (!data) return
         const sorted = [

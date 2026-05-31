@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import LayoutWrapper from '@/components/LayoutWrapper'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
@@ -38,6 +39,18 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icon-192.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/pwa-icon-512.png" />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-SLEX5N13T8"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-SLEX5N13T8');
+          `}
+        </Script>
       </head>
       <body>
         <LayoutWrapper>{children}</LayoutWrapper>
