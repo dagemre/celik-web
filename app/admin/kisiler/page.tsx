@@ -106,10 +106,33 @@ function MalikForm({
   saving: boolean
 }) {
   const [showSifre, setShowSifre] = useState(false)
+  const [katOptions, setKatOptions] = useState<{ no: number; label: string }[]>([])
   const totalPay = Number(form.totalPay.replace(/\D/g, '')) || 0
   const paid     = Number(form.paid.replace(/\D/g, ''))     || 0
-  const floors   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
   const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
+
+  // Seçili projenin kat sayısını ve isimlerini localStorage'dan oku
+  useEffect(() => {
+    const projectId = form.projectId
+    if (!projectId) { setKatOptions([]); return }
+    const project = projects.find(p => p.id === projectId)
+    if (!project) { setKatOptions([]); return }
+    const lsKey = `daireler_v2_${project.slug}`
+    let katSayisi = 5
+    try {
+      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
+      if (stored.katSayisi) katSayisi = stored.katSayisi
+    } catch {}
+    let katIsimler: Record<number, string> = {}
+    try {
+      katIsimler = JSON.parse(localStorage.getItem('kat_isimler_global') || '{}')
+    } catch {}
+    const options = Array.from({ length: katSayisi }, (_, i) => {
+      const no = i + 1
+      return { no, label: katIsimler[no] || `${no}. Kat` }
+    })
+    setKatOptions(options)
+  }, [form.projectId, projects])
 
   return (
     <div>
@@ -161,20 +184,22 @@ function MalikForm({
 
         {/* Kat */}
         <div>
-          <label className="block text-xs font-medium text-neutral-400 mb-2">Kat</label>
-          <div className="flex flex-wrap gap-2">
-            {floors.map((f) => (
-              <button
-                key={f}
-                onClick={() => setForm(prev => ({ ...prev, floor: f }))}
-                className={`px-4 py-2 rounded-xl border text-xs font-medium transition-colors ${
-                  form.floor === f ? 'bg-primary-800 border-primary-800 text-white' : 'bg-white border-neutral-200 text-neutral-500 hover:border-neutral-400'
-                }`}
-              >
-                {f}. Kat
-              </button>
-            ))}
-          </div>
+          <label className="block text-xs font-medium text-neutral-400 mb-1">Kat</label>
+          <select
+            value={form.floor || ''}
+            onChange={e => setForm(prev => ({ ...prev, floor: Number(e.target.value) }))}
+            className={inputCls}
+          >
+            <option value="">Kat seçin…</option>
+            {katOptions.length > 0
+              ? katOptions.map(k => (
+                  <option key={k.no} value={k.no}>{k.label}</option>
+                ))
+              : Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}. Kat</option>
+                ))
+            }
+          </select>
         </div>
 
         {/* Daire No */}
