@@ -106,54 +106,17 @@ function MalikForm({
   saving: boolean
 }) {
   const [showSifre, setShowSifre] = useState(false)
-  const [katOptions, setKatOptions] = useState<{ no: number; label: string }[]>([])
   const totalPay = Number(form.totalPay.replace(/\D/g, '')) || 0
   const paid     = Number(form.paid.replace(/\D/g, ''))     || 0
   const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
 
-  // Seçili projenin katlarını Supabase'den çek + localStorage isimleriyle birleştir
-  useEffect(() => {
-    const projectId = form.projectId
-    if (!projectId) { setKatOptions([]); return }
-
-    // localStorage'dan kat isimlerini oku (aynı tarayıcıda çalışır)
-    let katIsimler: Record<number, string> = {}
-    try { katIsimler = JSON.parse(localStorage.getItem('kat_isimler_global') || '{}') } catch {}
-
-    // Supabase'den bu projenin unit'lerindeki kat numaralarını çek
-    supabase
-      .from('units')
-      .select('floor')
-      .eq('project_id', projectId)
-      .then(({ data }) => {
-        const floorSet = new Set<number>()
-
-        // Supabase'deki mevcut katları ekle
-        if (data && data.length > 0) {
-          data.forEach((u: any) => { if (u.floor) floorSet.add(Number(u.floor)) })
-        }
-
-        // localStorage'daki dairelerden de kat numaralarını ekle
-        const project = projects.find(p => p.id === projectId)
-        if (project) {
-          try {
-            const stored = JSON.parse(localStorage.getItem(`daireler_v2_${project.slug}`) || '{}')
-            const katSayisi = stored.katSayisi || 0
-            Array.from({ length: katSayisi }, (_, i) => i + 1).forEach(n => floorSet.add(n))
-          } catch {}
-        }
-
-        // Hiç kat bulunamazsa standart 1-10 göster
-        const floors = floorSet.size > 0
-          ? Array.from(floorSet).sort((a, b) => a - b)
-          : Array.from({ length: 10 }, (_, i) => i + 1)
-
-        setKatOptions(floors.map(no => ({
-          no,
-          label: katIsimler[no] || `${no}. Kat`,
-        })))
-      })
-  }, [form.projectId, projects])
+  const KAT_SECENEKLERI = [
+    { no: 1, label: 'Bodrum Kat' },
+    { no: 2, label: 'Zemin Kat' },
+    { no: 3, label: 'Normal Kat' },
+    { no: 4, label: 'Dublex Daire' },
+    { no: 5, label: 'Mansard Çatı Daire' },
+  ]
 
   return (
     <div>
@@ -205,21 +168,16 @@ function MalikForm({
 
         {/* Kat */}
         <div>
-          <label className="block text-xs font-medium text-neutral-400 mb-1">Kat</label>
+          <label className="block text-xs font-medium text-neutral-400 mb-1">Kat Türü</label>
           <select
             value={form.floor || ''}
             onChange={e => setForm(prev => ({ ...prev, floor: Number(e.target.value) }))}
             className={inputCls}
           >
             <option value="">Kat seçin…</option>
-            {katOptions.length > 0
-              ? katOptions.map(k => (
-                  <option key={k.no} value={k.no}>{k.label}</option>
-                ))
-              : Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{n}. Kat</option>
-                ))
-            }
+            {KAT_SECENEKLERI.map(k => (
+              <option key={k.no} value={k.no}>{k.label}</option>
+            ))}
           </select>
         </div>
 
