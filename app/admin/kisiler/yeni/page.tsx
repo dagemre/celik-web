@@ -78,6 +78,7 @@ export default function MalikEklePage() {
     setSaving(true)
     setError('')
 
+    try {
     // 1) Supabase Auth kullanıcısı oluştur (sunucu tarafında, service_role ile)
     const normalizedPhone = normalizePhone(phone.trim())
     const authRes = await fetch('/api/admin/create-malik', {
@@ -85,11 +86,19 @@ export default function MalikEklePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email.trim(), password, phone: normalizedPhone }),
     })
-    const authJson = await authRes.json()
+
+    let authJson: { auth_user_id?: string; email?: string; error?: string } = {}
+    try { authJson = await authRes.json() } catch { /* boş */ }
 
     if (!authRes.ok) {
       setSaving(false)
-      setError('Kullanıcı oluşturulamadı: ' + (authJson.error || 'bilinmeyen hata'))
+      setError('Kullanıcı oluşturulamadı: ' + (authJson.error || `HTTP ${authRes.status}`))
+      return
+    }
+
+    if (!authJson.auth_user_id) {
+      setSaving(false)
+      setError('Auth kullanıcısı oluşturulamadı. Vercel\'de SUPABASE_SERVICE_ROLE_KEY eksik olabilir.')
       return
     }
 
@@ -129,6 +138,12 @@ export default function MalikEklePage() {
     setCreatedEmail(email.trim().toLowerCase())
     setCreatedPass(password)
     setSuccess(true)
+
+    } catch (err: unknown) {
+      setSaving(false)
+      const msg = err instanceof Error ? err.message : 'Beklenmeyen hata'
+      setError('Hata: ' + msg)
+    }
   }
 
   // ── Başarı Ekranı ──────────────────────────────────────────────────────────
