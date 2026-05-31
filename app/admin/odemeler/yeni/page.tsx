@@ -338,10 +338,13 @@ export default function TahsilatEklePage() {
 
       </div>
 
-      {/* Kaydet — sabit alt */}
+      {/* Kaydet — sabit alt (admin nav üstünde: z-40) */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 px-4 pt-3"
-        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+        className="fixed left-0 right-0 bg-white border-t border-neutral-100 px-4 pt-3 z-40 md:bottom-0"
+        style={{
+          bottom: 'calc(80px + env(safe-area-inset-bottom))',
+          paddingBottom: '12px',
+        }}
       >
         <div className="max-w-lg mx-auto">
           <button
