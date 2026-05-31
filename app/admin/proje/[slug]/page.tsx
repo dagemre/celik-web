@@ -58,7 +58,9 @@ const MALIKLER_ODEMELER = [
   { name: 'Fatma Şahin',  toplam:   800_000, odenen: 0         },
 ]
 
-const getKatLabel = (n: number) => n === 1 ? '1. Kat (Zemin)' : `${n}. Kat`
+const getKatLabel = (n: number) => `${n}. Kat`
+const KAT_ISIM_SECENEKLERI = ['Bodrum Kat', 'Zemin Kat', 'Normal Kat', 'Dublex Daire', 'Mansard Çatı Daire']
+const KAT_ISIMLER_LS_KEY = 'kat_isimler_global' // Tüm projelerde ortak
 
 const INITIAL_DAIRELER: DaireItem[] = []
 
@@ -1598,12 +1600,20 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
   const [katSayisi, setKatSayisi] = useState(0)
   const [expandedKat, setExpandedKat] = useState<number | null>(1)
   const [lsLoaded, setLsLoaded]   = useState(false)
+  // Kat isimleri — global (tüm projelerde ortak)
+  const [katIsimler, setKatIsimler] = useState<Record<number, string>>({})
+  const [editingKatIsim, setEditingKatIsim] = useState<number | null>(null)
 
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
       if (stored.daireler)  setDaireler(stored.daireler)
       if (stored.katSayisi) setKatSayisi(stored.katSayisi)
+    } catch {}
+    // Global kat isimleri
+    try {
+      const globalIsimler = JSON.parse(localStorage.getItem(KAT_ISIMLER_LS_KEY) || '{}')
+      setKatIsimler(globalIsimler)
     } catch {}
     setLsLoaded(true)
   }, [lsKey])
@@ -1612,6 +1622,15 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
     if (!lsLoaded) return
     localStorage.setItem(lsKey, JSON.stringify({ daireler, katSayisi }))
   }, [daireler, katSayisi, lsLoaded, lsKey])
+
+  const setKatIsim = (katNo: number, isim: string) => {
+    const updated = { ...katIsimler, [katNo]: isim }
+    setKatIsimler(updated)
+    localStorage.setItem(KAT_ISIMLER_LS_KEY, JSON.stringify(updated))
+    setEditingKatIsim(null)
+  }
+
+  const getKatIsim = (katNo: number) => katIsimler[katNo] || getKatLabel(katNo)
 
   // Panel states
   const [addPanel, setAddPanel]             = useState<number | null>(null) // kat no for daire ekle
@@ -1830,7 +1849,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
   const hasSidePanel = addPanel !== null || malikPanel !== null || editDaire !== null
 
   return (
-    <div>
+    <div onClick={() => editingKatIsim !== null && setEditingKatIsim(null)}>
       <div className={`md:flex md:gap-4 md:items-start`}>
 
         {/* ── Ana içerik ── */}
@@ -1890,20 +1909,52 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
           {/* Kat listesi */}
           <div className="space-y-3">
             {katlar.map(katNo => {
-              const katDaireler = daireler.filter(d => d.katNo === katNo)
-              const isExpanded  = expandedKat === katNo
-              const label       = getKatLabel(katNo)
+              const katDaireler  = daireler.filter(d => d.katNo === katNo)
+              const isExpanded   = expandedKat === katNo
+              const label        = getKatIsim(katNo)
+              const isEditingIsim = editingKatIsim === katNo
 
               return (
                 <div key={katNo} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
                   {/* Kat header */}
                   <div className="flex items-center justify-between px-4 py-3.5">
-                    <button
-                      className="flex items-center gap-2 flex-1 text-left min-w-0"
-                      onClick={() => setExpandedKat(isExpanded ? null : katNo)}>
-                      <span className="font-bold text-sm text-primary-800 truncate">{label}</span>
-                      <span className="text-xs text-neutral-400 flex-shrink-0">{katDaireler.length} Daire</span>
-                    </button>
+                    <div className="flex items-center gap-2 flex-1 min-w-0 relative">
+                      {/* Kat ismine tıklayınca dropdown açılır */}
+                      <button
+                        onClick={e => { e.stopPropagation(); setEditingKatIsim(isEditingIsim ? null : katNo) }}
+                        className="flex items-center gap-1.5 hover:bg-neutral-50 rounded-lg px-1.5 py-0.5 transition-colors group">
+                        <span className="font-bold text-sm text-primary-800">{label}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="opacity-40 group-hover:opacity-70 flex-shrink-0">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="#0A1F44" strokeWidth="1.8" strokeLinecap="round"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#0A1F44" strokeWidth="1.8" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                      <span className="text-xs text-neutral-400 flex-shrink-0"
+                        onClick={() => setExpandedKat(isExpanded ? null : katNo)}
+                        style={{ cursor: 'pointer' }}>
+                        {katDaireler.length} Daire
+                      </span>
+
+                      {/* Dropdown */}
+                      {isEditingIsim && (
+                        <div className="absolute left-0 top-8 z-30 bg-white rounded-2xl border border-neutral-100 shadow-lg py-1.5 min-w-[180px]"
+                          onClick={e => e.stopPropagation()}>
+                          <p className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider px-3 pt-1 pb-1.5">Kat Türü</p>
+                          {KAT_ISIM_SECENEKLERI.map(secenek => (
+                            <button key={secenek} onClick={() => setKatIsim(katNo, secenek)}
+                              className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 ${label === secenek ? 'font-semibold text-primary-800 bg-primary-50' : 'text-neutral-700'}`}>
+                              {secenek}
+                            </button>
+                          ))}
+                          <div className="border-t border-neutral-100 mt-1 pt-1">
+                            <button onClick={() => setKatIsim(katNo, getKatLabel(katNo))}
+                              className="w-full text-left px-3 py-2 text-xs text-neutral-400 hover:bg-neutral-50 transition-colors">
+                              Varsayılana dön ({getKatLabel(katNo)})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {isExpanded && (
                         <button onClick={() => openAdd(katNo)}
@@ -2019,7 +2070,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
           <div className="hidden md:block md:w-[360px] flex-shrink-0 bg-white rounded-2xl border border-neutral-100 p-5 sticky top-6">
             {addPanel !== null && (
               <DaireEkleForm
-                katLabel={getKatLabel(addPanel)}
+                katLabel={getKatIsim(addPanel)}
                 form={addForm} setForm={setAddForm}
                 onEkle={handleEkle}
                 onClose={() => setAddPanel(null)}
@@ -2030,7 +2081,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="font-bold text-base text-primary-800">Daireyi Düzenle</h3>
-                    <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatLabel(editDaire.katNo)}</p>
+                    <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatIsim(editDaire.katNo)}</p>
                   </div>
                   <button onClick={() => setEditDaire(null)} className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-200">✕</button>
                 </div>
@@ -2076,7 +2127,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
             onClick={e => e.stopPropagation()}>
             <div className="mx-auto w-10 h-1 bg-neutral-200 rounded-full mb-4" />
             <DaireEkleForm
-              katLabel={getKatLabel(addPanel)}
+              katLabel={getKatIsim(addPanel)}
               form={addForm} setForm={setAddForm}
               onEkle={handleEkle}
               onClose={() => setAddPanel(null)}
@@ -2095,7 +2146,7 @@ const DairelerTab = ({ slug, projectId }: { slug: string; projectId: string }) =
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-bold text-base text-primary-800">Daireyi Düzenle</h3>
-                <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatLabel(editDaire.katNo)}</p>
+                <p className="text-xs text-neutral-400">No: {editDaire.no} · {getKatIsim(editDaire.katNo)}</p>
               </div>
               <button onClick={() => setEditDaire(null)} className="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500">✕</button>
             </div>
