@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Bu route SUNUCU tarafında çalışır — service_role key güvendedir
 export async function POST(request: Request) {
   const { email, password, phone } = await request.json()
 
@@ -9,25 +8,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'password zorunlu' }, { status: 400 })
   }
 
-  // E-posta yoksa telefon numarasından otomatik üret
   const normalizedPhone = (phone || '').replace(/\D/g, '')
   const effectiveEmail = email?.trim()
     ? email.trim().toLowerCase()
     : `${normalizedPhone}@celikpanel.app`
 
-  // Service role key kontrolü
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === 'BURAYA_YAPISTIR') {
-    return NextResponse.json(
-      { error: 'SUPABASE_SERVICE_ROLE_KEY eksik — .env.local ve Vercel env vars kontrol et.' },
-      { status: 500 }
-    )
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  console.log('[create-malik] key set:', !!key, '| key length:', key?.length ?? 0)
+
+  if (!key || key === 'BURAYA_YAPISTIR') {
+    console.log('[create-malik] HATA: SERVICE_ROLE_KEY eksik')
+    return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY eksik' }, { status: 500 })
   }
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  )
+  const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key)
 
+  console.log('[create-malik] createUser çağrılıyor:', effectiveEmail)
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email: effectiveEmail,
     password,
@@ -36,8 +32,10 @@ export async function POST(request: Request) {
   })
 
   if (error) {
+    console.log('[create-malik] SUPABASE HATA:', error.message)
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
+  console.log('[create-malik] BAŞARILI user id:', data.user.id)
   return NextResponse.json({ auth_user_id: data.user.id, email: effectiveEmail })
 }
