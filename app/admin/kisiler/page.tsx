@@ -227,7 +227,12 @@ function MalikForm({
             <label className="block text-xs font-medium text-neutral-400 mb-1">Telefon</label>
             <input
               value={form.phone}
-              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              onChange={e => {
+                const val = e.target.value
+                const digits = val.replace(/\D/g, '')
+                const last4 = digits.length >= 4 ? digits.slice(-4) : digits
+                setForm(f => ({ ...f, phone: val, sifre: f.sifre || last4 }))
+              }}
               placeholder="05XX XXX XX XX"
               className="w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
             />
@@ -313,7 +318,7 @@ function MalikForm({
               type={showSifre ? 'text' : 'password'}
               value={form.sifre}
               onChange={e => setForm(f => ({ ...f, sifre: e.target.value }))}
-              placeholder="En az 6 karakter"
+              placeholder="Otomatik: son 4 hane"
               className={inputCls + ' pr-10'}
             />
             <button
@@ -525,6 +530,24 @@ export default function AdminKisilerPage() {
       } else {
         // ── Yeni ekle ──
         const projectId = form.projectId || selectedProjectId
+        const normalizedPhone = form.phone.trim().replace(/\D/g, '')
+        const sifre = form.sifre.trim() || normalizedPhone.slice(-4) || '0000'
+
+        // 0. Supabase Auth kullanıcısı oluştur
+        let authUserId: string | null = null
+        let effectiveEmail = form.email.trim().toLowerCase()
+        try {
+          const authRes = await fetch('/api/admin/create-malik', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email.trim(), password: sifre, phone: normalizedPhone }),
+          })
+          const authJson = await authRes.json()
+          if (authRes.ok && authJson.auth_user_id) {
+            authUserId = authJson.auth_user_id
+            effectiveEmail = authJson.email || effectiveEmail
+          }
+        } catch { /* auth oluşturulamazsa devam et, auth_user_id null kalır */ }
 
         // 1. Daire oluştur
         const { data: unit, error: unitErr } = await supabase.from('units').insert({
@@ -538,13 +561,14 @@ export default function AdminKisilerPage() {
 
         if (unitErr || !unit) throw unitErr
 
-        // 2. Malik oluştur
+        // 2. Malik oluştur — auth_user_id ile
         const { data: owner, error: ownerErr } = await supabase.from('owners').insert({
-          full_name:  form.name.trim(),
-          phone:      form.phone.trim(),
-          email:      form.email.trim(),
-          project_id: projectId,
-          unit_id:    unit.id,
+          full_name:    form.name.trim(),
+          phone:        normalizedPhone,
+          email:        effectiveEmail,
+          project_id:   projectId,
+          unit_id:      unit.id,
+          auth_user_id: authUserId,
         }).select().single()
 
         if (ownerErr || !owner) throw ownerErr
