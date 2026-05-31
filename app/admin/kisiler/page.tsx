@@ -111,27 +111,48 @@ function MalikForm({
   const paid     = Number(form.paid.replace(/\D/g, ''))     || 0
   const inputCls = "w-full bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3 text-sm text-primary-800 placeholder-neutral-300 focus:outline-none focus:border-primary-300"
 
-  // Seçili projenin kat sayısını ve isimlerini localStorage'dan oku
+  // Seçili projenin katlarını Supabase'den çek + localStorage isimleriyle birleştir
   useEffect(() => {
     const projectId = form.projectId
     if (!projectId) { setKatOptions([]); return }
-    const project = projects.find(p => p.id === projectId)
-    if (!project) { setKatOptions([]); return }
-    const lsKey = `daireler_v2_${project.slug}`
-    let katSayisi = 5
-    try {
-      const stored = JSON.parse(localStorage.getItem(lsKey) || '{}')
-      if (stored.katSayisi) katSayisi = stored.katSayisi
-    } catch {}
+
+    // localStorage'dan kat isimlerini oku (aynı tarayıcıda çalışır)
     let katIsimler: Record<number, string> = {}
-    try {
-      katIsimler = JSON.parse(localStorage.getItem('kat_isimler_global') || '{}')
-    } catch {}
-    const options = Array.from({ length: katSayisi }, (_, i) => {
-      const no = i + 1
-      return { no, label: katIsimler[no] || `${no}. Kat` }
-    })
-    setKatOptions(options)
+    try { katIsimler = JSON.parse(localStorage.getItem('kat_isimler_global') || '{}') } catch {}
+
+    // Supabase'den bu projenin unit'lerindeki kat numaralarını çek
+    supabase
+      .from('units')
+      .select('floor')
+      .eq('project_id', projectId)
+      .then(({ data }) => {
+        const floorSet = new Set<number>()
+
+        // Supabase'deki mevcut katları ekle
+        if (data && data.length > 0) {
+          data.forEach((u: any) => { if (u.floor) floorSet.add(Number(u.floor)) })
+        }
+
+        // localStorage'daki dairelerden de kat numaralarını ekle
+        const project = projects.find(p => p.id === projectId)
+        if (project) {
+          try {
+            const stored = JSON.parse(localStorage.getItem(`daireler_v2_${project.slug}`) || '{}')
+            const katSayisi = stored.katSayisi || 0
+            Array.from({ length: katSayisi }, (_, i) => i + 1).forEach(n => floorSet.add(n))
+          } catch {}
+        }
+
+        // Hiç kat bulunamazsa standart 1-10 göster
+        const floors = floorSet.size > 0
+          ? Array.from(floorSet).sort((a, b) => a - b)
+          : Array.from({ length: 10 }, (_, i) => i + 1)
+
+        setKatOptions(floors.map(no => ({
+          no,
+          label: katIsimler[no] || `${no}. Kat`,
+        })))
+      })
   }, [form.projectId, projects])
 
   return (
