@@ -2322,7 +2322,7 @@ const KonumKart = ({ mapLat, mapLng, nearbyPlaces, onEdit }: {
   )
 }
 
-// ── Konum Modal (Leaflet harita seçici) ────────────────────────────────────────
+// ── Konum Modal (Tam ekran Leaflet harita seçici) ─────────────────────────────
 const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNearbyPlaces, projectId, onClose }: {
   mapLat: number | null; mapLng: number | null
   setMapLat: (v: number | null) => void; setMapLng: (v: number | null) => void
@@ -2334,57 +2334,86 @@ const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNea
   const [lng, setLng]                 = useState<number | null>(mapLng)
   const [search, setSearch]           = useState('')
   const [searching, setSearching]     = useState(false)
+  const [mapReady, setMapReady]       = useState(false)
+  const [showPlaces, setShowPlaces]   = useState(false)
   const [localPlaces, setLocalPlaces] = useState<NearbyPlace[]>(
-    nearbyPlaces.length > 0 ? nearbyPlaces : [{ label: '', desc: '' }]
+    nearbyPlaces.length > 0 ? nearbyPlaces : []
   )
   const mapRef    = useRef<HTMLDivElement>(null)
   const mapInst   = useRef<any>(null)
   const markerRef = useRef<any>(null)
+  const latRef    = useRef(lat)
+  const lngRef    = useRef(lng)
 
-  // Leaflet'i yükle ve haritayı başlat
+  latRef.current = lat
+  lngRef.current = lng
+
+  const placeMarker = (L: any, la: number, lo: number) => {
+    if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+    const icon = L.divIcon({
+      html: `<div style="width:32px;height:32px;background:#0A1F44;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`,
+      iconSize: [32, 32], iconAnchor: [16, 32], className: ''
+    })
+    markerRef.current = L.marker([la, lo], { icon }).addTo(mapInst.current)
+  }
+
+  const initMap = () => {
+    const L = (window as any).L
+    if (!L || !mapRef.current || mapInst.current) return
+    const center: [number, number] = latRef.current && lngRef.current
+      ? [latRef.current, lngRef.current] : [41.015, 28.979]
+    const map = L.map(mapRef.current, { zoomControl: true }).setView(center, latRef.current ? 16 : 12)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 19
+    }).addTo(map)
+    if (latRef.current && lngRef.current) placeMarker(L, latRef.current, lngRef.current)
+    map.on('click', (e: any) => {
+      const { lat: la, lng: lo } = e.latlng
+      setLat(la); setLng(lo)
+      placeMarker(L, la, lo)
+    })
+    mapInst.current = map
+    setMapReady(true)
+    // Haritanın boyutunu doğru hesapla
+    setTimeout(() => map.invalidateSize(), 100)
+  }
+
   useEffect(() => {
-    if (!mapRef.current) return
-
-    const initMap = () => {
-      const L = (window as any).L
-      if (!L || !mapRef.current || mapInst.current) return
-      const center: [number, number] = lat && lng ? [lat, lng] : [41.015, 28.979]
-      const map = L.map(mapRef.current).setView(center, 14)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map)
-      if (lat && lng) {
-        markerRef.current = L.marker([lat, lng]).addTo(map)
+    const loadLeaflet = () => {
+      if (!document.querySelector('#leaflet-css')) {
+        const link = document.createElement('link')
+        link.id = 'leaflet-css'; link.rel = 'stylesheet'
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+        document.head.appendChild(link)
       }
-      map.on('click', (e: any) => {
-        const { lat: la, lng: lo } = e.latlng
-        setLat(la); setLng(lo)
-        if (markerRef.current) markerRef.current.remove()
-        markerRef.current = L.marker([la, lo]).addTo(map)
-      })
-      mapInst.current = map
+      if ((window as any).L) { initMap() }
+      else {
+        if (!document.querySelector('#leaflet-js')) {
+          const script = document.createElement('script')
+          script.id = 'leaflet-js'
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+          script.onload = initMap
+          document.head.appendChild(script)
+        } else {
+          const check = setInterval(() => {
+            if ((window as any).L) { clearInterval(check); initMap() }
+          }, 100)
+        }
+      }
     }
-
-    if (!document.querySelector('#leaflet-css')) {
-      const link = document.createElement('link')
-      link.id = 'leaflet-css'; link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      document.head.appendChild(link)
+    // Kısa gecikme ile DOM hazır olsun
+    const t = setTimeout(loadLeaflet, 50)
+    return () => {
+      clearTimeout(t)
+      if (mapInst.current) { mapInst.current.remove(); mapInst.current = null }
     }
-    if ((window as any).L) {
-      initMap()
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-      script.onload = initMap
-      document.head.appendChild(script)
-    }
-    return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null } }
   }, [])
 
   const handleSearch = async () => {
     if (!search.trim()) return
     setSearching(true)
     try {
-      const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(search)}&format=json&limit=1&countrycodes=tr`)
+      const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(search + ' Türkiye')}&format=json&limit=1`)
       const data = await res.json()
       if (data[0]) {
         const la = parseFloat(data[0].lat), lo = parseFloat(data[0].lon)
@@ -2392,8 +2421,7 @@ const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNea
         const L = (window as any).L
         if (mapInst.current && L) {
           mapInst.current.setView([la, lo], 16)
-          if (markerRef.current) markerRef.current.remove()
-          markerRef.current = L.marker([la, lo]).addTo(mapInst.current)
+          placeMarker(L, la, lo)
         }
       }
     } finally { setSearching(false) }
@@ -2417,55 +2445,97 @@ const KonumModal = ({ mapLat, mapLng, setMapLat, setMapLng, nearbyPlaces, setNea
   }
 
   return (
-    <Modal title="Konum Düzenle" onClose={onClose} onSave={handleSave} saving={saving}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-white">
 
-      {/* Adres Arama */}
-      <div className="flex gap-2 mb-3">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          placeholder="Adres veya yer ara… (Örn: Avcılar, İstanbul)"
-          className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-400"
-        />
-        <button onClick={handleSearch} disabled={searching}
-          className="flex-shrink-0 px-4 py-2 bg-primary-800 text-white text-xs font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors">
-          {searching ? '...' : 'Ara'}
+      {/* ── Üst bar ── */}
+      <div className="flex-shrink-0 bg-white border-b border-neutral-100 px-4 py-3 flex items-center gap-3">
+        <button onClick={onClose}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors flex-shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
+        <div className="flex-1 flex gap-2">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            placeholder="Adres veya mahalle ara… (Örn: Avcılar)"
+            className="flex-1 bg-neutral-100 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:ring-2 focus:ring-primary-300 placeholder:text-neutral-400"
+          />
+          <button onClick={handleSearch} disabled={searching}
+            className="flex-shrink-0 px-4 py-2 bg-primary-800 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors">
+            {searching
+              ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>
+              : 'Ara'
+            }
+          </button>
+        </div>
       </div>
 
-      {/* Harita — tıklayarak pin bırak */}
-      <div ref={mapRef} className="w-full h-52 rounded-xl overflow-hidden mb-2 border border-neutral-100" />
-      <p className="text-[10px] text-neutral-400 mb-4">
-        {lat && lng
-          ? `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`
-          : 'Haritaya tıklayarak pin bırak veya adres ara'}
-      </p>
+      {/* ── Harita (tam ekran) ── */}
+      <div className="relative flex-1 min-h-0">
+        <div ref={mapRef} className="w-full h-full" />
 
-      {/* Yakın Yerler */}
-      <label className="block text-xs font-semibold text-neutral-500 mb-2">Yakın Yerler</label>
-      <div className="space-y-2 mb-2">
-        {localPlaces.map((p, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <input value={p.label} onChange={e => updatePlace(i, 'label', e.target.value)}
-              placeholder="Metrobüse 5 dk"
-              className="w-2/5 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300" />
-            <input value={p.desc} onChange={e => updatePlace(i, 'desc', e.target.value)}
-              placeholder="Yürüme mesafesinde"
-              className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300" />
-            <button onClick={() => setLocalPlaces(localPlaces.filter((_, idx) => idx !== i))}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-danger-50 transition-colors flex-shrink-0">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        {/* Koordinat bilgisi */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+          {lat && lng
+            ? <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 text-xs font-medium text-primary-800 shadow-lg border border-neutral-100">
+                📍 {lat.toFixed(5)}, {lng.toFixed(5)}
+              </div>
+            : <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-1.5 text-xs text-neutral-500 shadow-lg border border-neutral-100">
+                Haritaya tıklayarak konum seç
+              </div>
+          }
+        </div>
+      </div>
+
+      {/* ── Alt bar ── */}
+      <div className="flex-shrink-0 bg-white border-t border-neutral-100 p-4 space-y-3"
+        style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+
+        {/* Yakın yerler toggle */}
+        <button onClick={() => setShowPlaces(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 bg-neutral-50 rounded-xl text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors">
+          <span>Yakın Yerler ({localPlaces.filter(p=>p.label).length})</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className={`transition-transform ${showPlaces ? 'rotate-180' : ''}`}>
+            <path d="M6 9l6 6 6-6" stroke="#888780" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {showPlaces && (
+          <div className="space-y-2 max-h-36 overflow-y-auto">
+            {localPlaces.map((p, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input value={p.label} onChange={e => updatePlace(i, 'label', e.target.value)}
+                  placeholder="Metrobüse 5 dk"
+                  className="w-2/5 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300" />
+                <input value={p.desc} onChange={e => updatePlace(i, 'desc', e.target.value)}
+                  placeholder="Yürüme mesafesinde"
+                  className="flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-sm text-primary-800 outline-none focus:border-primary-300 placeholder:text-neutral-300" />
+                <button onClick={() => setLocalPlaces(localPlaces.filter((_, idx) => idx !== i))}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-danger-50 transition-colors flex-shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#A32D2D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            ))}
+            <button onClick={() => setLocalPlaces([...localPlaces, { label: '', desc: '' }])}
+              className="w-full flex items-center justify-center gap-1.5 border border-dashed border-neutral-300 rounded-xl py-2 text-xs text-neutral-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              Yer Ekle
             </button>
           </div>
-        ))}
+        )}
+
+        <button onClick={handleSave} disabled={saving || !lat}
+          className="w-full flex items-center justify-center gap-2 bg-primary-800 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-primary-700 disabled:opacity-50 transition-colors">
+          {saving
+            ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg> Kaydediliyor…</>
+            : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white"/></svg> Konumu Kaydet</>
+          }
+        </button>
       </div>
-      <button onClick={() => setLocalPlaces([...localPlaces, { label: '', desc: '' }])}
-        className="w-full flex items-center justify-center gap-1.5 border border-dashed border-neutral-300 rounded-xl py-2 text-xs text-neutral-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        Yer Ekle
-      </button>
-    </Modal>
+    </div>
   )
 }
 
