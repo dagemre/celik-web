@@ -7,12 +7,11 @@ type Props = {
   setActivePage: (page: string) => void
 }
 
-const SIDEBAR_ITEMS = [
+const NAV_ITEMS = [
   {
     key: 'anasayfa',
     label: 'Genel Bakış',
     mobileLabel: 'Genel Bakış',
-    showMobile: true,
     icon: (a: boolean) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
@@ -32,54 +31,24 @@ const SIDEBAR_ITEMS = [
     ),
   },
   {
-    key: 'proje-takibi',
-    label: 'Proje Takibi',
-    mobileLabel: 'Proje',
-    showMobile: true,
+    key: 'daire',
+    label: 'Daire Bilgilerim',
+    mobileLabel: 'Daire',
     icon: (a: boolean) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="7" height="7" rx="1"
+        <rect x="3" y="3" width="18" height="18" rx="2"
           stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"
           fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
-        <rect x="14" y="3" width="7" height="7" rx="1"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"
-          fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
-        <rect x="3" y="14" width="7" height="7" rx="1"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"
-          fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
-        <rect x="14" y="14" width="7" height="7" rx="1"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"
-          fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
+        <path d="M9 3v18M15 3v18M3 9h18M3 15h18"
+          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
     mobileIcon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="7" height="7" rx="1" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <rect x="14" y="3" width="7" height="7" rx="1" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <rect x="3" y="14" width="7" height="7" rx="1" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <rect x="14" y="14" width="7" height="7" rx="1" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-      </svg>
-    ),
-  },
-  {
-    key: 'santiye',
-    label: 'Şantiye Galerisi',
-    mobileLabel: 'Şantiye',
-    showMobile: true,
-    icon: (a: boolean) => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8"
-          fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
-        <circle cx="12" cy="13" r="4"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8" />
-      </svg>
-    ),
-    mobileIcon: (a: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+        <rect x="3" y="3" width="18" height="18" rx="2"
           stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <circle cx="12" cy="13" r="4" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
+        <path d="M9 3v18M15 3v18M3 9h18M3 15h18"
+          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -87,7 +56,6 @@ const SIDEBAR_ITEMS = [
     key: 'odemeler',
     label: 'Ödemeler',
     mobileLabel: 'Ödemeler',
-    showMobile: true,
     icon: (a: boolean) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <rect x="1" y="4" width="22" height="16" rx="2"
@@ -99,8 +67,10 @@ const SIDEBAR_ITEMS = [
     ),
     mobileIcon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="1" y="4" width="22" height="16" rx="2" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <line x1="1" y1="10" x2="23" y2="10" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
+        <rect x="1" y="4" width="22" height="16" rx="2"
+          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
+        <line x1="1" y1="10" x2="23" y2="10"
+          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -108,7 +78,6 @@ const SIDEBAR_ITEMS = [
     key: 'belgeler',
     label: 'Belgeler',
     mobileLabel: 'Belgeler',
-    showMobile: false,
     icon: (a: boolean) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
@@ -124,33 +93,9 @@ const SIDEBAR_ITEMS = [
     ),
   },
   {
-    key: 'duyurular',
-    label: 'Duyurular',
-    mobileLabel: 'Duyurular',
-    showMobile: false,
-    icon: (a: boolean) => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-          fill={a ? 'rgba(255,255,255,0.18)' : 'none'} />
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"
-          stroke={a ? '#ffffff' : 'rgba(255,255,255,0.5)'} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-    mobileIcon: (a: boolean) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
-          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"
-          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
     key: 'hesabim',
     label: 'Hesabım',
     mobileLabel: 'Hesabım',
-    showMobile: false,
     icon: (a: boolean) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="8" r="4"
@@ -163,20 +108,17 @@ const SIDEBAR_ITEMS = [
     mobileIcon: (a: boolean) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="8" r="4" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" />
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
+          stroke={a ? '#0A1F44' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
 ]
 
-const MOBILE_ITEMS = SIDEBAR_ITEMS.filter(i => i.showMobile)
-
 export default function MalikNav({ activePage, setActivePage }: Props) {
-  const isMobileMore = ['belgeler', 'duyurular', 'hesabim'].includes(activePage)
-
   return (
     <>
-      {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────── */}
+      {/* ── DESKTOP SIDEBAR ────────────────────────────────────────── */}
       <aside className="hidden md:flex flex-col flex-shrink-0 w-52 bg-[#0A1F44] h-screen sticky top-0">
 
         {/* Logo */}
@@ -188,7 +130,7 @@ export default function MalikNav({ activePage, setActivePage }: Props) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
-          {SIDEBAR_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item) => {
             const active = activePage === item.key
             return (
               <button
@@ -224,13 +166,13 @@ export default function MalikNav({ activePage, setActivePage }: Props) {
         </div>
       </aside>
 
-      {/* ── MOBİL BOTTOM NAV ────────────────────────────────────────── */}
+      {/* ── MOBİL BOTTOM NAV ──────────────────────────────────────── */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-neutral-100"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex items-end h-16">
-          {MOBILE_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item) => {
             const active = activePage === item.key
             return (
               <button
@@ -245,21 +187,6 @@ export default function MalikNav({ activePage, setActivePage }: Props) {
               </button>
             )
           })}
-
-          {/* Daha Fazlası */}
-          <button
-            onClick={() => setActivePage(isMobileMore ? activePage : 'belgeler')}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <circle cx="5" cy="12" r="1.5" fill={isMobileMore ? '#0A1F44' : '#9CA3AF'} />
-              <circle cx="12" cy="12" r="1.5" fill={isMobileMore ? '#0A1F44' : '#9CA3AF'} />
-              <circle cx="19" cy="12" r="1.5" fill={isMobileMore ? '#0A1F44' : '#9CA3AF'} />
-            </svg>
-            <span className={`text-[10px] font-medium ${isMobileMore ? 'text-[#0A1F44]' : 'text-neutral-400'}`}>
-              Daha Fazlası
-            </span>
-          </button>
         </div>
       </nav>
     </>

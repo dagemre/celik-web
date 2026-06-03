@@ -168,6 +168,32 @@ export async function getProjeeDuyurulari(projectId: string, limit = 5): Promise
   return data as MalikDuyuru[]
 }
 
+export type MalikEvrak = {
+  id: string
+  name: string
+  type: string
+  folder: string
+  file_url: string | null
+  file_size: string
+  created_at: string
+}
+
+/**
+ * Admin'in paylaşıma açtığı evrakları çeker.
+ * documents.is_shared = true olan ve project_id eşleşen kayıtlar.
+ */
+export async function getMalikEvraklari(projectId: string): Promise<MalikEvrak[]> {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, name, type, folder, file_url, file_size, created_at')
+    .eq('project_id', projectId)
+    .eq('is_shared', true)
+    .order('created_at', { ascending: false })
+
+  if (error || !data) return []
+  return data as MalikEvrak[]
+}
+
 // ─── Tarih Formatı ────────────────────────────────────────────────────────────
 
 /** '2026-05-04' → '04.05.2026' */
