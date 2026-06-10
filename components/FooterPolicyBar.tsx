@@ -1,15 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type PolicyKey = 'gizlilik' | 'kvkk' | 'cerez' | null
-
-const MRE = {
-  name: 'Emre Dağ',
-  brand: 'Mre Creative',
-  title: 'UI/UX ve Digital Tasarım Deneyimi',
-  email: 'dagemre@gmail.com',
-}
 
 const policies: Record<NonNullable<PolicyKey>, { title: string; content: string }> = {
   gizlilik: {
@@ -87,42 +80,35 @@ const policies: Record<NonNullable<PolicyKey>, { title: string; content: string 
   },
 }
 
-type FormState = { adSoyad: string; email: string; telefon: string; mesaj: string }
-const EMPTY: FormState = { adSoyad: '', email: '', telefon: '', mesaj: '' }
-
 export default function FooterPolicyBar() {
   const [open, setOpen] = useState<PolicyKey>(null)
-  const [showMre, setShowMre] = useState(false)
-  const [form, setForm] = useState<FormState>(EMPTY)
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
-  const [error, setError] = useState('')
+  const mreRef = useRef<HTMLAnchorElement>(null)
 
   const policy = open ? policies[open] : null
 
-  function closeMre() {
-    setShowMre(false)
-    setTimeout(() => { setForm(EMPTY); setSent(false); setError('') }, 300)
-  }
+  // Mobil: link %90 görünür olunca animasyonu 2.6 sn otomatik oynat
+  useEffect(() => {
+    const el = mreRef.current
+    if (!el) return
+    // Sadece hover desteği olmayan cihazlarda (mobil/tablet)
+    if (window.matchMedia('(hover: hover)').matches) return
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSending(true)
-    setError('')
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      if (res.ok) { setSent(true) }
-      else { setError('Bir hata oluştu, lütfen tekrar dene.') }
-    } catch {
-      setError('Bağlantı hatası, lütfen tekrar dene.')
-    } finally {
-      setSending(false)
-    }
-  }
+    let timer: ReturnType<typeof setTimeout>
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.9) {
+          el.classList.add('is-beating')
+          clearTimeout(timer)
+          timer = setTimeout(() => el.classList.remove('is-beating'), 2600)
+        } else {
+          el.classList.remove('is-beating')
+        }
+      },
+      { threshold: 0.9 }
+    )
+    observer.observe(el)
+    return () => { observer.disconnect(); clearTimeout(timer) }
+  }, [])
 
   return (
     <>
@@ -132,14 +118,15 @@ export default function FooterPolicyBar() {
         <p className="sm:w-1/3 text-center sm:text-left">© 2026 Çelik Taahhüt İnşaat San. Tic. Ltd. Şti. Tüm hakları saklıdır.</p>
 
         {/* Orta — Mre Creative */}
-        <button
-          onClick={() => setShowMre(true)}
-          className="sm:w-1/3 flex items-center justify-center gap-1 text-white/20 hover:text-white/60 transition-colors group"
+        <a
+          ref={mreRef}
+          href="https://m-re.org/"
+          target="_blank"
+          rel="noopener"
+          className="madewith sm:w-1/3 justify-center"
         >
-          <span>Made with</span>
-          <span className="text-rose-400/50 group-hover:text-rose-400 transition-colors">♥</span>
-          <span className="font-medium text-white/30 group-hover:text-white/70 transition-colors">{MRE.brand}</span>
-        </button>
+          Made with <span className="heart">❤</span> <span className="madewith__name">Mre Creative</span>
+        </a>
 
         {/* Sağ — politika linkleri */}
         <div className="sm:w-1/3 flex justify-center sm:justify-end gap-5">
@@ -155,93 +142,91 @@ export default function FooterPolicyBar() {
         </div>
       </div>
 
-      {/* Mre Creative Modal */}
-      {showMre && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={closeMre}
-        >
-          <div
-            className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Üst gradient bant */}
-            <div className="bg-gradient-to-br from-[#0A1F44] to-[#1E54C8] relative px-6 pt-8 pb-6 flex flex-col items-center text-center">
-              <button
-                onClick={closeMre}
-                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                </svg>
-              </button>
-              <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4">
-                <span className="text-xl font-bold text-[#0A1F44]">MC</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-1">{MRE.brand}</h3>
-              <p className="text-sm text-white/70 mb-2">Markanız İçin Kreatif Çözümler ve Estetik Dokunuşlar.</p>
-              <p className="text-xs font-semibold text-white/90 tracking-wide">Hemen İletişime Geçin.</p>
-            </div>
-
-            <div className="px-6 pt-5 pb-6">
-
-              {sent ? (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <p className="font-semibold text-[#0A1F44] mb-1">Mesajın ulaştı!</p>
-                  <p className="text-sm text-neutral-400">En kısa sürede geri döneceğim.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                  <input
-                    required
-                    type="text"
-                    placeholder="Ad Soyad *"
-                    value={form.adSoyad}
-                    onChange={e => setForm(f => ({ ...f, adSoyad: e.target.value }))}
-                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
-                  />
-                  <input
-                    required
-                    type="email"
-                    placeholder="E-posta *"
-                    value={form.email}
-                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Telefon"
-                    value={form.telefon}
-                    onChange={e => setForm(f => ({ ...f, telefon: e.target.value }))}
-                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors"
-                  />
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Mesajınız *"
-                    value={form.mesaj}
-                    onChange={e => setForm(f => ({ ...f, mesaj: e.target.value }))}
-                    className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#0A1F44] transition-colors resize-none"
-                  />
-                  {error && <p className="text-red-500 text-xs">{error}</p>}
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className="w-full bg-[#0A1F44] hover:bg-[#1E54C8] disabled:opacity-60 text-white text-sm font-semibold py-3 rounded-xl transition-colors"
-                  >
-                    {sending ? 'Gönderiliyor...' : 'Mesaj Gönder'}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mre Creative link animasyonları */}
+      <style>{`
+        .madewith {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.75rem;
+          line-height: 1rem;
+          color: rgba(255, 255, 255, 0.3);
+          transition: color 0.3s ease, transform 0.3s ease;
+          will-change: transform;
+        }
+        .madewith .heart {
+          color: #d6212a;
+          display: inline-block;
+          position: relative;
+        }
+        .madewith .heart::before,
+        .madewith .heart::after {
+          content: '❤';
+          position: absolute;
+          left: 50%;
+          top: -2px;
+          font-size: 8px;
+          color: #d6212a;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .madewith__name {
+          position: relative;
+          font-weight: 500;
+        }
+        .madewith__name::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          bottom: -2px;
+          width: 100%;
+          height: 1.5px;
+          background: #d6212a;
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.35s ease;
+        }
+        .madewith:hover,
+        .madewith.is-beating {
+          color: #ffffff;
+          transform: translateY(-2px);
+        }
+        .madewith:hover .heart,
+        .madewith.is-beating .heart {
+          animation: mre-heartbeat 1.1s ease-in-out infinite;
+        }
+        .madewith:hover .heart::before,
+        .madewith.is-beating .heart::before {
+          animation: mre-heartfly-l 1.1s ease-out infinite;
+        }
+        .madewith:hover .heart::after,
+        .madewith.is-beating .heart::after {
+          animation: mre-heartfly-r 1.1s ease-out infinite;
+          animation-delay: 0.55s;
+        }
+        .madewith:hover .madewith__name::after,
+        .madewith.is-beating .madewith__name::after {
+          transform: scaleX(1);
+        }
+        @keyframes mre-heartbeat {
+          0%   { transform: scale(1); }
+          20%  { transform: scale(1.4); }
+          35%  { transform: scale(1); }
+          55%  { transform: scale(1.3); }
+          70%  { transform: scale(1); }
+          100% { transform: scale(1); }
+        }
+        @keyframes mre-heartfly-l {
+          0%   { opacity: 0; transform: translate(-50%, 0) rotate(0deg); }
+          30%  { opacity: 0.9; }
+          100% { opacity: 0; transform: translate(-110%, -24px) rotate(-18deg); }
+        }
+        @keyframes mre-heartfly-r {
+          0%   { opacity: 0; transform: translate(-50%, 0) rotate(0deg); }
+          30%  { opacity: 0.9; }
+          100% { opacity: 0; transform: translate(10%, -24px) rotate(16deg); }
+        }
+      `}</style>
 
       {/* Politika Modal */}
       {open && policy && (
